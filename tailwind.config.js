@@ -13,7 +13,7 @@ module.exports = {
         'bg-surface':  '#0f0f0f',
         'bg-elevated': '#141414',
         'bg-overlay':  '#1c1c1c',
-        accent:        '#00ff88',
+        accent:        '#234DC2',
         fire:          '#ff4500',
         gold:          '#f5c518',
         'text-1':      '#ffffff',
@@ -68,8 +68,8 @@ module.exports = {
       boxShadow: {
         'card':    '0 4px 24px rgba(0,0,0,0.4)',
         'card-lg': '0 20px 40px rgba(0,0,0,0.35)',
-        'glow':    '0 0 20px rgba(0,255,136,0.15)',
-        'glow-lg': '0 0 40px rgba(0,255,136,0.2)',
+        'glow':    '0 0 20px rgba(35,77,194,0.25)',
+        'glow-lg': '0 0 40px rgba(35,77,194,0.3)',
       },
       aspectRatio: {
         '16/9': '16 / 9',
