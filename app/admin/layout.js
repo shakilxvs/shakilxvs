@@ -4,18 +4,23 @@ import { useRouter, usePathname } from 'next/navigation';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
+import {
+  LayoutTemplate, User, Zap, Briefcase, AppWindow,
+  FolderOpen, Star, CreditCard, Inbox, Settings,
+  ExternalLink, LogOut, Menu,
+} from 'lucide-react';
 
 const NAV_ITEMS = [
-  { href: '/admin/hero',     label: 'Hero',     icon: '🏠' },
-  { href: '/admin/about',    label: 'About',    icon: '👤' },
-  { href: '/admin/skills',   label: 'Skills',   icon: '⚡' },
-  { href: '/admin/projects', label: 'Projects', icon: '💼' },
-  { href: '/admin/apps',     label: 'Apps',     icon: '📱' },
-  { href: '/admin/files',    label: 'Files',    icon: '📁' },
-  { href: '/admin/reviews',  label: 'Reviews',  icon: '⭐' },
-  { href: '/admin/pay',      label: 'Pay',      icon: '💳' },
-  { href: '/admin/messages', label: 'Messages', icon: '📬' },
-  { href: '/admin/settings', label: 'Settings', icon: '⚙️' },
+  { href: '/admin/hero',     label: 'Hero',     Icon: LayoutTemplate },
+  { href: '/admin/about',    label: 'About',    Icon: User },
+  { href: '/admin/skills',   label: 'Skills',   Icon: Zap },
+  { href: '/admin/projects', label: 'Projects', Icon: Briefcase },
+  { href: '/admin/apps',     label: 'Apps',     Icon: AppWindow },
+  { href: '/admin/files',    label: 'Files',    Icon: FolderOpen },
+  { href: '/admin/reviews',  label: 'Reviews',  Icon: Star },
+  { href: '/admin/pay',      label: 'Pay',      Icon: CreditCard },
+  { href: '/admin/messages', label: 'Messages', Icon: Inbox },
+  { href: '/admin/settings', label: 'Settings', Icon: Settings },
 ];
 
 function Sidebar({ user, pathname, sidebarOpen, setSidebarOpen }) {
@@ -49,10 +54,10 @@ function Sidebar({ user, pathname, sidebarOpen, setSidebarOpen }) {
 
         {/* Nav */}
         <nav style={{ flex: 1, padding: '12px 12px', overflowY: 'auto' }}>
-          {NAV_ITEMS.map(item => (
+          {NAV_ITEMS.map(({ href, label, Icon }) => (
             <Link
-              key={item.href}
-              href={item.href}
+              key={href}
+              href={href}
               onClick={() => setSidebarOpen(false)}
               style={{
                 display: 'flex',
@@ -66,13 +71,13 @@ function Sidebar({ user, pathname, sidebarOpen, setSidebarOpen }) {
                 fontWeight: 500,
                 textDecoration: 'none',
                 transition: 'all 0.15s ease',
-                background: pathname === item.href ? 'var(--accent-muted)' : 'transparent',
-                color: pathname === item.href ? 'var(--accent)' : 'var(--text-2)',
-                border: pathname === item.href ? '1px solid var(--accent-border)' : '1px solid transparent',
+                background: pathname === href ? 'var(--accent-muted)' : 'transparent',
+                color: pathname === href ? 'var(--accent)' : 'var(--text-2)',
+                border: pathname === href ? '1px solid var(--accent-border)' : '1px solid transparent',
               }}
             >
-              <span style={{ fontSize: '1rem' }}>{item.icon}</span>
-              {item.label}
+              <Icon size={16} strokeWidth={1.75} />
+              {label}
             </Link>
           ))}
         </nav>
@@ -90,7 +95,7 @@ function Sidebar({ user, pathname, sidebarOpen, setSidebarOpen }) {
               border: '1px solid var(--border-2)',
             }}
           >
-            🔗 View Site ↗
+            <ExternalLink size={14} strokeWidth={1.75} /> View Site
           </Link>
           {user && (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px' }}>
@@ -118,7 +123,7 @@ function Sidebar({ user, pathname, sidebarOpen, setSidebarOpen }) {
               cursor: 'pointer', width: '100%', textAlign: 'left',
             }}
           >
-            🚪 Sign Out
+            <LogOut size={14} strokeWidth={1.75} /> Sign Out
           </button>
         </div>
       </aside>
@@ -216,10 +221,10 @@ export default function AdminLayout({ children }) {
               }}
               className="mobile-menu-btn"
             >
-              ☰
+              <Menu size={20} strokeWidth={1.75} />
             </button>
             <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '1.4rem', color: 'var(--text-1)', letterSpacing: '0.05em' }}>
-              {currentNav ? `${currentNav.icon} ${currentNav.label.toUpperCase()}` : 'ADMIN'}
+              {currentNav ? currentNav.label.toUpperCase() : 'ADMIN'}
             </div>
           </div>
           {user?.photoURL && (
