@@ -1,6 +1,9 @@
-import { getPortfolioDoc } from '@/lib/firestore';
+import { getPortfolioDoc, getSkills, getFeaturedProjects } from '@/lib/firestore';
 import Hero from '@/components/portfolio/Hero';
 import Marquee from '@/components/portfolio/Marquee';
+import About from '@/components/portfolio/About';
+import Skills from '@/components/portfolio/Skills';
+import FeaturedProjects from '@/components/portfolio/FeaturedProjects';
 
 export const metadata = {
   title: 'Shakil — CMS & Web Expert | Shopify Developer | Digital Marketer',
@@ -9,15 +12,20 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  let hero = null;
-  try {
-    hero = await getPortfolioDoc('hero');
-  } catch(e) {}
+  const [hero, about, skills, featuredProjects] = await Promise.all([
+    getPortfolioDoc('hero').catch(() => null),
+    getPortfolioDoc('about').catch(() => null),
+    getSkills().catch(() => []),
+    getFeaturedProjects().catch(() => []),
+  ]);
 
   return (
     <>
       <Hero data={hero} />
       <Marquee />
+      <About data={about} />
+      <Skills data={skills} />
+      <FeaturedProjects projects={featuredProjects} />
     </>
   );
 }
