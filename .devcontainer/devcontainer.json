@@ -1,0 +1,6 @@
+{
+  "name": "shakilxvs Portfolio",
+  "image": "mcr.microsoft.com/devcontainers/node:20",
+  "postCreateCommand": "npm install",
+  "forwardPorts": [3000]
+}
