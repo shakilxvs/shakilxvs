@@ -1,0 +1,40 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "shakilxvs@gmail.com";
+    }
+
+    match /portfolio/{doc}         { allow read: if true; allow write: if isAdmin(); }
+    match /skills/{doc}            { allow read: if true; allow write: if isAdmin(); }
+    match /projects/{doc}          { allow read: if true; allow write: if isAdmin(); }
+    match /apps/{doc}              { allow read: if true; allow write: if isAdmin(); }
+    match /files/{doc}             { allow read: if true; allow write: if isAdmin(); }
+    match /reviews/{doc}           { allow read: if true; allow write: if isAdmin(); }
+    match /payment_methods/{doc}   { allow read: if true; allow write: if isAdmin(); }
+    match /payment_crypto/{doc}    { allow read: if true; allow write: if isAdmin(); }
+    match /payment_gateways/{doc}  { allow read: if true; allow write: if isAdmin(); }
+
+    match /reviews_pending/{doc} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /reviews_rejected/{doc} {
+      allow read, write: if isAdmin();
+    }
+
+    match /messages/{doc} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /messages_archived/{doc} { allow read, write: if isAdmin(); }
+
+    match /rate_limits/{doc} { allow read, write: if true; }
+
+    match /{document=**} { allow read, write: if isAdmin(); }
+  }
+}
