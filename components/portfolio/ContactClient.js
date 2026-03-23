@@ -1,0 +1,160 @@
+'use client';
+import { useState, useEffect } from 'react';
+import { getPortfolioDoc } from '@/lib/firestore';
+import { copyToClipboard } from '@/lib/utils';
+import { Phone, Mail, MessageCircle, Instagram, Linkedin, Twitter, Facebook, Music2, Copy, Check, Clock, Send } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+const CONTACT_ITEMS = [
+  { key:'phone',     label:'Phone',       icon: Phone,         action:(v)=>`tel:${v}`,                             actionLabel:'Call' },
+  { key:'email',     label:'Email',       icon: Mail,          action:(v)=>`mailto:${v}`,                          actionLabel:'Email', copyable:true },
+  { key:'whatsapp',  label:'WhatsApp',    icon: MessageCircle, action:(v)=>`https://wa.me/${v.replace(/\D/g,'')}`, actionLabel:'Message' },
+  { key:'instagram', label:'Instagram',   icon: Instagram,     action:(v)=>v,                                       actionLabel:'Follow' },
+  { key:'linkedin',  label:'LinkedIn',    icon: Linkedin,      action:(v)=>v,                                       actionLabel:'Connect' },
+  { key:'twitter',   label:'Twitter / X', icon: Twitter,       action:(v)=>v,                                       actionLabel:'Follow' },
+  { key:'facebook',  label:'Facebook',    icon: Facebook,      action:(v)=>v,                                       actionLabel:'Visit' },
+  { key:'tiktok',    label:'TikTok',      icon: Music2,        action:(v)=>v,                                       actionLabel:'Follow' },
+];
+
+function ContactRow({ item, value }) {
+  const [copied, setCopied] = useState(false);
+  const { icon: Icon, label, action, actionLabel, copyable } = item;
+  const href = action(value);
+
+  const handleCopy = async () => {
+    await copyToClipboard(value);
+    setCopied(true);
+    toast.success('Copied!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div
+      style={{ display:'flex', alignItems:'center', gap:'16px', padding:'18px 22px', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', transition:'border-color 0.2s ease', flexWrap:'wrap' }}
+      onMouseEnter={e=>e.currentTarget.style.borderColor='var(--accent-border)'}
+      onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border-2)'}
+    >
+      <div style={{ width:42, height:42, borderRadius:'var(--radius-md)', background:'var(--accent-muted)', border:'1px solid var(--accent-border)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--accent)', flexShrink:0 }}>
+        <Icon size={17} strokeWidth={1.75}/>
+      </div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'3px' }}>{label}</div>
+        <div style={{ fontFamily:'Outfit,sans-serif', fontWeight:600, color:'var(--text-1)', fontSize:'0.95rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{value}</div>
+      </div>
+      <div style={{ display:'flex', gap:'8px', flexShrink:0 }}>
+        {copyable && (
+          <button onClick={handleCopy} style={{ display:'inline-flex', alignItems:'center', padding:'8px 12px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:copied?'var(--accent)':'var(--text-2)', cursor:'pointer' }}>
+            {copied ? <Check size={13}/> : <Copy size={13}/>}
+          </button>
+        )}
+        <a href={href} target={href.startsWith('http')?'_blank':'_self'} rel="noopener noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'8px 18px', background:'var(--accent)', color:'#fff', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.82rem', textDecoration:'none' }}>
+          {actionLabel}
+        </a>
+      </div>
+    </div>
+  );
+}
+
+function ContactForm() {
+  const [form, setForm]       = useState({ name:'', email:'', service:'', budget:'', message:'' });
+  const [sending, setSending] = useState(false);
+  const [sent, setSent]       = useState(false);
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  const handleSubmit = async () => {
+    if (!form.name || !form.email || !form.message) {
+      toast.error('Please fill in name, email and message');
+      return;
+    }
+    setSending(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) { setSent(true); toast.success('Message sent!'); }
+      else toast.error('Failed to send — try again');
+    } catch { toast.error('Network error — try again'); }
+    finally { setSending(false); }
+  };
+
+  const fi = { width:'100%', padding:'11px 14px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.9rem', outline:'none', boxSizing:'border-box' };
+  const lb = { fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:'6px', display:'block' };
+
+  if (sent) return (
+    <div style={{ textAlign:'center', padding:'60px 24px', background:'var(--bg-surface)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-xl)' }}>
+      <div style={{ width:64, height:64, borderRadius:'50%', background:'var(--accent-muted)', border:'2px solid var(--accent-border)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
+        <Check size={28} color="var(--accent)" strokeWidth={2.5}/>
+      </div>
+      <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'2rem', color:'var(--text-1)', marginBottom:'8px', letterSpacing:'0.05em' }}>Message Sent!</div>
+      <p style={{ fontFamily:'Outfit,sans-serif', color:'var(--text-2)', fontSize:'0.9rem' }}>I'll get back to you within 2 hours.</p>
+    </div>
+  );
+
+  const disabled = sending || !form.name || !form.email || !form.message;
+
+  return (
+    <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'36px' }}>
+      <div className="section-label" style={{ marginBottom:'8px' }}>Send a Message</div>
+      <h2 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'2rem', color:'var(--text-1)', marginBottom:'28px', letterSpacing:'0.03em' }}>Request a Quote</h2>
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginBottom:'16px' }} className="form-grid">
+        <div><label style={lb}>Your Name *</label><input style={fi} value={form.name} onChange={e=>set('name',e.target.value)} placeholder="James Mitchell" onFocus={e=>e.target.style.borderColor='var(--accent-border)'} onBlur={e=>e.target.style.borderColor='var(--border-2)'}/></div>
+        <div><label style={lb}>Email Address *</label><input type="email" style={fi} value={form.email} onChange={e=>set('email',e.target.value)} placeholder="you@example.com" onFocus={e=>e.target.style.borderColor='var(--accent-border)'} onBlur={e=>e.target.style.borderColor='var(--border-2)'}/></div>
+        <div><label style={lb}>Service Needed</label><input style={fi} value={form.service} onChange={e=>set('service',e.target.value)} placeholder="Shopify Development" onFocus={e=>e.target.style.borderColor='var(--accent-border)'} onBlur={e=>e.target.style.borderColor='var(--border-2)'}/></div>
+        <div><label style={lb}>Budget (USD)</label><input style={fi} value={form.budget} onChange={e=>set('budget',e.target.value)} placeholder="$500 – $2,000" onFocus={e=>e.target.style.borderColor='var(--accent-border)'} onBlur={e=>e.target.style.borderColor='var(--border-2)'}/></div>
+        <div style={{ gridColumn:'1/-1' }}>
+          <label style={lb}>Your Message *</label>
+          <textarea style={{ ...fi, minHeight:130, resize:'vertical' }} value={form.message} onChange={e=>set('message',e.target.value)} placeholder="Describe your project, goals, and timeline..." onFocus={e=>e.target.style.borderColor='var(--accent-border)'} onBlur={e=>e.target.style.borderColor='var(--border-2)'}/>
+        </div>
+      </div>
+      <button onClick={handleSubmit} disabled={disabled} style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'13px 28px', background: disabled ? 'var(--bg-elevated)' : 'var(--accent)', color: disabled ? 'var(--text-3)' : '#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.9rem', cursor: disabled ? 'not-allowed' : 'pointer', transition:'all 0.15s ease' }}>
+        <Send size={15}/>{sending ? 'Sending…' : 'Send Message'}
+      </button>
+      <style>{`@media(max-width:640px){.form-grid{grid-template-columns:1fr !important;}}`}</style>
+    </div>
+  );
+}
+
+export default function ContactClient() {
+  const [contact, setContact] = useState(null);
+
+  useEffect(() => { getPortfolioDoc('contact').then(setContact); }, []);
+
+  const visibleItems = CONTACT_ITEMS.filter(item => {
+    const showKey = `show${item.key.charAt(0).toUpperCase()}${item.key.slice(1)}`;
+    return contact?.[showKey] !== false && contact?.[item.key];
+  });
+
+  return (
+    <div style={{ minHeight:'100vh', paddingTop:'100px', paddingBottom:'80px', position:'relative', zIndex:1 }}>
+      <div style={{ maxWidth:860, margin:'0 auto', padding:'0 24px' }}>
+        <div style={{ marginBottom:'48px' }}>
+          <div className="section-label" style={{ marginBottom:'12px' }}>Get In Touch</div>
+          <h1 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(3rem,6vw,5rem)', color:'var(--text-1)', letterSpacing:'0.02em', lineHeight:1 }}>Contact</h1>
+        </div>
+
+        <div style={{ display:'flex', flexDirection:'column', gap:'10px', marginBottom:'40px' }}>
+          {visibleItems.length === 0
+            ? Array.from({length:3}).map((_,i)=><div key={i} style={{ height:78, borderRadius:'var(--radius-lg)' }} className="skeleton"/>)
+            : visibleItems.map(item=><ContactRow key={item.key} item={item} value={contact[item.key]}/>)
+          }
+        </div>
+
+        {contact?.workingHours && (
+          <div style={{ display:'flex', alignItems:'center', gap:'16px', padding:'18px 22px', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', marginBottom:'40px' }}>
+            <div style={{ width:42, height:42, borderRadius:'var(--radius-md)', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-2)', flexShrink:0 }}>
+              <Clock size={17} strokeWidth={1.75}/>
+            </div>
+            <div>
+              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'3px' }}>Working Hours</div>
+              <div style={{ fontFamily:'Outfit,sans-serif', fontWeight:600, color:'var(--text-1)', fontSize:'0.95rem' }}>{contact.workingHours}</div>
+            </div>
+          </div>
+        )}
+
+        <ContactForm />
+      </div>
+    </div>
+  );
+}
