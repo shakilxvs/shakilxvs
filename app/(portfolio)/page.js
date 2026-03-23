@@ -7,6 +7,9 @@ import FeaturedProjects from '@/components/portfolio/FeaturedProjects';
 import ReviewsTeaser from '@/components/portfolio/ReviewsTeaser';
 import CTABanner from '@/components/portfolio/CTABanner';
 
+// Always fetch fresh data — never serve stale cached page
+export const revalidate = 0;
+
 export const metadata = {
   title: 'Shakil — CMS & Web Expert | Shopify Developer | Digital Marketer',
   description: 'Shakil is a CMS & Custom Web Expert, Shopify Developer, and Digital Marketer with 6+ years experience and 5000+ global projects.',
