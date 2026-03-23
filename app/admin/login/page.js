@@ -1,76 +1,98 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { auth } from '@/lib/firebase';
-import { GoogleAuthProvider, signInWithPopup, onAuthStateChanged } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 
 export default function AdminLoginPage() {
-  const router = useRouter();
+  const router   = useRouter();
+  const [password, setPassword] = useState('');
+  const [error, setError]       = useState('');
+  const [loading, setLoading]   = useState(false);
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, (user) => {
-      if (user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
-        router.push('/admin/hero');
-      }
+      if (user?.email === adminEmail) router.push('/admin/hero');
     });
     return () => unsub();
-  }, [router]);
+  }, [router, adminEmail]);
 
-  const handleGoogleSignIn = async () => {
+  const handleEmailSignIn = async () => {
+    if (!password) { setError('Please enter your password'); return; }
+    setLoading(true); setError('');
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      await signInWithEmailAndPassword(auth, adminEmail, password);
     } catch (e) {
-      console.error('Sign in error:', e);
-    }
+      if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+        setError('Incorrect password. Try again.');
+      } else if (e.code === 'auth/too-many-requests') {
+        setError('Too many attempts. Try again later.');
+      } else {
+        setError('Sign in failed. Try again.');
+      }
+    } finally { setLoading(false); }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError(''); setLoading(true);
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      if (result.user.email !== adminEmail) {
+        await auth.signOut();
+        setError('Access Restricted');
+      }
+    } catch (e) {
+      if (e.code !== 'auth/popup-closed-by-user') setError('Google sign in failed.');
+    } finally { setLoading(false); }
+  };
+
+  const fi = { width:'100%', padding:'12px 14px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.9rem', outline:'none', boxSizing:'border-box' };
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: 'var(--bg-void)',
-      position: 'relative',
-      zIndex: 1,
-    }}>
-      <div style={{
-        background: 'var(--bg-surface)',
-        border: '1px solid var(--border-2)',
-        borderRadius: 'var(--radius-xl)',
-        padding: '48px',
-        width: '100%',
-        maxWidth: '400px',
-        textAlign: 'center',
-      }}>
-        <div style={{ fontFamily: 'Space Mono, monospace', fontSize: '0.65rem', color: 'var(--accent)', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: '16px' }}>
-          Admin Access
+    <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg-void)', position:'relative', zIndex:1 }}>
+      <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'48px', width:'100%', maxWidth:'400px' }}>
+        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.65rem', color:'var(--accent)', letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:'16px', textAlign:'center' }}>Admin Access</div>
+        <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'2.5rem', color:'var(--text-1)', marginBottom:'40px', textAlign:'center' }}>SHAKIL CMS</div>
+
+        {/* Email + Password */}
+        <div style={{ marginBottom:'20px' }}>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', letterSpacing:'0.1em', marginBottom:'12px', textAlign:'center', textTransform:'uppercase' }}>Sign in with password</div>
+          <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.85rem', color:'var(--text-2)', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', padding:'11px 14px', marginBottom:'10px' }}>
+            {adminEmail}
+          </div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e=>setPassword(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&handleEmailSignIn()}
+            style={{ ...fi, marginBottom:'12px' }}
+            onFocus={e=>e.target.style.borderColor='var(--accent-border)'}
+            onBlur={e=>e.target.style.borderColor='var(--border-2)'}
+          />
+          <button
+            onClick={handleEmailSignIn}
+            disabled={loading}
+            style={{ width:'100%', padding:'13px', background: loading?'var(--bg-elevated)':'var(--accent)', color: loading?'var(--text-3)':'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.9rem', cursor:loading?'not-allowed':'pointer' }}
+          >
+            {loading ? 'Signing in…' : 'Sign In'}
+          </button>
         </div>
-        <div style={{ fontFamily: 'Bebas Neue, sans-serif', fontSize: '2.5rem', color: 'var(--text-1)', marginBottom: '8px' }}>
-          SHAKIL CMS
+
+        {/* Divider */}
+        <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px' }}>
+          <div style={{ flex:1, height:'1px', background:'var(--border-1)' }}/>
+          <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', letterSpacing:'0.1em' }}>OR</span>
+          <div style={{ flex:1, height:'1px', background:'var(--border-1)' }}/>
         </div>
-        <div style={{ fontFamily: 'Outfit, sans-serif', color: 'var(--text-2)', fontSize: '0.9rem', marginBottom: '40px' }}>
-          Sign in with your admin Google account
-        </div>
+
+        {/* Google */}
         <button
           onClick={handleGoogleSignIn}
-          style={{
-            width: '100%',
-            padding: '14px',
-            background: 'var(--accent)',
-            color: '#000',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            fontFamily: 'Outfit, sans-serif',
-            fontWeight: 700,
-            fontSize: '0.95rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '10px',
-          }}
+          disabled={loading}
+          style={{ width:'100%', padding:'13px', background:'var(--bg-elevated)', color:'var(--text-1)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:600, fontSize:'0.9rem', cursor:loading?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -80,9 +102,12 @@ export default function AdminLoginPage() {
           </svg>
           Continue with Google
         </button>
-        <div style={{ marginTop: '24px', fontFamily: 'Space Mono, monospace', fontSize: '0.65rem', color: 'var(--text-3)', letterSpacing: '0.1em' }}>
-          Only {process.env.NEXT_PUBLIC_ADMIN_EMAIL} can access this panel
-        </div>
+
+        {error && (
+          <div style={{ marginTop:'16px', padding:'12px', background:'rgba(255,69,0,0.1)', border:'1px solid rgba(255,69,0,0.2)', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontSize:'0.85rem', color:'var(--fire)', textAlign:'center' }}>
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );
