@@ -34,7 +34,7 @@ function Card({ title, subtitle, children }) {
 
 function BankDetails({ bank }) {
   if (!bank) return <div style={{ color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.85rem' }}>Bank details not set yet.</div>;
-  const rows = [['Bank Name', bank.bankName],['Account Name', bank.accountName],['Account Number', bank.accountNumber],['Routing / IBAN', bank.routing]].filter(([,v])=>v);
+  const rows = [['Bank Name', bank.bankName],['Account Name', bank.accountName],['Account Number', bank.accountNumber],['Routing', bank.routingNumber],['SWIFT / BIC', bank.swiftCode],['IBAN', bank.iban],['Address', bank.address ? `${bank.address}, ${bank.city||''} ${bank.district||''}, ${bank.country||''}`.replace(/,\s*,/g,',').trim() : '']].filter(([,v])=>v);
   return (
     <div style={{ background:'var(--bg-elevated)', border:'1px solid var(--border-1)', borderRadius:'var(--radius-lg)', overflow:'hidden', marginBottom:'20px' }}>
       {rows.map(([label, value], i) => (
@@ -76,14 +76,14 @@ export default function PayPage() {
         </div>
 
         {/* Group 1 - BDT */}
-        <Card title="Send via Remittance" subtitle="WESTERN UNION · RIA · REMITLY · TAPTAP & MORE">
+        <Card title="Remittance Transfer" subtitle="WESTERN UNION · RIA · REMITLY · TAPTAP & MORE">
           <BankDetails bank={banks?.bdt} />
           {g1.length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>{g1.map(g=><div key={g.id} style={{ padding:'6px 14px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontSize:'0.8rem', color:'var(--text-2)' }}>{g.name}</div>)}</div>}
           <p style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.8rem', color:'var(--text-3)', marginTop:'16px' }}>Use your preferred remittance service to send to this BDT account.</p>
         </Card>
 
         {/* Group 2 - USD */}
-        <Card title="International Bank Transfer" subtitle="USD · BUSINESS PAYMENTS · SWIFT / WIRE">
+        <Card title="International Wire" subtitle="USD · BUSINESS PAYMENTS · SWIFT / WIRE">
           <BankDetails bank={banks?.usd} />
           {g2.length > 0 && <div style={{ display:'flex', flexWrap:'wrap', gap:'8px' }}>{g2.map(g=><div key={g.id} style={{ padding:'6px 14px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontSize:'0.8rem', color:'var(--text-2)' }}>{g.name}</div>)}</div>}
         </Card>
