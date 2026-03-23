@@ -7,7 +7,6 @@ import FeaturedProjects from '@/components/portfolio/FeaturedProjects';
 import ReviewsTeaser from '@/components/portfolio/ReviewsTeaser';
 import CTABanner from '@/components/portfolio/CTABanner';
 
-// Always fetch fresh data — never serve stale cached page
 export const revalidate = 0;
 
 export const metadata = {
@@ -17,23 +16,28 @@ export const metadata = {
 };
 
 export default async function HomePage() {
-  const [hero, about, skills, featuredProjects, reviews] = await Promise.all([
-    getPortfolioDoc('hero').catch(() => null),
-    getPortfolioDoc('about').catch(() => null),
-    getSkills().catch(() => []),
-    getFeaturedProjects().catch(() => []),
-    getApprovedReviews().catch(() => []),
+  const [hero, about, skills, featuredProjects, reviews, siteSettings] = await Promise.all([
+    getPortfolioDoc('hero').catch(()=>null),
+    getPortfolioDoc('about').catch(()=>null),
+    getSkills().catch(()=>[]),
+    getFeaturedProjects().catch(()=>[]),
+    getApprovedReviews().catch(()=>[]),
+    getPortfolioDoc('siteSettings').catch(()=>null),
   ]);
+
+  /* Section visibility — default all true if not configured */
+  const sec = siteSettings?.sections || {};
+  const show = (key) => sec[key] !== false;
 
   return (
     <>
-      <Hero data={hero} />
-      <Marquee />
-      <About data={about} />
-      <Skills data={skills} />
-      <FeaturedProjects projects={featuredProjects} />
-      <ReviewsTeaser reviews={reviews} />
-      <CTABanner />
+      {show('hero')     && <Hero data={hero} />}
+      {show('marquee')  && <Marquee />}
+      {show('about')    && <About data={about} />}
+      {show('skills')   && <Skills data={skills} />}
+      {show('projects') && <FeaturedProjects projects={featuredProjects} />}
+      {show('reviews')  && <ReviewsTeaser reviews={reviews} />}
+      {show('cta')      && <CTABanner />}
     </>
   );
 }
