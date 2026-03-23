@@ -159,7 +159,7 @@ export default function Skills({ data }) {
   const activeSkills = skills.filter(s => s.active !== false);
 
   return (
-    <section style={{ padding: '100px 0', position: 'relative', zIndex: 1, background: 'var(--bg-void)' }}>
+    <section style={{ padding: '100px 0', position: 'relative', zIndex: 1, background: 'var(--bg-base)' }}>
       {/* Background orb */}
       <div style={{
         position: 'absolute', top: '50%', right: '-10%',
