@@ -116,9 +116,9 @@ body::after {
 /* ─── Buttons ────────────────────────────────────────────── */
 .btn-primary {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 12px 24px;
+  padding: 9px 20px;
   background: var(--accent); color: #fff;
-  font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.9rem;
+  font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.875rem;
   border-radius: var(--radius-md); border: none; cursor: pointer;
   transition: opacity 0.15s ease, transform 0.08s ease;
   text-decoration: none; white-space: nowrap;
@@ -128,9 +128,9 @@ body::after {
 
 .btn-secondary {
   display: inline-flex; align-items: center; gap: 8px;
-  padding: 12px 24px;
+  padding: 8px 18px;
   background: transparent; color: var(--text-1);
-  font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.9rem;
+  font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.85rem;
   border-radius: var(--radius-md); border: 1px solid var(--border-3); cursor: pointer;
   transition: border-color 0.15s ease, transform 0.08s ease;
   text-decoration: none; white-space: nowrap;
