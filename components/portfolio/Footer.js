@@ -1,3 +1,4 @@
+'use client';
 import Link from 'next/link';
 import { Github, Instagram, Linkedin, Twitter, Youtube, Facebook } from 'lucide-react';
 
