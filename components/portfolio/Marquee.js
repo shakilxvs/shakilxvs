@@ -1,20 +1,63 @@
 'use client';
+import { useState, useEffect } from 'react';
+import { getPortfolioDoc } from '@/lib/firestore';
 
-const ROW1 = [
-  'Shopify', 'WordPress', 'Wix', 'Webflow', 'Meta Ads', 'Google Ads',
-  'TikTok', 'Pinterest', 'Dropshipping', 'WooCommerce', 'SEO', 'CRO',
-  'Shopify', 'WordPress', 'Wix', 'Webflow', 'Meta Ads', 'Google Ads',
-  'TikTok', 'Pinterest', 'Dropshipping', 'WooCommerce', 'SEO', 'CRO',
+const ROW1_DEFAULT = [
+  { label:'Shopify',     src:'https://cdn.simpleicons.org/shopify',     invert:false },
+  { label:'WordPress',   src:'https://cdn.simpleicons.org/wordpress',   invert:false },
+  { label:'Wix',         src:'https://cdn.simpleicons.org/wix',         invert:true  },
+  { label:'WooCommerce', src:'https://cdn.simpleicons.org/woocommerce', invert:false },
+  { label:'Webflow',     src:'https://cdn.simpleicons.org/webflow',     invert:false },
+  { label:'Squarespace', src:'https://cdn.simpleicons.org/squarespace', invert:true  },
+  { label:'Meta',        src:'https://cdn.simpleicons.org/meta',        invert:false },
+  { label:'Google',      src:'https://cdn.simpleicons.org/google',      invert:false },
+  { label:'TikTok',      src:'https://cdn.simpleicons.org/tiktok',      invert:true  },
+  { label:'Pinterest',   src:'https://cdn.simpleicons.org/pinterest',   invert:false },
+];
+const ROW2_DEFAULT = [
+  { label:'Next.js',     src:'https://cdn.simpleicons.org/nextdotjs',   invert:true  },
+  { label:'Firebase',    src:'https://cdn.simpleicons.org/firebase',    invert:false },
+  { label:'React',       src:'https://cdn.simpleicons.org/react',       invert:false },
+  { label:'Tailwind',    src:'https://cdn.simpleicons.org/tailwindcss', invert:false },
+  { label:'JavaScript',  src:'https://cdn.simpleicons.org/javascript',  invert:false },
+  { label:'PHP',         src:'https://cdn.simpleicons.org/php',         invert:false },
+  { label:'Python',      src:'https://cdn.simpleicons.org/python',       invert:false },
+  { label:'Figma',       src:'https://cdn.simpleicons.org/figma',       invert:false },
+  { label:'GitHub',      src:'https://cdn.simpleicons.org/github',      invert:true  },
+  { label:'Vercel',      src:'https://cdn.simpleicons.org/vercel',      invert:true  },
 ];
 
-const ROW2 = [
-  'UI Design', 'Firebase', 'Next.js', 'Squarespace', 'Email Marketing',
-  'Store Optimization', 'Landing Pages', 'Conversion Rate', 'Analytics',
-  'UI Design', 'Firebase', 'Next.js', 'Squarespace', 'Email Marketing',
-  'Store Optimization', 'Landing Pages', 'Conversion Rate', 'Analytics',
-];
+function LogoItem({ label, src, invert }) {
+  const [err, setErr] = useState(false);
+  return (
+    <div style={{
+      height: 28, padding: '4px 10px',
+      background: 'rgba(255,255,255,0.06)',
+      border: '1px solid rgba(255,255,255,0.04)',
+      borderRadius: 6,
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+      flexShrink: 0,
+    }} title={label}>
+      {!err && src ? (
+        <img
+          src={src} alt={label}
+          style={{
+            height: 18, width: 'auto', maxWidth: 44, objectFit: 'contain',
+            filter: invert ? 'brightness(0) invert(1)' : 'none',
+          }}
+          onError={() => setErr(true)}
+        />
+      ) : (
+        <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase' }}>
+          {label}
+        </span>
+      )}
+    </div>
+  );
+}
 
 function MarqueeRow({ items, reverse = false, speed = 35 }) {
+  const doubled = [...items, ...items];
   return (
     <div style={{
       overflow: 'hidden',
@@ -22,27 +65,12 @@ function MarqueeRow({ items, reverse = false, speed = 35 }) {
       WebkitMaskImage: 'linear-gradient(90deg, transparent, black 8%, black 92%, transparent)',
     }}>
       <div style={{
-        display: 'flex',
-        gap: '0',
+        display: 'flex', gap: '24px', alignItems: 'center',
         animation: `${reverse ? 'marqueeRev' : 'marquee'} ${speed}s linear infinite`,
         width: 'max-content',
       }}>
-        {items.map((item, i) => (
-          <span key={i} style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '10px',
-            padding: '0 18px',
-            fontFamily: 'Space Mono, monospace',
-            fontSize: '0.68rem',
-            color: 'rgba(141,161,220,0.7)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.18em',
-            whiteSpace: 'nowrap',
-          }}>
-            {item}
-            <span style={{ width: 3, height: 3, borderRadius: '50%', background: 'var(--accent)', opacity: 0.6, flexShrink: 0, display: 'inline-block' }} />
-          </span>
+        {doubled.map((item, i) => (
+          <LogoItem key={i} label={item.label} src={item.src} invert={item.invert ?? false} />
         ))}
       </div>
     </div>
@@ -50,27 +78,30 @@ function MarqueeRow({ items, reverse = false, speed = 35 }) {
 }
 
 export default function Marquee() {
+  const [row1, setRow1] = useState(ROW1_DEFAULT);
+  const [row2, setRow2] = useState(ROW2_DEFAULT);
+
+  useEffect(() => {
+    getPortfolioDoc('marqueeLogos').then(data => {
+      if (data?.row1?.length) setRow1(data.row1);
+      if (data?.row2?.length) setRow2(data.row2);
+    }).catch(() => {/* keep defaults */});
+  }, []);
+
   return (
     <div style={{
-      /* Distinctly different from the page bg — subtle accent-tinted stripe */
-      background: 'linear-gradient(180deg, #080d1e 0%, #0b1125 50%, #080d1e 100%)',
-      borderTop: '1px solid rgba(35,77,194,0.25)',
-      borderBottom: '1px solid rgba(35,77,194,0.25)',
+      background: 'var(--bg-base)',
+      borderTop: '1px solid var(--border-1)',
+      borderBottom: '1px solid var(--border-1)',
       padding: '18px 0',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '12px',
-      position: 'relative',
-      zIndex: 1,
-      overflow: 'hidden',
+      display: 'flex', flexDirection: 'column', gap: '12px',
+      position: 'relative', zIndex: 1, overflow: 'hidden',
     }}>
-      {/* Subtle center glow */}
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 100% at 50% 50%, rgba(35,77,194,0.06) 0%, transparent 100%)', pointerEvents: 'none' }}/>
-      <MarqueeRow items={ROW1} />
-      <MarqueeRow items={ROW2} reverse speed={28} />
+      <MarqueeRow items={row1} />
+      <MarqueeRow items={row2} reverse speed={28} />
       <style>{`
-        @keyframes marquee    { 0%{transform:translateX(0)}       100%{transform:translateX(-50%)} }
-        @keyframes marqueeRev { 0%{transform:translateX(-50%)}    100%{transform:translateX(0)}    }
+        @keyframes marquee    { 0%{transform:translateX(0)}    100%{transform:translateX(-50%)} }
+        @keyframes marqueeRev { 0%{transform:translateX(-50%)} 100%{transform:translateX(0)} }
       `}</style>
     </div>
   );
