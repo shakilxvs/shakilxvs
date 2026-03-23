@@ -17,11 +17,9 @@ function ScrollProgress() {
   return (
     <div style={{
       position: 'fixed', top: 0, left: 0,
-      height: '2px',
-      width: `${width}%`,
+      height: '2px', width: `${width}%`,
       background: 'var(--accent)',
-      zIndex: 9999,
-      transition: 'width 0.1s linear',
+      zIndex: 9999, transition: 'width 0.1s linear',
       pointerEvents: 'none',
     }} />
   );
@@ -32,7 +30,7 @@ export default function PortfolioLayout({ children }) {
     <>
       <ScrollProgress />
       <Navbar />
-      <main style={{ position: 'relative', zIndex: 1 }}>
+      <main style={{ position: 'relative', zIndex: 1, overflowX: 'hidden', maxWidth: '100vw' }}>
         {children}
       </main>
       <Footer />
