@@ -59,7 +59,7 @@ function MarqueeRow({ items, reverse = false, speed = 35 }) {
 export default function Marquee() {
   return (
     <div style={{
-      background: 'var(--bg-void)',
+      background: 'var(--bg-base)',
       borderTop: '1px solid var(--border-1)',
       borderBottom: '1px solid var(--border-1)',
       padding: '20px 0',
