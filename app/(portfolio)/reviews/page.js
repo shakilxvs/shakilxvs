@@ -63,7 +63,7 @@ function VideoCard({ review }) {
       <div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
           <div style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 700, fontSize: '0.85rem', color: 'var(--text-1)' }}>{review.name}</div>
-          {review.verified && <CheckCircle size={13} color="var(--accent)" fill="var(--accent)" />}
+          {review.verified && <span style={{ display:"inline-flex", alignItems:"center", gap:"3px", padding:"1px 8px", background:"rgba(20,184,166,0.12)", border:"1px solid rgba(20,184,166,0.25)", borderRadius:"100px", fontFamily:"Space Mono,monospace", fontSize:"0.55rem", color:"#2dd4bf", letterSpacing:"0.04em", textTransform:"uppercase" }}><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Verified</span>}
         </div>
         <Stars rating={review.rating} size={12} />
         {review.service && <div style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.6rem', color: 'var(--text-3)', marginTop: '4px' }}>{review.service}</div>}
@@ -144,7 +144,7 @@ function SubmitForm() {
 
   if (success) return (
     <div style={{ padding: '60px', textAlign: 'center', background: 'var(--bg-surface)', border: '1px solid var(--accent-border)', borderRadius: 'var(--radius-xl)' }}>
-      <CheckCircle size={48} color="var(--accent)" style={{ marginBottom: '16px' }} />
+      <div style={{ width:64, height:64, borderRadius:"50%", background:"var(--accent-muted)", border:"2px solid var(--accent-border)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
       <div style={{ fontFamily: 'Bebas Neue,sans-serif', fontSize: '2rem', color: 'var(--text-1)', marginBottom: '8px' }}>Review Submitted!</div>
       <p style={{ fontFamily: 'Outfit,sans-serif', color: 'var(--text-2)', fontSize: '0.9rem' }}>Thank you! Your review will appear after verification.</p>
     </div>
