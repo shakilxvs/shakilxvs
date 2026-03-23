@@ -34,7 +34,11 @@ function CountUpStat({ target, suffix = '+', label }) {
       borderRadius: 'var(--radius-lg)',
       padding: '24px',
       textAlign: 'center',
-    }}>
+      transition: 'border-color 0.2s ease',
+    }}
+    onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-border)'}
+    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-2)'}
+    >
       <div style={{
         fontFamily: 'Bebas Neue, sans-serif',
         fontSize: '3rem',
@@ -58,8 +62,10 @@ function CountUpStat({ target, suffix = '+', label }) {
 }
 
 export default function About({ data }) {
-  const bio = data?.bio || 'I\'m Shakil — a CMS specialist, Shopify developer, and digital marketing expert with 6+ years of experience helping businesses scale online. I\'ve worked with 5000+ global clients across eCommerce, SaaS, and service industries.\n\nI build fast, conversion-focused websites and run data-driven ad campaigns that consistently deliver measurable ROI.';
-  const cvUrl = data?.cvUrl || '#';
+  const bio    = data?.bio || 'I\'m Shakil — a CMS specialist, Shopify developer, and digital marketing expert with 6+ years of experience helping businesses scale online. I\'ve worked with 5000+ global clients across eCommerce, SaaS, and service industries.\n\nI build fast, conversion-focused websites and run data-driven ad campaigns that consistently deliver measurable ROI.';
+  const cvUrl  = data?.cvUrl || '#';
+  // Respect the showCV toggle — default true if not set
+  const showCV = data?.showCV !== false;
 
   const stats = [
     { value: data?.stat1Value || 5000, suffix: '+', label: data?.stat1Label || 'Projects' },
@@ -70,8 +76,15 @@ export default function About({ data }) {
 
   return (
     <section style={{ padding: '100px 0', position: 'relative', zIndex: 1 }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
+      {/* Background glow */}
+      <div style={{
+        position: 'absolute', bottom: '0', left: '-10%',
+        width: '500px', height: '400px',
+        background: 'radial-gradient(ellipse, rgba(35,77,194,0.07) 0%, transparent 70%)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
 
+      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
         {/* Section label */}
         <div style={{ marginBottom: '60px' }}>
           <div className="section-label" style={{ marginBottom: '12px' }}>About Me</div>
@@ -108,36 +121,38 @@ export default function About({ data }) {
             ))}
 
             <div style={{ display: 'flex', gap: '12px', marginTop: '32px', flexWrap: 'wrap' }}>
-              <a
-                href={cvUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  padding: '12px 22px',
-                  background: 'var(--accent)',
-                  color: '#fff',
-                  borderRadius: 'var(--radius-md)',
-                  fontFamily: 'Outfit, sans-serif',
-                  fontWeight: 700, fontSize: '0.875rem',
-                  textDecoration: 'none',
-                }}
-              >
-                <Download size={15} /> Download CV
-              </a>
+              {/* Only show Download CV if showCV is true */}
+              {showCV && cvUrl && cvUrl !== '#' && (
+                <a
+                  href={cvUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '8px',
+                    padding: '12px 22px',
+                    background: 'var(--accent)', color: '#fff',
+                    borderRadius: 'var(--radius-md)',
+                    fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '0.875rem',
+                    textDecoration: 'none', transition: 'opacity 0.15s ease',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
+                  onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                >
+                  <Download size={15} /> Download CV
+                </a>
+              )}
               <Link
                 href="/contact"
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: '8px',
                   padding: '12px 22px',
-                  background: 'transparent',
-                  color: 'var(--text-1)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-3)',
-                  fontFamily: 'Outfit, sans-serif',
-                  fontWeight: 600, fontSize: '0.875rem',
-                  textDecoration: 'none',
+                  background: 'transparent', color: 'var(--text-1)',
+                  borderRadius: 'var(--radius-md)', border: '1px solid var(--border-3)',
+                  fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '0.875rem',
+                  textDecoration: 'none', transition: 'border-color 0.15s ease',
                 }}
+                onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-border)'}
+                onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-3)'}
               >
                 Work Together <ArrowRight size={15} />
               </Link>
@@ -145,11 +160,7 @@ export default function About({ data }) {
           </div>
 
           {/* Stats grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '16px',
-          }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             {stats.map(s => (
               <CountUpStat key={s.label} target={s.value} suffix={s.suffix} label={s.label} />
             ))}
