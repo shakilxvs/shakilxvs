@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getPortfolioDoc, setPortfolioDoc } from '@/lib/firestore';
 import { uploadToCloudinary } from '@/lib/utils';
 import toast from 'react-hot-toast';
-import { Save, Plus, Trash2, Upload, ImageIcon, Loader } from 'lucide-react';
+import { Save, Plus, Trash2, Upload, Image, Loader } from 'lucide-react';
 
 export default function AdminHeroPage() {
   const [loading, setLoading]     = useState(true);
