@@ -7,7 +7,7 @@ import Link from 'next/link';
 import {
   LayoutTemplate, User, Zap, Briefcase, AppWindow,
   FolderOpen, Star, CreditCard, Inbox, Settings,
-  ExternalLink, LogOut, Menu,
+  ExternalLink, LogOut, Menu, ImagePlus,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -17,6 +17,7 @@ const NAV_ITEMS = [
   { href: '/admin/projects', label: 'Projects', Icon: Briefcase },
   { href: '/admin/apps',     label: 'Apps',     Icon: AppWindow },
   { href: '/admin/files',    label: 'Files',    Icon: FolderOpen },
+  { href: '/admin/media',    label: 'Media',    Icon: ImagePlus },
   { href: '/admin/reviews',  label: 'Reviews',  Icon: Star },
   { href: '/admin/pay',      label: 'Pay',      Icon: CreditCard },
   { href: '/admin/messages', label: 'Messages', Icon: Inbox },
