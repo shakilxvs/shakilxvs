@@ -5,6 +5,105 @@ import { uploadToCloudinary } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { Save, Plus, Trash2, Upload, Image, Loader } from 'lucide-react';
 
+
+/* ─── Marquee Logos Admin Section (Phase 6.3) ─────────────────────────────── */
+const MQ_ROW1_DEF = [
+  { label:'Shopify',     src:'https://cdn.simpleicons.org/shopify',     invert:false },
+  { label:'WordPress',   src:'https://cdn.simpleicons.org/wordpress',   invert:false },
+  { label:'Wix',         src:'https://cdn.simpleicons.org/wix',         invert:true  },
+  { label:'WooCommerce', src:'https://cdn.simpleicons.org/woocommerce', invert:false },
+  { label:'Webflow',     src:'https://cdn.simpleicons.org/webflow',     invert:false },
+  { label:'Squarespace', src:'https://cdn.simpleicons.org/squarespace', invert:true  },
+  { label:'Meta',        src:'https://cdn.simpleicons.org/meta',        invert:false },
+  { label:'Google',      src:'https://cdn.simpleicons.org/google',      invert:false },
+  { label:'TikTok',      src:'https://cdn.simpleicons.org/tiktok',      invert:true  },
+  { label:'Pinterest',   src:'https://cdn.simpleicons.org/pinterest',   invert:false },
+];
+const MQ_ROW2_DEF = [
+  { label:'Next.js',    src:'https://cdn.simpleicons.org/nextdotjs',    invert:true  },
+  { label:'Firebase',   src:'https://cdn.simpleicons.org/firebase',     invert:false },
+  { label:'React',      src:'https://cdn.simpleicons.org/react',        invert:false },
+  { label:'Tailwind',   src:'https://cdn.simpleicons.org/tailwindcss',  invert:false },
+  { label:'JavaScript', src:'https://cdn.simpleicons.org/javascript',   invert:false },
+  { label:'PHP',        src:'https://cdn.simpleicons.org/php',          invert:false },
+  { label:'Python',     src:'https://cdn.simpleicons.org/python',       invert:false },
+  { label:'Figma',      src:'https://cdn.simpleicons.org/figma',        invert:false },
+  { label:'GitHub',     src:'https://cdn.simpleicons.org/github',       invert:true  },
+  { label:'Vercel',     src:'https://cdn.simpleicons.org/vercel',       invert:true  },
+];
+
+function MarqueeLogosSection() {
+  const [row1,   setRow1]   = useState(MQ_ROW1_DEF);
+  const [row2,   setRow2]   = useState(MQ_ROW2_DEF);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getPortfolioDoc('marqueeLogos').then(d => {
+      if (d?.row1?.length) setRow1(d.row1);
+      if (d?.row2?.length) setRow2(d.row2);
+    }).catch(() => {});
+  }, []);
+
+  const setField = (setter, i, key, val) =>
+    setter(arr => arr.map((item, idx) => idx === i ? { ...item, [key]: val } : item));
+  const addItem = (setter, arr) => setter([...arr, { label:'', src:'', invert:false }]);
+  const delItem = (setter, i)   => setter(arr => arr.filter((_, idx) => idx !== i));
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      await setPortfolioDoc('marqueeLogos', { row1, row2 });
+      toast.success('Marquee logos saved!');
+    } catch { toast.error('Save failed'); }
+    finally { setSaving(false); }
+  };
+
+  const fi2 = { padding:'7px 10px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', outline:'none', width:'100%', boxSizing:'border-box' };
+  const lb2 = { fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'3px', display:'block' };
+
+  const RowEditor = ({ title, items, setter }) => (
+    <div style={{ marginBottom:'20px' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }}>
+        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.12em' }}>{title}</div>
+        <button onClick={() => addItem(setter, items)} style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'5px 10px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', color:'var(--text-2)', borderRadius:'var(--radius-sm)', fontFamily:'Outfit,sans-serif', fontSize:'0.72rem', cursor:'pointer' }}>
+          <Plus size={11}/> Add
+        </button>
+      </div>
+      <div style={{ display:'flex', flexDirection:'column', gap:'7px' }}>
+        {items.map((item, i) => (
+          <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr auto auto', gap:'8px', alignItems:'end', padding:'10px 12px', background:'var(--bg-elevated)', border:'1px solid var(--border-1)', borderRadius:'var(--radius-md)' }}>
+            <div><label style={lb2}>Label</label><input style={fi2} value={item.label||''} onChange={e=>setField(setter,i,'label',e.target.value)} placeholder="Shopify"/></div>
+            <div><label style={lb2}>Logo URL</label><input style={fi2} value={item.src||''} onChange={e=>setField(setter,i,'src',e.target.value)} placeholder="https://cdn.simpleicons.org/shopify"/></div>
+            <label style={{ display:'flex', alignItems:'center', gap:'5px', cursor:'pointer', fontFamily:'Outfit,sans-serif', fontSize:'0.72rem', color:'var(--text-3)', whiteSpace:'nowrap', paddingBottom:'2px' }}>
+              <input type="checkbox" checked={item.invert||false} onChange={e=>setField(setter,i,'invert',e.target.checked)} style={{ accentColor:'var(--accent)' }}/> Invert
+            </label>
+            <button onClick={()=>delItem(setter,i)} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', display:'flex', alignItems:'center', padding:'6px' }}><Trash2 size={13}/></button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'24px', marginBottom:'20px' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'8px' }}>
+        <div>
+          <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'1.1rem', color:'var(--text-1)', letterSpacing:'0.05em' }}>Marquee Logos</div>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'3px' }}>Two rows of logos in the scrolling strip. "Invert" makes dark SVGs white on dark background.</div>
+        </div>
+        <button onClick={save} disabled={saving} style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'8px 18px', background:saving?'var(--bg-elevated)':'var(--accent)', color:saving?'var(--text-3)':'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.82rem', cursor:saving?'not-allowed':'pointer', flexShrink:0 }}>
+          <Save size={13}/>{saving?'Saving…':'Save Marquee'}
+        </button>
+      </div>
+      <RowEditor title="Row 1 — scrolls left" items={row1} setter={setRow1}/>
+      <RowEditor title="Row 2 — scrolls right" items={row2} setter={setRow2}/>
+      <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)' }}>
+        Tip: https://cdn.simpleicons.org/[brandname] works for most logos
+      </div>
+    </div>
+  );
+}
+
 export default function AdminHeroPage() {
   const [loading, setLoading]     = useState(true);
   const [saving, setSaving]       = useState(false);
@@ -171,6 +270,8 @@ export default function AdminHeroPage() {
           ))}
         </div>
       </div>
+
+      <MarqueeLogosSection />
 
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
