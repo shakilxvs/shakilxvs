@@ -17,6 +17,34 @@ const DEFAULT_NAV = [
   { href:'/contact',  label:'Contact',  visible:true  },
 ];
 
+
+/* ─── Tracking card component ─────────────────────────────── */
+function TrackingCard({ name, color, active, warning, children }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ background:'var(--bg-elevated)', border:`1px solid ${active?'var(--accent-border)':'var(--border-1)'}`, borderRadius:'var(--radius-md)', overflow:'hidden', transition:'border-color 0.2s' }}>
+      <div onClick={()=>setOpen(o=>!o)} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px', cursor:'pointer', userSelect:'none' }}>
+        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+          <div style={{ width:10, height:10, borderRadius:'50%', background:color, flexShrink:0 }}/>
+          <span style={{ fontFamily:'Outfit,sans-serif', fontWeight:600, fontSize:'0.875rem', color:'var(--text-1)' }}>{name}</span>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+          <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:active?'var(--accent)':'var(--text-3)', letterSpacing:'0.08em' }}>{active?'Active':'Not configured'}</span>
+          <span style={{ color:'var(--text-3)', fontSize:'0.7rem', transition:'transform 0.2s', display:'inline-block', transform:open?'rotate(180deg)':'rotate(0deg)' }}>▼</span>
+        </div>
+      </div>
+      {open && (
+        <div style={{ padding:'0 16px 16px', borderTop:'1px solid var(--border-1)' }}>
+          <div style={{ paddingTop:'14px' }}>
+            {warning && <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.78rem', color:'#f5a623', background:'rgba(245,166,35,0.1)', border:'1px solid rgba(245,166,35,0.25)', borderRadius:'var(--radius-md)', padding:'8px 12px', marginBottom:'12px' }}>{warning}</div>}
+            {children}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminSettingsPage() {
   const fi  = { width:'100%', padding:'10px 14px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', outline:'none', boxSizing:'border-box', transition:'border-color 0.15s' };
   const lb  = { fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:'5px', display:'block' };
@@ -33,7 +61,7 @@ export default function AdminSettingsPage() {
   const [logo,         setLogo]         = useState({ type:'default', imageUrl:'', text:'<shakil />' });
   const [badge,        setBadge]        = useState({ show:false, text:'Available for work', color:'#00cc66' });
   const [accentColor,  setAccentColor]  = useState('#234DC2');
-  const [tracking,     setTracking]     = useState({ gaId:'', gtmId:'', metaPixelId:'', tiktokPixelId:'' });
+  const [tracking,     setTracking]     = useState({ gaId:'', gtmId:'', metaPixelId:'', tiktokPixelId:'', pinterestTagId:'', pinterestDomainVerify:'' });
   const [seo,          setSeo]          = useState({ home:{title:'',description:''}, projects:{title:'',description:''}, reviews:{title:'',description:''}, contact:{title:'',description:''}, apps:{title:'',description:''}, files:{title:'',description:''}, pay:{title:'',description:''} });
   const [currentPw,    setCurrentPw]    = useState('');
   const [newPw,        setNewPw]        = useState('');
@@ -302,20 +330,52 @@ export default function AdminSettingsPage() {
 
       {/* ── Tracking & Analytics ──────────────────────────────────── */}
       <div style={cd}>
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
-          <div><div style={hd}>Tracking &amp; Analytics</div><div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'-10px' }}>IDs injected as script tags in the site head</div></div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'20px' }}>
+          <div><div style={hd}>Tracking &amp; Analytics</div><div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'-10px' }}>Paste only the ID for each platform — script injected automatically</div></div>
           <SaveBtn onClick={saveTracking} saving={savingTracking} label="Save Tracking"/>
         </div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
-          {[['gaId','Google Analytics 4 ID','G-XXXXXXXXXX'],['gtmId','Google Tag Manager ID','GTM-XXXXXXX'],['metaPixelId','Meta Pixel ID','1234567890123'],['tiktokPixelId','TikTok Pixel ID','XXXXXXXXXXXXXXX']].map(([key,label,ph])=>(
-            <div key={key}>
-              <label style={lb}>{label}</label>
-              <input style={fi} value={tracking[key]||''} onChange={e=>setTracking(t=>({...t,[key]:e.target.value}))} placeholder={ph} onFocus={foc} onBlur={blr}/>
-            </div>
-          ))}
+        <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+          {/* GA4 */}
+          <TrackingCard
+            name="Google Analytics 4"
+            color="#F4B400"
+            active={!!tracking.gaId}
+            warning={tracking.gaId && tracking.gtmId ? '⚠️ You have GTM configured. Add GA4 inside GTM instead to avoid double-counting.' : ''}
+          >
+            <label style={lb}>Measurement ID</label>
+            <input style={fi} value={tracking.gaId||''} onChange={e=>setTracking(t=>({...t,gaId:e.target.value}))} placeholder="G-XXXXXXXXXX" onFocus={foc} onBlur={blr}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', lineHeight:1.7 }}>Get this from Google Analytics → Admin → Data Streams → your stream → Measurement ID</div>
+          </TrackingCard>
+          {/* GTM */}
+          <TrackingCard name="Google Tag Manager" color="#2196F3" active={!!tracking.gtmId}>
+            <label style={lb}>Container ID</label>
+            <input style={fi} value={tracking.gtmId||''} onChange={e=>setTracking(t=>({...t,gtmId:e.target.value}))} placeholder="GTM-XXXXXXX" onFocus={foc} onBlur={blr}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', lineHeight:1.7 }}>Get from tagmanager.google.com. GTM can manage GA4 and other tags from one place.</div>
+          </TrackingCard>
+          {/* Meta Pixel */}
+          <TrackingCard name="Meta (Facebook) Pixel" color="#1877F2" active={!!tracking.metaPixelId}>
+            <label style={lb}>Pixel ID</label>
+            <input style={fi} value={tracking.metaPixelId||''} onChange={e=>setTracking(t=>({...t,metaPixelId:e.target.value}))} placeholder="1234567890123456" onFocus={foc} onBlur={blr}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', lineHeight:1.7 }}>Paste only your Pixel ID from Meta Events Manager → your Pixel → Settings tab. The tracking code is injected automatically — you do not need to paste the full script.</div>
+          </TrackingCard>
+          {/* TikTok */}
+          <TrackingCard name="TikTok Pixel" color="#000000" active={!!tracking.tiktokPixelId}>
+            <label style={lb}>Pixel ID</label>
+            <input style={fi} value={tracking.tiktokPixelId||''} onChange={e=>setTracking(t=>({...t,tiktokPixelId:e.target.value}))} placeholder="Alphanumeric Pixel ID" onFocus={foc} onBlur={blr}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', lineHeight:1.7 }}>Get from TikTok Ads Manager → Tools → Events Manager → your pixel → Settings.</div>
+          </TrackingCard>
+          {/* Pinterest */}
+          <TrackingCard name="Pinterest Tag" color="#E60023" active={!!tracking.pinterestTagId}>
+            <label style={lb}>Tag ID</label>
+            <input style={fi} value={tracking.pinterestTagId||''} onChange={e=>setTracking(t=>({...t,pinterestTagId:e.target.value}))} placeholder="1234567890123" onFocus={foc} onBlur={blr}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', marginBottom:'12px', lineHeight:1.7 }}>Get your Tag ID from Pinterest Ads Manager → Conversions → Pinterest Tag.</div>
+            <label style={lb}>Domain Verification Code</label>
+            <input style={fi} value={tracking.pinterestDomainVerify||''} onChange={e=>setTracking(t=>({...t,pinterestDomainVerify:e.target.value}))} placeholder="paste only the content= value (no quotes)" onFocus={foc} onBlur={blr}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', lineHeight:1.7 }}>From Pinterest Settings → Claim → Website → HTML tag. Copy ONLY the value after content= (without quotes).</div>
+          </TrackingCard>
         </div>
-        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'10px', lineHeight:1.8 }}>
-          Leave blank to disable. Changes apply after next redeploy.
+        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'12px' }}>
+          All IDs are injected as scripts automatically. Leave blank to disable. Changes apply after next redeploy.
         </div>
       </div>
 
