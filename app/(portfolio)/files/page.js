@@ -117,7 +117,7 @@ export default function FilesPage() {
                   </div>
 
                   {/* Col 4: download button — small */}
-                  <a href={file.link} target="_blank" rel="noopener noreferrer" onClick={()=>incrementFileDownload(file.id)}"
+                  <a href={file.link} target="_blank" rel="noopener noreferrer" onClick={()=>incrementFileDownload(file.id)}
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '5px',
                       padding: '7px 14px',
