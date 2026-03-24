@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import Navbar from '@/components/portfolio/Navbar';
 import Footer from '@/components/portfolio/Footer';
+import SiteConfig from '@/components/SiteConfig';
 
 function ScrollProgress() {
   const [width, setWidth] = useState(0);
@@ -28,6 +29,7 @@ function ScrollProgress() {
 export default function PortfolioLayout({ children }) {
   return (
     <>
+      <SiteConfig />
       <ScrollProgress />
       <Navbar />
       <main style={{ position: 'relative', zIndex: 1, overflowX: 'hidden', maxWidth: '100vw' }}>
