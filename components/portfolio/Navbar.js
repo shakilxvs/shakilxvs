@@ -131,11 +131,11 @@ export default function Navbar() {
         {menuOpen && (
           <div style={{
             background:'rgba(8,8,8,0.97)', backdropFilter:'blur(24px)',
-            borderRadius: scrolled ? '0 0 14px 14px' : '0',
-            border: scrolled ? '1px solid rgba(255,255,255,0.10)' : 'none',
-            borderTop:'none',
-            maxWidth: scrolled ? '1080px' : '100%',
-            margin: scrolled ? '0 auto' : '0',
+            borderRadius: '14px',
+            border: '1px solid rgba(255,255,255,0.10)',
+            marginTop: '8px',
+            maxWidth: scrolled ? '1080px' : 'calc(100% - 24px)',
+            margin: scrolled ? '8px auto 0' : '8px 12px 0',
             padding:'16px 24px 24px',
           }}>
             {visibleNav.map(({ href, label }) => (
