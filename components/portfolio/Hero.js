@@ -87,11 +87,6 @@ export default function Hero({ data, badge }) {
 
         {/* LEFT */}
         <div style={{ display:'flex', flexDirection:'column', gap:'28px' }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'6px 14px', background:'rgba(35,77,194,0.08)', border:'1px solid rgba(35,77,194,0.25)', borderRadius:'100px', width:'fit-content' }}>
-            <span style={{ width:7, height:7, borderRadius:'50%', background:'var(--accent)', boxShadow:'0 0 8px var(--accent)', animation:'pulse-dot 2s ease-in-out infinite', flexShrink:0, display:'inline-block' }}/>
-            <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.65rem', color:'var(--accent)', letterSpacing:'0.05em' }}>Available for projects</span>
-          </div>
-
           <div>
             
       {/* Available for work badge */}
