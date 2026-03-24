@@ -31,7 +31,7 @@ const ROW2_DEF = [
 function LogoPill({ label, src, invert }) {
   const [err, setErr] = useState(false);
   return (
-    <div style={{
+    <div className="mq-pill" style={{
       height:28, padding:'4px 12px',
       background:'rgba(255,255,255,0.07)',
       border:'1px solid rgba(255,255,255,0.05)',
@@ -41,6 +41,7 @@ function LogoPill({ label, src, invert }) {
     }} title={label}>
       {!err && src ? (
         <img
+          className="mq-img"
           src={src} alt={label}
           style={{ height:16, width:'auto', maxWidth:36, objectFit:'contain', filter:invert?'brightness(0) invert(1)':'none', display:'block' }}
           onError={() => setErr(true)}
@@ -91,7 +92,7 @@ export default function Marquee() {
   }, []);
 
   return (
-    <div style={{
+    <div className="marquee-section" style={{
       background:'var(--bg-base)',
       borderTop:'1px solid var(--border-1)',
       borderBottom:'1px solid var(--border-1)',
@@ -102,8 +103,8 @@ export default function Marquee() {
       <MarqueeRow items={row1} />
       <MarqueeRow items={row2} reverse speed={34} />
       <style>{`
-        @keyframes mq-fwd { 0%{transform:translateX(0)} 100%{transform:translateX(calc(-100%/3))} }
-        @keyframes mq-rev { 0%{transform:translateX(calc(-100%/3))} 100%{transform:translateX(0)} }
+        @keyframes mq-fwd { from{transform:translateX(0)} to{transform:translateX(calc(-33.3334%))} }
+        @keyframes mq-rev { from{transform:translateX(calc(-33.3334%))} to{transform:translateX(0)} }
       `}</style>
     </div>
   );
