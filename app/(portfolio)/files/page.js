@@ -2,13 +2,12 @@
 import { useState, useEffect } from 'react';
 import { getFiles, incrementFileDownload , trackPageView } from '@/lib/firestore';
 import { getFileTypeBadgeClass } from '@/lib/utils';
-import { Download, FileX, ArrowRight, Search, X } from 'lucide-react';
+import { Download, FileX, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FilesPage() {
   const [files, setFiles]     = useState([]);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery]       = useState('');
 
   useEffect(() => {
     getFiles().then(data => { setFiles(data.filter(f => f.active !== false)); setLoading(false); });
@@ -19,7 +18,7 @@ export default function FilesPage() {
   return (
     <div style={{ minHeight:'100vh', paddingTop:'100px', paddingBottom:'80px', position:'relative', zIndex:1 }}>
       <div style={{ maxWidth:900, margin:'0 auto', padding:'0 24px' }}>
-        <div style={{ marginBottom:'28px' }}>
+        <div style={{ marginBottom:'40px' }}>
           <div className="section-label" style={{ marginBottom:'12px' }}>Downloads</div>
           <h1 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(3rem,6vw,5rem)', color:'var(--text-1)', letterSpacing:'0.02em', lineHeight:1, marginBottom:'14px' }}>
             Files &amp; Resources
@@ -27,25 +26,6 @@ export default function FilesPage() {
           <p style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.95rem', color:'var(--text-2)', maxWidth:'520px', lineHeight:1.7 }}>
             Free templates, guides, and premium resources to help you grow your business.
           </p>
-        </div>
-
-        {/* Search bar */}
-        <div style={{ position:'relative', marginBottom:'20px' }}>
-          <Search size={15} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'var(--text-3)', pointerEvents:'none' }}/>
-          <input
-            type="text"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search files by name or type…"
-            style={{ width:'100%', padding:'11px 40px 11px 40px', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', outline:'none', boxSizing:'border-box', transition:'border-color 0.15s' }}
-            onFocus={e => e.target.style.borderColor='var(--accent-border)'}
-            onBlur={e => e.target.style.borderColor='var(--border-2)'}
-          />
-          {query && (
-            <button onClick={() => setQuery('')} style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', display:'flex', alignItems:'center', padding:'4px' }}>
-              <X size={14}/>
-            </button>
-          )}
         </div>
 
         <div style={{ border:'1px solid var(--border-1)', borderRadius:'var(--radius-lg)', overflow:'hidden' }}>
@@ -63,20 +43,8 @@ export default function FilesPage() {
               <FileX size={36} style={{ color:'var(--text-3)' }} strokeWidth={1} />
               <div style={{ fontFamily:'Outfit,sans-serif', color:'var(--text-3)', fontSize:'0.9rem' }}>No files yet.</div>
             </div>
-          ) : (() => {
-              const filtered = files.filter(f =>
-                !query || f.name?.toLowerCase().includes(query.toLowerCase()) ||
-                f.description?.toLowerCase().includes(query.toLowerCase()) ||
-                f.type?.toLowerCase().includes(query.toLowerCase())
-              );
-              if (filtered.length === 0) return (
-                <div style={{ padding:'60px', textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:'10px' }}>
-                  <Search size={28} style={{ color:'var(--text-3)' }} strokeWidth={1}/>
-                  <div style={{ fontFamily:'Outfit,sans-serif', color:'var(--text-3)', fontSize:'0.9rem' }}>No files match &quot;{query}&quot;</div>
-                  <button onClick={() => setQuery('')} style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', color:'var(--accent)', background:'none', border:'none', cursor:'pointer' }}>Clear search</button>
-                </div>
-              );
-              return filtered.map((file, i) => {
+          ) : (
+            files.map((file, i) => {
               const isFree   = !file.price || file.price === '' || file.price === '0';
               const badgeCls = getFileTypeBadgeClass(file.type);
               const isLast   = i === files.length - 1;
@@ -168,8 +136,7 @@ export default function FilesPage() {
                   </a>
                 </div>
               );
-              });
-            })()
+            })
           )}
         </div>
 
