@@ -106,6 +106,17 @@ function BankDetails({ bank }) {
       {bank.notes&&<div style={{ padding:'10px 16px', background:'rgba(35,77,194,0.06)', borderTop:'1px solid var(--accent-border)' }}>
         <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.8rem', color:'var(--text-2)' }}>{bank.notes}</div>
       </div>}
+      {/* Custom Fields */}
+      {(bank.customFields||[]).filter(f=>f.label&&f.value).map((field,i)=>(
+        <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr auto', alignItems:'center', gap:'10px',
+          padding:'10px 16px', borderTop:'1px solid var(--border-1)' }}>
+          <div style={{ minWidth:0 }}>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.5rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'2px' }}>{field.label}</div>
+            <div style={{ fontFamily:'Outfit,sans-serif', fontWeight:600, color:'var(--text-1)', fontSize:'0.875rem', wordBreak:'break-word', lineHeight:1.4 }}>{field.value}</div>
+          </div>
+          <CopyBtn text={field.value}/>
+        </div>
+      ))}
     </div>
   );
 }
