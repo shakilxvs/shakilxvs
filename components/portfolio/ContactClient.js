@@ -122,8 +122,6 @@ function ContactForm() {
               subject:`New Message from ${form.name}`,
               from_name:form.name,
               from_email:form.email,
-              email:form.email,
-              to_email:'shakilxvs@gmail.com',
               message:`Phone: ${form.phone||'N/A'}\nBudget: $${form.budget||'N/A'}\nService: ${form.service||'N/A'}\n\n${form.message}`,
               to_name:'Shakil',
             },
