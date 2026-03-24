@@ -1,4 +1,5 @@
 import ContactClient from '@/components/portfolio/ContactClient';
+import TrackPage from '@/components/TrackPage';
 
 export const metadata = {
   title: 'Contact | Shakil — CMS & Web Expert',
@@ -7,5 +8,5 @@ export const metadata = {
 };
 
 export default function ContactPage() {
-  return <ContactClient />;
+  return <><TrackPage page="contact" /><ContactClient /></>;
 }
