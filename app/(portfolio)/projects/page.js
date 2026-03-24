@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getProjects } from '@/lib/firestore';
+import { getProjects , trackPageView } from '@/lib/firestore';
 import ProjectCard from '@/components/portfolio/ProjectCard';
 import { Layers } from 'lucide-react';
 
 const CATEGORIES = ['All', 'CMS', 'Custom Built', 'Marketing', 'Design', 'Web App'];
 
 function Skeleton() {
+  useEffect(() => { trackPageView('projects'); }, []);
+
   return (
     <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', overflow:'hidden' }}>
       <div style={{ aspectRatio:'16/9' }} className="skeleton" />
