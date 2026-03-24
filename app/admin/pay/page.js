@@ -100,7 +100,7 @@ function LogoListManager({ title, description, items, onChange }) {
 }
 
 /* ─── BankForm OUTSIDE parent to prevent re-mount focus loss ── */
-const EMPTY_BANK = { bankName:'', accountName:'', accountNumber:'', routingNumber:'', swiftCode:'', iban:'', address:'', city:'', district:'', country:'', notes:'' };
+const EMPTY_BANK = { bankName:'', accountName:'', accountNumber:'', routingNumber:'', swiftCode:'', iban:'', address:'', city:'', district:'', postalCode:'', country:'', notes:'' };
 
 function BankForm({ title, subtitle, initialData, onSave, saving }) {
   const [local, setLocal] = useState({ ...EMPTY_BANK, ...initialData });
@@ -112,7 +112,7 @@ function BankForm({ title, subtitle, initialData, onSave, saving }) {
     [['swiftCode','SWIFT / BIC Code'],['iban','IBAN']],
     [['address','Street Address']],
     [['city','City'],['district','District / State']],
-    [['country','Country']],
+    [['postalCode','Postal / ZIP Code'],['country','Country']],
     [['notes','Notes (shown on pay page)']],
   ];
   return (
