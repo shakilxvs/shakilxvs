@@ -34,32 +34,36 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  /* Close mobile menu on route change */
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+
   return (
     <>
-      {/* Outer wrapper — fixed, full-width, invisible by itself */}
+      {/* Outer wrapper — fixed, full-width, ONLY handles transform for show/hide */}
       <div style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
         transform: visible ? 'translateY(0)' : 'translateY(-110%)',
         transition: 'transform 0.3s ease',
         pointerEvents: visible ? 'auto' : 'none',
       }}>
-        {/* Inner pill — on desktop becomes a floating card when scrolled */}
+        {/* Inner pill — handles all visual styling transitions */}
         <nav
-          className={scrolled ? 'nav-scrolled' : 'nav-top'}
+          className="nav-pill-inner"
           style={{
-            background:     scrolled ? 'rgba(8,8,8,0.88)'              : 'transparent',
-            backdropFilter: scrolled ? 'blur(20px) saturate(160%)'      : 'none',
-            WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(160%)' : 'none',
-            border:         scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
-            borderRadius:   scrolled ? '16px'                            : '0',
-            boxShadow:      scrolled ? '0 4px 24px rgba(0,0,0,0.4)'     : 'none',
-            maxWidth:       scrolled ? '900px'                           : '100%',
-            margin:         scrolled ? '12px auto'                       : '0',
-            transition: 'all 0.3s ease',
+            maxWidth:            scrolled ? '860px'                             : '100%',
+            margin:              scrolled ? '10px auto'                         : '0',
+            background:          scrolled ? 'rgba(5,7,15,0.75)'                : 'transparent',
+            backdropFilter:      scrolled ? 'blur(40px) saturate(200%)'        : 'none',
+            WebkitBackdropFilter:scrolled ? 'blur(40px) saturate(200%)'        : 'none',
+            border:              scrolled ? '1px solid rgba(255,255,255,0.10)' : '1px solid transparent',
+            borderRadius:        scrolled ? '16px'                             : '0',
+            boxShadow:           scrolled ? '0 8px 32px rgba(0,0,0,0.5)'      : 'none',
+            transition: 'max-width 0.35s cubic-bezier(0.4,0,0.2,1), margin 0.35s cubic-bezier(0.4,0,0.2,1), background 0.3s ease, backdrop-filter 0.3s ease, -webkit-backdrop-filter 0.3s ease, border 0.3s ease, border-radius 0.35s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s ease',
           }}
         >
+          {/* Content container — maxWidth is constant, avoids double reflow */}
           <div style={{
-            maxWidth: scrolled ? '100%' : 1280,
+            maxWidth: 1280,
             margin: '0 auto',
             padding: '0 24px',
             height: 64,
@@ -108,15 +112,14 @@ export default function Navbar() {
 
         {/* Mobile menu dropdown */}
         {menuOpen && (
-          <div style={{
-            background: 'rgba(8,8,8,0.97)', backdropFilter: 'blur(20px)',
-            borderTop: '1px solid rgba(255,255,255,0.06)',
+          <div className="nav-pill-inner nav-mobile-dropdown" style={{
+            background: 'rgba(5,7,15,0.97)', backdropFilter: 'blur(40px)',
             padding: '16px 24px 24px',
-            maxWidth: scrolled ? '900px' : '100%',
+            maxWidth: scrolled ? '860px' : '100%',
             margin: scrolled ? '0 auto' : '0',
             borderRadius: scrolled ? '0 0 16px 16px' : '0',
-            border: scrolled ? '1px solid rgba(255,255,255,0.06)' : 'none',
-            borderTop: scrolled ? '1px solid rgba(255,255,255,0.04)' : '1px solid rgba(255,255,255,0.06)',
+            border: scrolled ? '1px solid rgba(255,255,255,0.10)' : 'none',
+            borderTop: '1px solid rgba(255,255,255,0.04)',
           }}>
             {NAV_LINKS.map(({ href, label }) => (
               <Link key={href} href={href} onClick={() => setMenuOpen(false)} style={{
@@ -140,11 +143,15 @@ export default function Navbar() {
         @media (max-width: 768px) {
           .desktop-nav { display: none !important; }
           .mobile-nav-toggle { display: flex !important; }
-          /* On mobile: full-width bar, no pill */
-          .nav-scrolled {
-            border-radius: 0 !important;
+          /* On mobile: full-width bar, no pill effect */
+          .nav-pill-inner {
             max-width: 100% !important;
             margin: 0 !important;
+            border-radius: 0 !important;
+            background: rgba(5,7,15,0.95) !important;
+          }
+          .nav-mobile-dropdown {
+            border-radius: 0 !important;
           }
         }
       `}</style>
