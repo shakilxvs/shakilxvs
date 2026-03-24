@@ -82,7 +82,11 @@ export default function AdminSettingsPage() {
   const [seeding,        setSeeding]        = useState(false);
 
   useEffect(() => {
-    Promise.all([getPortfolioDoc('siteSettings'), getPortfolioDoc('contact'), getCustomPages()]).then(([s,c,cp]) => {
+    Promise.all([
+      getPortfolioDoc('siteSettings').catch(()=>null),
+      getPortfolioDoc('contact').catch(()=>null),
+      getCustomPages().catch(()=>[]),
+    ]).then(([s,c,cp]) => {
       if (s) {
         setSite(x=>({...x,...s}));
         if (s.sections)     setSections(x=>({...x,...s.sections}));
