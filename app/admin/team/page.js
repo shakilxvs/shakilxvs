@@ -110,7 +110,7 @@ export default function AdminTeamPage() {
             const RoleIcon = ROLES.find(r => r.value === member.role)?.icon || User;
             const color = ROLE_COLORS[member.role] || '#10b981';
             return (
-              <div key={i} style={{ background:'var(--bg-surface)', border:`1px solid ${member.active ? 'var(--border-2)' : 'var(--border-1)'}`, borderRadius:'var(--radius-lg)', padding:'14px 20px', marginBottom:'8px', display:'flex', alignItems:'center', gap:'14px', opacity: member.active ? 1 : 0.55, transition:'all 0.2s' }}>
+              <div key={i} style={{ background:'var(--bg-surface)', border:`1px solid ${member.active ? 'var(--border-2)' : 'var(--border-1)'}`, borderRadius:'var(--radius-lg)', padding:'14px 20px', marginBottom:'8px', display:'flex', alignItems:'center', gap:'12px', flexWrap:'wrap', opacity: member.active ? 1 : 0.55, transition:'all 0.2s' }}>
                 <div style={{ width:38, height:38, borderRadius:'50%', background:`${color}18`, border:`1px solid ${color}44`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   <RoleIcon size={16} color={color}/>
                 </div>
@@ -154,7 +154,7 @@ export default function AdminTeamPage() {
       {/* Add member form */}
       <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'20px', marginTop:'16px' }}>
         <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'1.1rem', color:'var(--text-1)', letterSpacing:'0.05em', marginBottom:'16px' }}>Add Team Member</div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'12px' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px', marginBottom:'12px' }} className="team-form-grid">
           <div>
             <label style={lb}>Email Address *</label>
             <input style={fi} type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} placeholder="teammate@gmail.com" onFocus={foc} onBlur={blr} onKeyDown={e => e.key === 'Enter' && addMember()}/>
@@ -188,6 +188,7 @@ export default function AdminTeamPage() {
           <Plus size={15}/>{saving ? 'Saving…' : 'Add Member'}
         </button>
       </div>
+    <style>{`@media(max-width:640px){.team-form-grid{grid-template-columns:1fr!important;}}`}</style>
     </div>
   );
 }
