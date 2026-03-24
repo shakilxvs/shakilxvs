@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getPortfolioDoc, getPaymentCrypto } from '@/lib/firestore';
+import { getPortfolioDoc, getPaymentCrypto , trackPageView } from '@/lib/firestore';
 import { copyToClipboard } from '@/lib/utils';
 import { Copy, Check, ExternalLink, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -29,6 +29,8 @@ function LogoPill({ src, alt, invert, size='section' }) {
   const [err, setErr] = useState(false);
   const h = size === 'trust' ? 32 : 26;
   const p = size === 'trust' ? '5px 12px' : '4px 10px';
+  useEffect(() => { trackPageView('pay'); }, []);
+
   return (
     <div title={alt} style={{
       height:h, padding:p,
