@@ -2,21 +2,15 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { auth } from '@/lib/firebase';
-import {
-  GoogleAuthProvider,
-  signInWithRedirect,
-  getRedirectResult,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-} from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import { getPortfolioDoc } from '@/lib/firestore';
 
 export default function AdminLoginPage() {
-  const router  = useRouter();
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [error,    setError]    = useState('');
-  const [loading,  setLoading]  = useState(false);
+  const router = useRouter();
+  const [email,   setEmail]   = useState('');
+  const [password,setPassword]= useState('');
+  const [error,   setError]   = useState('');
+  const [loading, setLoading] = useState(false);
 
   async function isAllowedEmail(userEmail) {
     if (!userEmail) return false;
@@ -27,21 +21,6 @@ export default function AdminLoginPage() {
     } catch { return false; }
   }
 
-  // Handle redirect result from Google sign-in
-  useEffect(() => {
-    setLoading(true);
-    getRedirectResult(auth).then(async result => {
-      if (result?.user) {
-        const allowed = await isAllowedEmail(result.user.email);
-        if (!allowed) { await auth.signOut(); setError('Access Restricted'); }
-        // if allowed, onAuthStateChanged will redirect
-      }
-    }).catch(e => {
-      if (e.code !== 'auth/null-user') setError(`Google sign in failed (${e.code})`);
-    }).finally(() => setLoading(false));
-  }, []);
-
-  // Watch auth state
   useEffect(() => {
     const unsub = onAuthStateChanged(auth, async user => {
       if (!user) return;
@@ -60,11 +39,11 @@ export default function AdminLoginPage() {
       await signInWithEmailAndPassword(auth, email.trim(), password);
     } catch (e) {
       const msgs = {
-        'auth/user-not-found':      'Incorrect email or password',
-        'auth/wrong-password':      'Incorrect email or password',
-        'auth/invalid-credential':  'Incorrect email or password',
-        'auth/invalid-email':       'Invalid email address',
-        'auth/too-many-requests':   'Too many attempts. Try again later.',
+        'auth/user-not-found':     'Incorrect email or password',
+        'auth/wrong-password':     'Incorrect email or password',
+        'auth/invalid-credential': 'Incorrect email or password',
+        'auth/invalid-email':      'Invalid email address',
+        'auth/too-many-requests':  'Too many attempts. Try again later.',
       };
       setError(msgs[e.code] || `Sign in failed (${e.code})`);
     } finally { setLoading(false); }
@@ -73,71 +52,55 @@ export default function AdminLoginPage() {
   const handleGoogleSignIn = async () => {
     setError(''); setLoading(true);
     try {
-      await signInWithRedirect(auth, new GoogleAuthProvider());
-      // Page will redirect to Google, then back — getRedirectResult handles it above
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
+      await signInWithPopup(auth, provider);
     } catch (e) {
-      setError(`Google sign in failed (${e.code})`);
-      setLoading(false);
-    }
+      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+        // user closed it — silent
+      } else if (e.code === 'auth/popup-blocked') {
+        setError('Popup blocked. Allow popups for shakilxvs.vercel.app in your browser and try again.');
+      } else {
+        setError(`Google sign in failed (${e.code})`);
+      }
+    } finally { setLoading(false); }
   };
 
-  const fi = {
-    width:'100%', padding:'12px 14px',
-    background:'var(--bg-elevated)', border:'1px solid var(--border-2)',
-    borderRadius:'var(--radius-md)', color:'var(--text-1)',
-    fontFamily:'Outfit,sans-serif', fontSize:'0.9rem',
-    outline:'none', boxSizing:'border-box', transition:'border-color 0.15s',
-  };
+  const fi = { width:'100%', padding:'12px 14px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.9rem', outline:'none', boxSizing:'border-box', transition:'border-color 0.15s' };
 
   return (
     <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg-void)', position:'relative', zIndex:1 }}>
       <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'48px', width:'100%', maxWidth:'400px' }}>
-        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.65rem', color:'var(--accent)', letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:'16px', textAlign:'center' }}>
-          Admin Access
-        </div>
-        <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'2.5rem', color:'var(--text-1)', marginBottom:'40px', textAlign:'center', letterSpacing:'0.05em' }}>
-          @shakilxvs
-        </div>
+        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.65rem', color:'var(--accent)', letterSpacing:'0.2em', textTransform:'uppercase', marginBottom:'16px', textAlign:'center' }}>Admin Access</div>
+        <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'2.5rem', color:'var(--text-1)', marginBottom:'40px', textAlign:'center', letterSpacing:'0.05em' }}>@shakilxvs</div>
 
-        {/* Email + Password */}
         <div style={{ marginBottom:'20px' }}>
-          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', letterSpacing:'0.1em', marginBottom:'12px', textAlign:'center', textTransform:'uppercase' }}>
-            Email &amp; Password
-          </div>
-          <input
-            type="email" placeholder="Email address" value={email}
-            onChange={e=>setEmail(e.target.value)}
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', letterSpacing:'0.1em', marginBottom:'12px', textAlign:'center', textTransform:'uppercase' }}>Email &amp; Password</div>
+          <input type="email" placeholder="Email address" value={email} onChange={e=>setEmail(e.target.value)}
             style={{ ...fi, marginBottom:'10px' }}
             onFocus={e=>e.target.style.borderColor='var(--accent-border)'}
-            onBlur={e=>e.target.style.borderColor='var(--border-2)'}
-          />
-          <input
-            type="password" placeholder="Password" value={password}
-            onChange={e=>setPassword(e.target.value)}
+            onBlur={e=>e.target.style.borderColor='var(--border-2)'}/>
+          <input type="password" placeholder="Password" value={password} onChange={e=>setPassword(e.target.value)}
             onKeyDown={e=>e.key==='Enter'&&handleEmailSignIn()}
             style={{ ...fi, marginBottom:'12px' }}
             onFocus={e=>e.target.style.borderColor='var(--accent-border)'}
-            onBlur={e=>e.target.style.borderColor='var(--border-2)'}
-          />
+            onBlur={e=>e.target.style.borderColor='var(--border-2)'}/>
           <button onClick={handleEmailSignIn} disabled={loading}
             style={{ width:'100%', padding:'13px', background:loading?'var(--bg-elevated)':'var(--accent)', color:loading?'var(--text-3)':'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.9rem', cursor:loading?'not-allowed':'pointer' }}>
-            {loading ? 'Please wait…' : 'Sign In'}
+            {loading ? 'Signing in…' : 'Sign In'}
           </button>
         </div>
 
-        {/* OR */}
         <div style={{ display:'flex', alignItems:'center', gap:'12px', marginBottom:'20px' }}>
           <div style={{ flex:1, height:'1px', background:'var(--border-1)' }}/>
           <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', letterSpacing:'0.12em' }}>OR</span>
           <div style={{ flex:1, height:'1px', background:'var(--border-1)' }}/>
         </div>
 
-        {/* Google */}
         <button onClick={handleGoogleSignIn} disabled={loading}
           style={{ width:'100%', padding:'13px', background:'var(--bg-elevated)', color:'var(--text-1)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:600, fontSize:'0.9rem', cursor:loading?'not-allowed':'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:'10px' }}
           onMouseEnter={e=>e.currentTarget.style.borderColor='var(--accent-border)'}
-          onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border-2)'}
-        >
+          onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border-2)'}>
           <svg width="18" height="18" viewBox="0 0 24 24">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
             <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
