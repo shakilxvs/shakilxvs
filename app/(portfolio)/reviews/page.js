@@ -165,7 +165,7 @@ function SubmitForm() {
           await emailjs.send(
             process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
             process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
-            { subject:`New Review from ${form.name}`, from_name:form.name, from_email:form.email, message:`Rating: ${form.rating}/5\nService: ${form.service}\n\n${form.text}`, to_name:'Shakil' },
+            { subject:`New Review from ${form.name}`, from_name:form.name, from_email:form.email, email:form.email, to_email:'shakilxvs@gmail.com', message:`Rating: ${form.rating}/5\nService: ${form.service}\n\n${form.text}`, to_name:'Shakil' },
             process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
           );
         } catch {}
