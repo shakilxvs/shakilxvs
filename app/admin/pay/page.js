@@ -100,7 +100,7 @@ function LogoListManager({ title, description, items, onChange }) {
 }
 
 /* ─── BankForm OUTSIDE parent to prevent re-mount focus loss ── */
-const EMPTY_BANK = { bankName:'', accountName:'', accountNumber:'', routingNumber:'', swiftCode:'', iban:'', address:'', city:'', district:'', postalCode:'', country:'', notes:'' };
+const EMPTY_BANK = { bankName:'', accountName:'', accountNumber:'', routingNumber:'', swiftCode:'', iban:'', address:'', city:'', district:'', postalCode:'', country:'', notes:'', customFields:[] };
 
 function BankForm({ title, subtitle, initialData, onSave, saving }) {
   const [local, setLocal] = useState({ ...EMPTY_BANK, ...initialData });
@@ -115,6 +115,10 @@ function BankForm({ title, subtitle, initialData, onSave, saving }) {
     [['postalCode','Postal / ZIP Code'],['country','Country']],
     [['notes','Notes (shown on pay page)']],
   ];
+  const addCustomField  = () => set('customFields', [...(local.customFields||[]), { label:'', value:'' }]);
+  const delCustomField  = (i) => set('customFields', (local.customFields||[]).filter((_,idx)=>idx!==i));
+  const setCustomField  = (i,k,v) => set('customFields', (local.customFields||[]).map((f,idx)=>idx===i?{...f,[k]:v}:f));
+
   return (
     <div style={cd}>
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:'18px', gap:'12px', flexWrap:'wrap' }}>
@@ -140,6 +144,26 @@ function BankForm({ title, subtitle, initialData, onSave, saving }) {
             ))}
           </div>
         ))}
+      </div>
+
+      {/* Custom Fields */}
+      <div style={{ marginTop:'16px', borderTop:'1px solid var(--border-1)', paddingTop:'16px' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'10px' }}>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.1em' }}>Custom Fields</div>
+          <button onClick={addCustomField} style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'5px 10px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', color:'var(--text-2)', borderRadius:'var(--radius-sm)', fontFamily:'Outfit,sans-serif', fontSize:'0.72rem', cursor:'pointer' }}>
+            <Plus size={11}/> Add Field
+          </button>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+          {(local.customFields||[]).map((field,i)=>(
+            <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr auto', gap:'8px', alignItems:'end' }}>
+              <div><label style={lb}>Field Label</label><input style={fi} value={field.label||''} onChange={e=>setCustomField(i,'label',e.target.value)} onFocus={focus} onBlur={blur} placeholder="Date of Birth"/></div>
+              <div><label style={lb}>Value</label><input style={fi} value={field.value||''} onChange={e=>setCustomField(i,'value',e.target.value)} onFocus={focus} onBlur={blur} placeholder="01 January 1995"/></div>
+              <button onClick={()=>delCustomField(i)} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', display:'flex', alignItems:'center', padding:'10px 6px' }}><Trash2 size={13}/></button>
+            </div>
+          ))}
+          {(local.customFields||[]).length===0&&<div style={{ fontFamily:'Outfit,sans-serif', color:'var(--text-3)', fontSize:'0.78rem' }}>No custom fields. Click &quot;Add Field&quot; to add extras like Date of Birth.</div>}
+        </div>
       </div>
     </div>
   );
