@@ -65,7 +65,7 @@ function CountUp({ target, suffix = '+', duration = 2200 }) {
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
 
-export default function Hero({ data }) {
+export default function Hero({ data, badge }) {
   const h = { ...DEFAULT, ...data };
   const tagline = useTypewriter(h.taglines || DEFAULT.taglines);
   const hasPhoto = !!h.profileImageUrl;
@@ -93,7 +93,15 @@ export default function Hero({ data }) {
           </div>
 
           <div>
-            <h1 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(4rem,8vw,7rem)', lineHeight:0.92, color:'var(--text-1)', letterSpacing:'0.02em', marginBottom:'10px' }}>
+            
+      {/* Available for work badge */}
+      {badge?.show && (
+        <div style={{ display:'inline-flex', alignItems:'center', gap:'7px', padding:'5px 14px', borderRadius:100, border:`1px solid ${badge.color||'#00cc66'}`, background:`${badge.color||'#00cc66'}18`, marginBottom:'16px' }}>
+          <div style={{ width:7, height:7, borderRadius:'50%', background:badge.color||'#00cc66', flexShrink:0, animation:'badge-pulse 2s ease-in-out infinite' }}/>
+          <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:badge.color||'#00cc66', fontWeight:700, letterSpacing:'0.08em', textTransform:'uppercase' }}>{badge.text||'Available for work'}</span>
+        </div>
+      )}
+<h1 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(4rem,8vw,7rem)', lineHeight:0.92, color:'var(--text-1)', letterSpacing:'0.02em', marginBottom:'10px' }}>
               {h.name}
             </h1>
             <div style={{ fontFamily:'Space Mono,monospace', fontSize:'clamp(0.75rem,1.5vw,1rem)', color:'var(--accent)', display:'flex', alignItems:'center', minHeight:'1.5em' }}>
