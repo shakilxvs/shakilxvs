@@ -265,3 +265,12 @@ textarea.input { resize: vertical; min-height: 100px; }
 @keyframes blink  { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 @keyframes spin   { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 @keyframes scan   { 0% { top: -2px; } 100% { top: 100vh; } }
+
+/* ─── Marquee responsive ───────────────────────────────────── */
+@media (max-width: 768px) {
+  .marquee-section { margin-top: 28px; }
+}
+@media (min-width: 769px) {
+  .mq-pill { height: 36px !important; padding: 6px 16px !important; }
+  .mq-img  { height: 20px !important; max-width: 48px !important; }
+}
