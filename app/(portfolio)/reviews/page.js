@@ -1,12 +1,14 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { getApprovedReviews } from '@/lib/firestore';
+import { getApprovedReviews , trackPageView } from '@/lib/firestore';
 import { getAverageRating, getRatingDistribution, formatMonthYear, getVideoType, getYouTubeEmbedUrl, getVimeoEmbedUrl } from '@/lib/utils';
 import { Star, ChevronLeft, ChevronRight, Send, Check } from 'lucide-react';
 import { VerifiedBadge } from '@/components/portfolio/ReviewsTeaser';
 import emailjs from 'emailjs-com';
 
 function Stars({ rating, size = 14 }) {
+  useEffect(() => { trackPageView('reviews'); }, []);
+
   return (
     <div style={{ display:'flex', gap:'2px' }}>
       {Array.from({ length:5 }, (_,i) => (
