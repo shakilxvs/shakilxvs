@@ -9,11 +9,17 @@ import CTABanner from '@/components/portfolio/CTABanner';
 
 export const revalidate = 0;
 
-export const metadata = {
-  title: 'Shakil — CMS & Web Expert | Shopify Developer | Digital Marketer',
-  description: 'Shakil is a CMS & Custom Web Expert, Shopify Developer, and Digital Marketer with 6+ years experience and 5000+ global projects.',
-  alternates: { canonical: 'https://shakilxvs.vercel.app' },
-};
+export async function generateMetadata() {
+  try {
+    const s = await getPortfolioDoc('siteSettings');
+    const seo = s?.seo?.home || {};
+    return {
+      title: seo.title || 'Shakil — CMS & Web Expert | Shopify Developer | Digital Marketer',
+      description: seo.description || 'Shakil is a CMS & Custom Web Expert, Shopify Developer, and Digital Marketer.',
+      alternates: { canonical: 'https://shakilxvs.vercel.app' },
+    };
+  } catch { return { title: 'Shakil — CMS & Web Expert' }; }
+}
 
 export default async function HomePage() {
   const [hero, about, skills, featuredProjects, reviews, siteSettings] = await Promise.all([
@@ -25,13 +31,13 @@ export default async function HomePage() {
     getPortfolioDoc('siteSettings').catch(()=>null),
   ]);
 
-  /* Section visibility — default all true if not configured */
-  const sec = siteSettings?.sections || {};
+  const sec  = siteSettings?.sections || {};
   const show = (key) => sec[key] !== false;
+  const badge = siteSettings?.badge || null;
 
   return (
     <>
-      {show('hero')     && <Hero data={hero} />}
+      {show('hero')     && <Hero data={hero} badge={badge} />}
       {show('marquee')  && <Marquee />}
       {show('about')    && <About data={about} />}
       {show('skills')   && <Skills data={skills} />}
