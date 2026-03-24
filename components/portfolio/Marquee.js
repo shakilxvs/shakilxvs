@@ -5,7 +5,7 @@ import { getPortfolioDoc } from '@/lib/firestore';
 const ROW1_DEFAULT = [
   { label:'Shopify',     src:'https://cdn.simpleicons.org/shopify',     invert:false },
   { label:'WordPress',   src:'https://cdn.simpleicons.org/wordpress',   invert:false },
-  { label:'Wix',         src:'https://upload.wikimedia.org/wikipedia/commons/7/76/Wix.com_website_logo.svg', invert:true },
+  { label:'Wix',         src:'https://cdn.simpleicons.org/wix',         invert:true  },
   { label:'WooCommerce', src:'https://cdn.simpleicons.org/woocommerce', invert:false },
   { label:'Webflow',     src:'https://cdn.simpleicons.org/webflow',     invert:false },
   { label:'Squarespace', src:'https://cdn.simpleicons.org/squarespace', invert:true  },
@@ -65,7 +65,7 @@ function MarqueeRow({ items, reverse = false, speed = 35 }) {
       WebkitMaskImage: 'linear-gradient(90deg, transparent, black 8%, black 92%, transparent)',
     }}>
       <div style={{
-        display: 'flex', gap: '32px', alignItems: 'center',
+        display: 'flex', gap: '24px', alignItems: 'center',
         animation: `${reverse ? 'marqueeRev' : 'marquee'} ${speed}s linear infinite`,
         width: 'max-content',
       }}>
@@ -93,9 +93,8 @@ export default function Marquee() {
       background: 'var(--bg-base)',
       borderTop: '1px solid var(--border-1)',
       borderBottom: '1px solid var(--border-1)',
-      padding: '14px 0',
-      marginTop: 0,
-      display: 'flex', flexDirection: 'column', gap: '10px',
+      padding: '18px 0',
+      display: 'flex', flexDirection: 'column', gap: '12px',
       position: 'relative', zIndex: 1, overflow: 'hidden',
     }}>
       <MarqueeRow items={row1} />
