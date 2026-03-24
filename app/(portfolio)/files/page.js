@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getFiles } from '@/lib/firestore';
+import { getFiles, incrementFileDownload } from '@/lib/firestore';
 import { getFileTypeBadgeClass } from '@/lib/utils';
 import { Download, FileX, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
@@ -117,7 +117,7 @@ export default function FilesPage() {
                   </div>
 
                   {/* Col 4: download button — small */}
-                  <a href={file.link} target="_blank" rel="noopener noreferrer"
+                  <a href={file.link} target="_blank" rel="noopener noreferrer" onClick={()=>incrementFileDownload(file.id)}"
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: '5px',
                       padding: '7px 14px',
