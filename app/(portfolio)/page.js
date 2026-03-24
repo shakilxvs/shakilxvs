@@ -1,4 +1,4 @@
-import { getPortfolioDoc, getSkills, getFeaturedProjects, getApprovedReviews } from '@/lib/firestore';
+import { getPortfolioDoc, getSkills, getFeaturedProjects, getApprovedReviews  } from '@/lib/firestore';
 import Hero from '@/components/portfolio/Hero';
 import Marquee from '@/components/portfolio/Marquee';
 import About from '@/components/portfolio/About';
@@ -6,6 +6,7 @@ import Skills from '@/components/portfolio/Skills';
 import FeaturedProjects from '@/components/portfolio/FeaturedProjects';
 import ReviewsTeaser from '@/components/portfolio/ReviewsTeaser';
 import CTABanner from '@/components/portfolio/CTABanner';
+import TrackPage from '@/components/TrackPage';
 
 export const revalidate = 0;
 
@@ -37,6 +38,7 @@ export default async function HomePage() {
 
   return (
     <>
+      <TrackPage page="home" />
       {show('hero')     && <Hero data={hero} badge={badge} />}
       {show('marquee')  && <Marquee />}
       {show('about')    && <About data={about} />}
