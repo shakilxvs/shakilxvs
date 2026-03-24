@@ -62,6 +62,8 @@ export default function AdminSettingsPage() {
   const [badge,        setBadge]        = useState({ show:false, text:'Available for work', color:'#00cc66' });
   const [accentColor,  setAccentColor]  = useState('#234DC2');
   const [tracking,     setTracking]     = useState({ gaId:'', gtmId:'', metaPixelId:'', tiktokPixelId:'', pinterestTagId:'', pinterestDomainVerify:'' });
+  const [footerText,   setFooterText]   = useState('');
+  const [footerCopyright,setFooterCopyright]=useState('');
   const [seo,          setSeo]          = useState({ home:{title:'',description:''}, projects:{title:'',description:''}, reviews:{title:'',description:''}, contact:{title:'',description:''}, apps:{title:'',description:''}, files:{title:'',description:''}, pay:{title:'',description:''} });
   const [currentPw,    setCurrentPw]    = useState('');
   const [newPw,        setNewPw]        = useState('');
@@ -96,6 +98,8 @@ export default function AdminSettingsPage() {
         if (s.accentColor)  setAccentColor(s.accentColor);
         if (s.tracking)     setTracking(x=>({...x,...s.tracking}));
         if (s.seo)          setSeo(x=>({...x,...s.seo}));
+        if (s.footerText)   setFooterText(s.footerText);
+        if (s.footerCopyright) setFooterCopyright(s.footerCopyright);
       }
       if (c) setContact(x=>({...x,...c}));
       if (cp) setCustomPagesS(cp);
@@ -122,6 +126,8 @@ export default function AdminSettingsPage() {
   const saveBadge    = () => { setSavingBadge(true);    setPortfolioDoc('siteSettings',{badge}).then(()=>toast.success('Badge saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingBadge(false)); };
   const saveAccent   = () => { setSavingAccent(true);   setPortfolioDoc('siteSettings',{accentColor}).then(()=>toast.success('Accent color saved! Redeploy to apply.')).catch(()=>toast.error('Save failed')).finally(()=>setSavingAccent(false)); };
   const saveTracking = () => { setSavingTracking(true); setPortfolioDoc('siteSettings',{tracking}).then(()=>toast.success('Tracking IDs saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingTracking(false)); };
+  const [savingFooter, setSavingFooter] = useState(false);
+  const saveFooter   = () => { setSavingFooter(true); setPortfolioDoc('siteSettings',{footerText,footerCopyright}).then(()=>toast.success('Footer saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingFooter(false)); };
   const saveSeo      = () => { setSavingSeo(true);      setPortfolioDoc('siteSettings',{seo}).then(()=>toast.success('SEO saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingSeo(false)); };
 
   const handleChangePassword = async () => {
@@ -383,6 +389,19 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
+
+      {/* ── Footer ──────────────────────────────────────────────── */}
+      <div style={cd}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
+          <div><div style={hd}>Footer</div><div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'-10px' }}>Logo is shared with navbar. Edit above in Site Logo.</div></div>
+          <SaveBtn onClick={saveFooter} saving={savingFooter}/>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+          <div><label style={lb}>Footer Tagline</label><textarea style={{ ...fi, minHeight:72, resize:'vertical' }} value={footerText} onChange={e=>setFooterText(e.target.value)} onFocus={foc} onBlur={blr} placeholder="CMS & Custom Web Expert · Shopify Developer..."/></div>
+          <div><label style={lb}>Copyright Name</label><input style={fi} value={footerCopyright} onChange={e=>setFooterCopyright(e.target.value)} placeholder="Shakil" onFocus={foc} onBlur={blr}/><div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'4px' }}>Shows as: © 2025 {footerCopyright||'Shakil'}. All rights reserved.</div></div>
+        </div>
+      </div>
+
       {/* ── Site Info ─────────────────────────────────────────────── */}
       <div style={cd}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
@@ -423,7 +442,7 @@ export default function AdminSettingsPage() {
       <div style={cd}>
         <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'16px' }}>
           <Lock size={16} color="var(--accent)"/>
-          <div style={hd}>Change Password</div>
+          <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'1.2rem', color:'var(--text-1)', letterSpacing:'0.05em' }}>Change Password</div>
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:'10px', marginBottom:'14px' }}>
           {[['Current Password',currentPw,setCurrentPw,showCurPw,()=>setShowCurPw(x=>!x)],['New Password (min 8 chars)',newPw,setNewPw,showNewPw,()=>setShowNewPw(x=>!x)],['Confirm New Password',confirmPw,setConfirmPw,showNewPw,()=>setShowNewPw(x=>!x)]].map(([label,val,setter,show,toggle],i)=>(
