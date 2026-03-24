@@ -50,20 +50,24 @@ export default function AdminLoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    setError(''); setLoading(true);
+    // IMPORTANT: signInWithPopup MUST be called before any state updates.
+    // setLoading() causes a React re-render that breaks Chrome's synchronous
+    // user-gesture chain required for window.open(). Call popup first.
+    setError('');
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
       await signInWithPopup(auth, provider);
+      // onAuthStateChanged handles the redirect
     } catch (e) {
       if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
-        // user closed it — silent
+        // silent — user closed the popup
       } else if (e.code === 'auth/popup-blocked') {
-        setError('Popup blocked. Allow popups for shakilxvs.vercel.app in your browser and try again.');
+        setError('Popup blocked by browser. Click the address bar icon to allow popups for this site, then try again.');
       } else {
         setError(`Google sign in failed (${e.code})`);
       }
-    } finally { setLoading(false); }
+    }
   };
 
   const fi = { width:'100%', padding:'12px 14px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.9rem', outline:'none', boxSizing:'border-box', transition:'border-color 0.15s' };
