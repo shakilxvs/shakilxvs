@@ -2,13 +2,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { getPortfolioDoc } from '@/lib/firestore';
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
 import SiteConfig from '@/components/SiteConfig';
 import {
   LayoutTemplate, User, Zap, Briefcase, AppWindow,
   FolderOpen, Star, CreditCard, Inbox, Settings,
-  ExternalLink, LogOut, Menu, ImagePlus,
+  ExternalLink, LogOut, Menu, ImagePlus, Users, BarChart2,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -19,10 +20,12 @@ const NAV_ITEMS = [
   { href: '/admin/apps',     label: 'Apps',     Icon: AppWindow },
   { href: '/admin/files',    label: 'Files',    Icon: FolderOpen },
   { href: '/admin/media',    label: 'Media',    Icon: ImagePlus },
+  { href: '/admin/analytics',label: 'Analytics',Icon: BarChart2 },
   { href: '/admin/reviews',  label: 'Reviews',  Icon: Star },
   { href: '/admin/pay',      label: 'Pay',      Icon: CreditCard },
   { href: '/admin/messages', label: 'Messages', Icon: Inbox },
   { href: '/admin/settings', label: 'Settings', Icon: Settings },
+  { href: '/admin/team',     label: 'Team',     Icon: Users },
 ];
 
 function Sidebar({ user, pathname, sidebarOpen, setSidebarOpen }) {
@@ -47,7 +50,7 @@ function Sidebar({ user, pathname, sidebarOpen, setSidebarOpen }) {
         {/* Logo */}
         <div style={{ padding: '24px 20px 16px', borderBottom: '1px solid var(--border-1)' }}>
           <div style={{ fontFamily: 'Space Mono, monospace', fontSize: '0.7rem', color: 'var(--accent)', letterSpacing: '0.15em' }}>
-            {'<shakil />'}
+            {'@shakilxvs'}
           </div>
           <div style={{ fontFamily: 'Space Mono, monospace', fontSize: '0.6rem', color: 'var(--text-3)', marginTop: '2px', letterSpacing: '0.1em' }}>
             [admin]
@@ -139,13 +142,25 @@ export default function AdminLayout({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [userRole, setUserRole] = useState('owner');
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
       setLoading(false);
       if (!u && pathname !== '/admin/login') {
         router.push('/admin/login');
+        return;
+      }
+      // Determine role for staff restrictions
+      if (u && u.email !== process.env.NEXT_PUBLIC_ADMIN_EMAIL) {
+        try {
+          const team = await getPortfolioDoc('teamMembers');
+          const member = (team?.members || []).find(m => m.email === u.email && m.active !== false);
+          if (member) setUserRole(member.role);
+        } catch {}
+      } else if (u) {
+        setUserRole('owner');
       }
     });
     return () => unsub();
