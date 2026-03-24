@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import Link from 'next/link';
+import SiteConfig from '@/components/SiteConfig';
 import {
   LayoutTemplate, User, Zap, Briefcase, AppWindow,
   FolderOpen, Star, CreditCard, Inbox, Settings,
@@ -196,6 +197,8 @@ export default function AdminLayout({ children }) {
   const currentNav = NAV_ITEMS.find(n => n.href === pathname);
 
   return (
+    <>
+    <SiteConfig />
     <div className="admin-layout" style={{ position: 'relative', zIndex: 1 }}>
       <Sidebar user={user} pathname={pathname} sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
       <div className="admin-main">
@@ -246,5 +249,6 @@ export default function AdminLayout({ children }) {
         }
       `}</style>
     </div>
+    </>
   );
 }
