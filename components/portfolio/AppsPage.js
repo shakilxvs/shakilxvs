@@ -103,7 +103,7 @@ export default function AppsPage() {
   const handleScroll = () => {
     if (!scrollRef.current) return;
     const el = scrollRef.current;
-    const cardW = el.offsetWidth * 0.85 + 12;
+    const cardW = (window.innerWidth * 0.85 - 24) + 12;
     const idx = Math.round(el.scrollLeft / cardW);
     setActiveDot(Math.max(0, Math.min(idx, featuredApps.length - 1)));
   };
@@ -188,9 +188,9 @@ export default function AppsPage() {
             {featuredApps.length >= 2 && (
               <div className="feat-apps-mobile-multi" style={{ display:'none' }}>
                 <div ref={scrollRef} onScroll={handleScroll}
-                  style={{ display:'flex', overflowX:'auto', gap:'12px', scrollSnapType:'x mandatory', WebkitOverflowScrolling:'touch', scrollbarWidth:'none', paddingRight:'15%' }}>
+                  style={{ display:'flex', overflowX:'auto', gap:'12px', scrollSnapType:'x mandatory', WebkitOverflowScrolling:'touch', scrollbarWidth:'none' }}>
                   {featuredApps.map(app => (
-                    <div key={app.id} style={{ minWidth:'85%', flexShrink:0, scrollSnapAlign:'start' }}>
+                    <div key={app.id} style={{ minWidth:'calc(85vw - 24px)', maxWidth:'360px', flexShrink:0, scrollSnapAlign:'start' }}>
                       <AppCard app={app} featured/>
                     </div>
                   ))}
