@@ -378,3 +378,4 @@ export default function PayPageClient() {
     </div>
   );
 }
+/* ── Verified working icon URLs ───────────────────────────── */
