@@ -19,8 +19,13 @@ export default function FilesPage() {
 
   useEffect(() => { trackPageView('files'); }, []);
 
-  const q        = query.toLowerCase();
-  const filtered = files.filter(f =>
+  const q = query.toLowerCase();
+  // When not searching, featured files show first
+  const sortedFiles = query ? files : [
+    ...files.filter(f => f.featured),
+    ...files.filter(f => !f.featured),
+  ];
+  const filtered = sortedFiles.filter(f =>
     !q ||
     f.name?.toLowerCase().includes(q) ||
     f.description?.toLowerCase().includes(q) ||
