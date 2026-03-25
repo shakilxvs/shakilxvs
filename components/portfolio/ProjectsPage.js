@@ -46,7 +46,7 @@ export default function ProjectsPageClient() {
     if (!scrollRef.current) return;
     const el = scrollRef.current;
     // Card width is 85vw with 12px gap
-    const cardW = (window.innerWidth * 0.85 - 24) + 12;
+    const cardW = (window.innerWidth * 0.78) + 12;
     const idx = Math.round(el.scrollLeft / cardW);
     setActiveDot(Math.max(0, Math.min(idx, featuredProjects.length - 1)));
   };
@@ -93,7 +93,7 @@ export default function ProjectsPageClient() {
                   style={{ display:'flex', overflowX:'auto', gap:'12px', scrollSnapType:'x mandatory', WebkitOverflowScrolling:'touch', scrollbarWidth:'none' }}
                 >
                   {featuredProjects.map(p => (
-                    <div key={p.id} style={{ minWidth:'calc(85vw - 24px)', maxWidth:'420px', flexShrink:0, scrollSnapAlign:'start' }}>
+                    <div key={p.id} style={{ width:'calc(78vw)', flexShrink:0, scrollSnapAlign:'start' }}>
                       <ProjectCard project={p}/>
                     </div>
                   ))}
