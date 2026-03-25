@@ -5,9 +5,9 @@ import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from 
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import toast from 'react-hot-toast';
-import { Plus, Trash2, GripVertical, Save, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, Trash2, GripVertical, Save, ChevronDown, ChevronUp, Star } from 'lucide-react';
 
-const EMPTY = { name:'', description:'', type:'PDF', version:'', link:'', price:'', active:true };
+const EMPTY = { name:'', description:'', type:'PDF', version:'', link:'', price:'', featured:false, active:true };
 
 function SortableFile({ file, onUpdate, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: file.id });
@@ -35,6 +35,7 @@ function SortableFile({ file, onUpdate, onDelete }) {
           <div style={{ fontFamily:'Outfit,sans-serif', fontWeight:600, color:'var(--text-1)', fontSize:'0.9rem', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{local.name||'Untitled File'}</div>
           <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color: isFree ? 'var(--accent)' : 'var(--text-2)' }}>{isFree ? 'Free' : `$${local.price}`}</div>
         </div>
+        {local.featured && <Star size={14} fill="var(--gold)" color="var(--gold)"/>}
         <label style={{ display:'flex', alignItems:'center', gap:'6px', cursor:'pointer', flexShrink:0 }}>
           <input type="checkbox" checked={local.active} onChange={e=>set('active',e.target.checked)} style={{ accentColor:'var(--accent)' }}/>
           <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)' }}>Active</span>
@@ -57,6 +58,9 @@ function SortableFile({ file, onUpdate, onDelete }) {
               <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'4px' }}>Leave blank for free downloads</div>
             </div>
           </div>
+          <label style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', color:'var(--text-2)', marginBottom:'16px' }}>
+            <input type="checkbox" checked={local.featured||false} onChange={e=>set('featured',e.target.checked)} style={{ accentColor:'var(--accent)' }}/> <Star size={13} style={{ color:'var(--gold)' }}/> Featured (pinned at top of files page)
+          </label>
           <button onClick={save} disabled={saving} style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'8px 18px', background:'var(--accent)', color:'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.85rem', cursor:'pointer' }}>
             <Save size={14}/>{saving?'Saving…':'Save File'}
           </button>
@@ -74,8 +78,14 @@ export default function AdminFilesPage() {
   useEffect(() => { getFiles().then(d=>{setFiles(d);setLoading(false);}); }, []);
 
   const handleAdd = async () => {
-    try { const id = await addFile({...EMPTY, order:files.length}); setFiles(s=>[...s,{...EMPTY,id,order:s.length}]); toast.success('Added!'); }
-    catch { toast.error('Failed'); }
+    try {
+      const id = await addFile({...EMPTY, order:0});
+      const newItem = {...EMPTY, id, order:0};
+      const newFiles = [newItem, ...files];
+      setFiles(newFiles);
+      await batchUpdateOrder('files', newFiles);
+      toast.success('Added!');
+    } catch { toast.error('Failed'); }
   };
   const handleDelete = async (id) => {
     if (!confirm('Delete?')) return;
