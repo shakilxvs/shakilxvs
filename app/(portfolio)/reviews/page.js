@@ -2,6 +2,8 @@ import ReviewsPageClient from '@/components/portfolio/ReviewsPageClient';
 import TrackPage from '@/components/TrackPage';
 import { getPortfolioDoc } from '@/lib/firestore';
 
+export const revalidate = 0;
+
 export async function generateMetadata() {
   try {
     const s = await getPortfolioDoc('siteSettings');
