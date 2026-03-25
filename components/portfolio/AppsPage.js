@@ -28,7 +28,7 @@ function AppCard({ app, featured = false }) {
 
   const inner = (
     <div
-      style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:featured ? '24px' : '20px', display:'flex', flexDirection:featured ? 'row' : 'column', alignItems:'center', gap:featured ? '20px' : '14px', textAlign:featured ? 'left' : 'center', transition:'border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease', cursor:app.url ? 'pointer' : 'default', height:'100%' }}
+      style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:featured ? '24px' : '20px', display:'flex', flexDirection:featured ? 'row' : 'column', alignItems:'center', gap:featured ? '20px' : '14px', textAlign:featured ? 'left' : 'center', transition:'border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease', cursor:app.url ? 'pointer' : 'default' }}
       onMouseEnter={e => { e.currentTarget.style.transform='translateY(-3px)'; e.currentTarget.style.boxShadow='0 20px 40px rgba(0,0,0,0.35)'; e.currentTarget.style.borderColor='var(--accent-border)'; }}
       onMouseLeave={e => { e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none'; e.currentTarget.style.borderColor='var(--border-2)'; }}
     >
@@ -53,12 +53,12 @@ function AppCard({ app, featured = false }) {
 
   if (app.url) {
     return (
-      <a href={app.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none', display:'block', height:'100%' }}>
+      <a href={app.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none', display:'block' }}>
         {inner}
       </a>
     );
   }
-  return <div style={{ height:'100%' }}>{inner}</div>;
+  return <div>{inner}</div>;
 }
 
 function Skeleton() {
@@ -162,8 +162,16 @@ export default function AppsPage() {
               Featured
             </div>
             {/* 1 featured → full-width wide card. 2 featured → side by side */}
-            <div style={{ display:'grid', gridTemplateColumns: featuredApps.length === 2 ? '1fr 1fr' : '1fr', gap:'16px' }} className="featured-apps-grid">
+            {/* Desktop: 2-col grid. Mobile: horizontal swipe */}
+            <div className="featured-apps-grid" style={{ display:'grid', gridTemplateColumns: featuredApps.length === 2 ? '1fr 1fr' : '1fr', gap:'16px' }}>
               {featuredApps.map(app => <AppCard key={app.id} app={app} featured/>)}
+            </div>
+            <div className="featured-apps-scroll" style={{ display:'none', overflowX:'auto', gap:'14px', scrollSnapType:'x mandatory', WebkitOverflowScrolling:'touch', paddingBottom:'8px', scrollbarWidth:'none' }}>
+              {featuredApps.map(app => (
+                <div key={app.id} style={{ minWidth:'82vw', maxWidth:'340px', scrollSnapAlign:'start', flexShrink:0 }}>
+                  <AppCard app={app} featured/>
+                </div>
+              ))}
             </div>
           </div>
         )}
@@ -187,11 +195,13 @@ export default function AppsPage() {
       <style>{`
         @media (max-width: 1024px) {
           .apps-grid { grid-template-columns: repeat(3, 1fr) !important; }
-          .featured-apps-grid { grid-template-columns: 1fr !important; }
         }
         @media (max-width: 640px) {
           .apps-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .featured-apps-grid { display: none !important; }
+          .featured-apps-scroll { display: flex !important; }
         }
+        .featured-apps-scroll::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
   );
