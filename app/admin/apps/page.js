@@ -80,8 +80,14 @@ export default function AdminAppsPage() {
   useEffect(() => { getApps().then(d=>{setApps(d);setLoading(false);}); }, []);
 
   const handleAdd = async () => {
-    try { const id = await addApp({...EMPTY, order:apps.length}); setApps(s=>[...s,{...EMPTY,id,order:s.length}]); toast.success('Added!'); }
-    catch { toast.error('Failed'); }
+    try {
+      const id = await addApp({...EMPTY, order:0});
+      const newItem = {...EMPTY, id, order:0};
+      const newApps = [newItem, ...apps];
+      setApps(newApps);
+      await batchUpdateOrder('apps', newApps);
+      toast.success('Added!');
+    } catch { toast.error('Failed'); }
   };
   const handleDelete = async (id) => {
     if (!confirm('Delete this app?')) return;
