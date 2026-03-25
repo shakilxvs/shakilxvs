@@ -20,8 +20,8 @@ function Stars({ rating }) {
 function ReviewRow({ review, actions }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', overflow:'hidden', marginBottom:'10px' }}>
-      <div onClick={()=>setExpanded(e=>!e)} style={{ padding:'16px 20px', cursor:'pointer', display:'flex', alignItems:'center', gap:'12px', flexWrap:'wrap' }}>
+    <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', marginBottom:'10px' }}>
+      <div onClick={()=>setExpanded(e=>!e)} style={{ padding:'12px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
             <span style={{ fontFamily:'Outfit,sans-serif', fontWeight:700, color:'var(--text-1)', fontSize:'0.9rem' }}>{review.name}</span>
@@ -34,7 +34,7 @@ function ReviewRow({ review, actions }) {
             <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)' }}>{formatMonthYear(review.submittedAt||review.approvedAt)}</span>
           </div>
         </div>
-        <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }} onClick={e=>e.stopPropagation()}>
+        <div style={{ display:'flex', gap:'4px', flexWrap:'wrap' }} onClick={e=>e.stopPropagation()}>
           {actions.map(({label, icon:Icon, onClick, color}) => (
             <button key={label} onClick={onClick} title={label} className="review-action-btn" style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'6px 10px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color: color||'var(--text-2)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s ease' }}
               onMouseEnter={e=>{ e.currentTarget.style.borderColor=color||'var(--accent-border)'; e.currentTarget.style.color=color||'var(--accent)'; }}
@@ -46,7 +46,7 @@ function ReviewRow({ review, actions }) {
         </div>
       </div>
       {expanded && (
-        <div style={{ padding:'0 20px 16px', borderTop:'1px solid var(--border-1)' }}>
+        <div style={{ padding:'0 14px 14px', borderTop:'1px solid var(--border-1)' }}>
           <p style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', color:'var(--text-2)', lineHeight:1.7, marginTop:'12px' }}>{review.text}</p>
           {review.videoUrl && <div style={{ marginTop:'8px', fontFamily:'Space Mono,monospace', fontSize:'0.65rem', color:'var(--text-3)' }}>Video: {review.videoUrl}</div>}
           <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', marginTop:'8px' }}>Email: {review.email}</div>
