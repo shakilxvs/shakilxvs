@@ -58,7 +58,7 @@ function LogoPill({ label, src, invert }) {
 
 function MarqueeRow({ items, reverse=false, speed=40 }) {
   /* Triple the array so loop has no visible seam on any screen width */
-  const tripled = [...items, ...items, ...items];
+  const quadrupled = [...items, ...items, ...items, ...items];
   return (
     <div style={{
       overflow:'hidden',
@@ -67,12 +67,12 @@ function MarqueeRow({ items, reverse=false, speed=40 }) {
     }}>
       <div style={{
         display:'flex', gap:'10px', alignItems:'center',
-        /* Animate over 1/3 of total width for seamless loop with tripled array */
+        /* Animate over 1/4 of total width for seamless loop with quadrupled array */
         animation:`${reverse?'mq-rev':'mq-fwd'} ${speed}s linear infinite`,
         width:'max-content',
         willChange:'transform',
       }}>
-        {tripled.map((item,i) => (
+        {quadrupled.map((item,i) => (
           <LogoPill key={i} label={item.label} src={item.src} invert={item.invert??false}/>
         ))}
       </div>
@@ -103,8 +103,8 @@ export default function Marquee() {
       <MarqueeRow items={row1} />
       <MarqueeRow items={row2} reverse speed={34} />
       <style>{`
-        @keyframes mq-fwd { from{transform:translateX(0)} to{transform:translateX(calc(-33.3334%))} }
-        @keyframes mq-rev { from{transform:translateX(calc(-33.3334%))} to{transform:translateX(0)} }
+        @keyframes mq-fwd { from{transform:translateX(0)} to{transform:translateX(-25%)} }
+        @keyframes mq-rev { from{transform:translateX(-25%)} to{transform:translateX(0)} }
       `}</style>
     </div>
   );
