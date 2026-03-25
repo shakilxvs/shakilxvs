@@ -28,8 +28,8 @@ function SortableProject({ project, onUpdate, onDelete }) {
   const lbl = { fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'4px', display:'block' };
 
   return (
-    <div ref={setNodeRef} style={{ ...style, background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', marginBottom:'10px', overflow:'hidden' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'12px 16px', overflowX:'auto', scrollbarWidth:'none' }}>
+    <div ref={setNodeRef} style={{ ...style, background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', marginBottom:'10px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'10px 14px', flexWrap:'wrap' }}>
         <div {...attributes} {...listeners} style={{ cursor:'grab', color:'var(--text-3)', flexShrink:0 }}><GripVertical size={16}/></div>
         {local.thumbnailUrl && <img src={local.thumbnailUrl} alt="" style={{ width:48, height:27, objectFit:'cover', borderRadius:4, flexShrink:0 }} />}
         <div style={{ flex:1, minWidth:0 }}>
@@ -39,7 +39,7 @@ function SortableProject({ project, onUpdate, onDelete }) {
         {local.featured && <Star size={14} fill="var(--gold)" color="var(--gold)" style={{ flexShrink:0 }}/>}
         <label style={{ display:'flex', alignItems:'center', gap:'5px', cursor:'pointer', flexShrink:0 }}>
           <input type="checkbox" checked={local.active} onChange={e=>set('active',e.target.checked)} style={{ accentColor:'var(--accent)' }} />
-          <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', whiteSpace:'nowrap' }}>Active</span>
+          <span className="admin-row-active-label" style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', whiteSpace:'nowrap' }}>Active</span>
         </label>
         <button onClick={()=>setOpen(o=>!o)} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', flexShrink:0 }}>{open ? <ChevronUp size={16}/> : <ChevronDown size={16}/>}</button>
         <button onClick={()=>onDelete(project.id)} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', flexShrink:0 }}><Trash2 size={15}/></button>
@@ -70,6 +70,7 @@ function SortableProject({ project, onUpdate, onDelete }) {
           </button>
         </div>
       )}
+    <style>{`@media(max-width:640px){.admin-row-active-label{display:none!important;}}`}</style>
     </div>
   );
 }
@@ -109,7 +110,7 @@ export default function AdminProjectsPage() {
 
   return (
     <div style={{ maxWidth:800 }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'28px' }}>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'28px', flexWrap:'wrap', gap:'12px' }}>
         <div>
           <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.2em' }}>Projects</div>
           <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.8rem', color:'var(--text-3)', marginTop:'4px' }}>Drag to reorder · Star = Featured at top of projects page</div>
@@ -127,6 +128,7 @@ export default function AdminProjectsPage() {
           </SortableContext>
         </DndContext>
       )}
+    <style>{`@media(max-width:640px){.admin-row-active-label{display:none!important;}}`}</style>
     </div>
   );
 }
