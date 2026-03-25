@@ -34,7 +34,7 @@ function SortableProject({ project, onUpdate, onDelete }) {
 
   return (
     <div ref={setNodeRef} style={{ ...style, background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', marginBottom:'10px', overflow:'hidden' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'16px 20px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'12px 16px', overflowX:'auto', scrollbarWidth:'none' }}>
         <div {...attributes} {...listeners} style={{ cursor:'grab', color:'var(--text-3)', flexShrink:0 }}><GripVertical size={16}/></div>
         {local.thumbnailUrl && <img src={local.thumbnailUrl} alt="" style={{ width:48, height:27, objectFit:'cover', borderRadius:4, flexShrink:0 }} />}
         <div style={{ flex:1, minWidth:0 }}>
