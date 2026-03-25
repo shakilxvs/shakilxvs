@@ -100,7 +100,7 @@ function LogoListManager({ title, description, items, onChange }) {
 }
 
 /* ─── BankForm OUTSIDE parent to prevent re-mount focus loss ── */
-const EMPTY_BANK = { bankName:'', accountName:'', accountNumber:'', routingNumber:'', swiftCode:'', iban:'', address:'', city:'', district:'', postalCode:'', country:'', notes:'', customFields:[] };
+const EMPTY_BANK = { bankName:'', accountName:'', accountNumber:'', routingNumber:'', swiftCode:'', iban:'', address:'', city:'', district:'', state:'', postalCode:'', country:'', notes:'', customFields:[] };
 
 function BankForm({ title, subtitle, initialData, onSave, saving }) {
   const [local, setLocal] = useState({ ...EMPTY_BANK, ...initialData });
@@ -111,8 +111,9 @@ function BankForm({ title, subtitle, initialData, onSave, saving }) {
     [['accountNumber','Account Number'],['routingNumber','Routing Number']],
     [['swiftCode','SWIFT / BIC Code'],['iban','IBAN']],
     [['address','Street Address']],
-    [['city','City'],['district','District / State']],
-    [['postalCode','Postal / ZIP Code'],['country','Country']],
+    [['city','City'],['district','District']],
+    [['state','State / Province'],['postalCode','Postal / ZIP Code']],
+    [['country','Country']],
     [['notes','Notes (shown on pay page)']],
   ];
   const addCustomField  = () => set('customFields', [...(local.customFields||[]), { label:'', value:'' }]);
