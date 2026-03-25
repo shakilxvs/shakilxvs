@@ -28,7 +28,7 @@ function SortableFile({ file, onUpdate, onDelete }) {
 
   return (
     <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', marginBottom:'10px', overflow:'hidden' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:'12px', padding:'14px 20px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'12px 16px', overflowX:'auto', scrollbarWidth:'none' }}>
         <div {...attributes} {...listeners} style={{ cursor:'grab', color:'var(--text-3)', flexShrink:0 }}><GripVertical size={16}/></div>
         <div style={{ padding:'2px 10px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:100, fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-2)', flexShrink:0 }}>{local.type||'FILE'}</div>
         <div style={{ flex:1, minWidth:0 }}>
