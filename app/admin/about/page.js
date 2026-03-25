@@ -8,6 +8,8 @@ export default function AdminAboutPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving]   = useState(false);
   const [form, setForm] = useState({
+    sectionTitle:   'About Me',
+    sectionHeading: 'Who I Am',
     bio: '',
     cvUrl: '',
     showCV: true,
@@ -19,7 +21,13 @@ export default function AdminAboutPage() {
 
   useEffect(() => {
     getPortfolioDoc('about').then(d => {
-      if (d) setForm(f => ({ ...f, ...d, showCV: d.showCV !== false }));
+      if (d) setForm(f => ({
+        ...f,
+        ...d,
+        showCV:         d.showCV !== false,
+        sectionTitle:   d.sectionTitle   || 'About Me',
+        sectionHeading: d.sectionHeading || 'Who I Am',
+      }));
       setLoading(false);
     });
   }, []);
@@ -58,6 +66,27 @@ export default function AdminAboutPage() {
         </button>
       </div>
 
+      {/* Section headings */}
+      <div style={cd}>
+        <div style={hd}>Section Headings</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+          <div>
+            <label style={lb}>Section Label (small text above)</label>
+            <input style={fi} value={form.sectionTitle} onChange={e=>set('sectionTitle',e.target.value)} placeholder="About Me"
+              onFocus={e=>e.target.style.borderColor='var(--accent-border)'}
+              onBlur={e=>e.target.style.borderColor='var(--border-2)'}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'4px' }}>Shown as small label — e.g. "ABOUT ME"</div>
+          </div>
+          <div>
+            <label style={lb}>Main Heading</label>
+            <input style={fi} value={form.sectionHeading} onChange={e=>set('sectionHeading',e.target.value)} placeholder="Who I Am"
+              onFocus={e=>e.target.style.borderColor='var(--accent-border)'}
+              onBlur={e=>e.target.style.borderColor='var(--border-2)'}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'4px' }}>Large heading — e.g. "WHO I AM"</div>
+          </div>
+        </div>
+      </div>
+
       {/* Bio */}
       <div style={cd}>
         <div style={hd}>Bio</div>
@@ -72,37 +101,23 @@ export default function AdminAboutPage() {
         />
       </div>
 
-      {/* CV Download */}
+      {/* CV */}
       <div style={cd}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px', flexWrap:'wrap', gap:'12px' }}>
           <div style={hd}>CV / Resume</div>
-          {/* Show/Hide toggle */}
           <button
             onClick={() => set('showCV', !form.showCV)}
-            style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              padding: '7px 14px',
-              background: form.showCV ? 'rgba(35,77,194,0.1)' : 'var(--bg-elevated)',
-              border: form.showCV ? '1px solid var(--accent-border)' : '1px solid var(--border-2)',
-              borderRadius: 'var(--radius-md)',
-              color: form.showCV ? 'var(--accent)' : 'var(--text-3)',
-              fontFamily: 'Outfit,sans-serif', fontSize: '0.82rem', fontWeight: 600,
-              cursor: 'pointer', transition: 'all 0.15s ease',
-            }}
+            style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'7px 14px', background: form.showCV ? 'rgba(35,77,194,0.1)' : 'var(--bg-elevated)', border: form.showCV ? '1px solid var(--accent-border)' : '1px solid var(--border-2)', borderRadius:'var(--radius-md)', color: form.showCV ? 'var(--accent)' : 'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', fontWeight:600, cursor:'pointer', transition:'all 0.15s ease' }}
           >
             {form.showCV ? <Eye size={14}/> : <EyeOff size={14}/>}
             {form.showCV ? 'Visible on site' : 'Hidden from site'}
           </button>
         </div>
         <label style={lb}>CV / Resume URL</label>
-        <input
-          style={fi}
-          value={form.cvUrl}
-          onChange={e => set('cvUrl', e.target.value)}
-          onFocus={e => e.target.style.borderColor = 'var(--accent-border)'}
-          onBlur={e => e.target.style.borderColor = 'var(--border-2)'}
-          placeholder="https://drive.google.com/file/d/..."
-        />
+        <input style={fi} value={form.cvUrl} onChange={e=>set('cvUrl',e.target.value)}
+          onFocus={e=>e.target.style.borderColor='var(--accent-border)'}
+          onBlur={e=>e.target.style.borderColor='var(--border-2)'}
+          placeholder="https://drive.google.com/file/d/..."/>
         <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', marginTop:'8px' }}>
           Toggle visibility to show or hide the &quot;Download CV&quot; button on the public about section.
         </div>
@@ -115,9 +130,9 @@ export default function AdminAboutPage() {
           {[1, 2, 3, 4].map(n => (
             <div key={n} style={{ background:'var(--bg-elevated)', border:'1px solid var(--border-1)', borderRadius:'var(--radius-md)', padding:'16px' }}>
               <label style={lb}>Stat {n} Label</label>
-              <input style={{ ...fi, marginBottom:'10px' }} value={form[`stat${n}Label`]} onChange={e => set(`stat${n}Label`, e.target.value)} onFocus={e=>e.target.style.borderColor='var(--accent-border)'} onBlur={e=>e.target.style.borderColor='var(--border-2)'}/>
+              <input style={{ ...fi, marginBottom:'10px' }} value={form[`stat${n}Label`]} onChange={e=>set(`stat${n}Label`,e.target.value)} onFocus={e=>e.target.style.borderColor='var(--accent-border)'} onBlur={e=>e.target.style.borderColor='var(--border-2)'}/>
               <label style={lb}>Stat {n} Number</label>
-              <input type="number" style={fi} value={form[`stat${n}Value`]} onChange={e => set(`stat${n}Value`, e.target.value)} onFocus={e=>e.target.style.borderColor='var(--accent-border)'} onBlur={e=>e.target.style.borderColor='var(--border-2)'}/>
+              <input type="number" style={fi} value={form[`stat${n}Value`]} onChange={e=>set(`stat${n}Value`,e.target.value)} onFocus={e=>e.target.style.borderColor='var(--accent-border)'} onBlur={e=>e.target.style.borderColor='var(--border-2)'}/>
             </div>
           ))}
         </div>
