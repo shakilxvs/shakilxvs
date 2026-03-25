@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getProjects } from '@/lib/firestore';
 import ProjectCard from '@/components/portfolio/ProjectCard';
 import { Layers } from 'lucide-react';
@@ -24,34 +24,37 @@ export default function ProjectsPageClient() {
   const [projects, setProjects] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [active,   setActive]   = useState('All');
+  const [activeDot, setActiveDot] = useState(0);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
-getProjects().then(data => {
+    getProjects().then(data => {
       setProjects(data.filter(p => p.active !== false));
       setLoading(false);
     });
   }, []);
 
-  // Featured: shown at top always, regardless of category filter
   const featuredProjects = projects.filter(p => p.featured);
   const featuredIds      = new Set(featuredProjects.map(p => p.id));
+  const regularAll       = projects.filter(p => !featuredIds.has(p.id));
+  const regularFiltered  = active === 'All' ? regularAll : regularAll.filter(p => p.category === active);
 
-  // Regular: non-featured, filtered by category
-  const regularAll      = projects.filter(p => !featuredIds.has(p.id));
-  const regularFiltered = active === 'All'
-    ? regularAll
-    : regularAll.filter(p => p.category === active);
-
-  // When a category is active, also include featured from that category in the regular filtered section
-  // Actually - featured always shows at top separately, regular filtered below
-  const showEmpty = !loading && regularFiltered.length === 0 && featuredProjects.length === 0;
+  const showEmpty         = !loading && regularFiltered.length === 0 && featuredProjects.length === 0;
   const showEmptyCategory = !loading && regularFiltered.length === 0 && active !== 'All';
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    // Card width is 85vw with 12px gap
+    const cardW = el.offsetWidth * 0.85 + 12;
+    const idx = Math.round(el.scrollLeft / cardW);
+    setActiveDot(Math.max(0, Math.min(idx, featuredProjects.length - 1)));
+  };
 
   return (
     <div style={{ minHeight:'100vh', paddingTop:'100px', paddingBottom:'80px', position:'relative', zIndex:1 }}>
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
 
-        {/* Heading */}
         <div style={{ marginBottom:'40px' }}>
           <div className="section-label" style={{ marginBottom:'12px' }}>Portfolio</div>
           <h1 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(3rem,6vw,5rem)', color:'var(--text-1)', letterSpacing:'0.02em', lineHeight:1, marginBottom:'16px' }}>
@@ -68,17 +71,41 @@ getProjects().then(data => {
             <div style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.2em', marginBottom:'16px' }}>
               Featured
             </div>
-            {/* Desktop: 2-col grid. Mobile: horizontal swipe */}
-            <div className="featured-proj-grid" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px' }}>
+
+            {/* Desktop: 2-col grid — always shown on desktop, hidden on mobile */}
+            <div className="feat-proj-desktop" style={{ display:'grid', gridTemplateColumns: featuredProjects.length >= 2 ? '1fr 1fr' : '1fr', gap:'20px' }}>
               {featuredProjects.map(p => <ProjectCard key={p.id} project={p}/>)}
             </div>
-            <div className="featured-proj-scroll" style={{ display:'none', overflowX:'auto', gap:'14px', scrollSnapType:'x mandatory', WebkitOverflowScrolling:'touch', paddingBottom:'8px', scrollbarWidth:'none' }}>
-              {featuredProjects.map(p => (
-                <div key={p.id} style={{ minWidth:'82vw', maxWidth:'360px', scrollSnapAlign:'start', flexShrink:0 }}>
-                  <ProjectCard project={p}/>
+
+            {/* Mobile: 1 featured — full width card, no scroll */}
+            {featuredProjects.length === 1 && (
+              <div className="feat-proj-mobile-single" style={{ display:'none' }}>
+                <ProjectCard project={featuredProjects[0]}/>
+              </div>
+            )}
+
+            {/* Mobile: 2+ featured — peek carousel + dots */}
+            {featuredProjects.length >= 2 && (
+              <div className="feat-proj-mobile-multi" style={{ display:'none' }}>
+                <div
+                  ref={scrollRef}
+                  onScroll={handleScroll}
+                  style={{ display:'flex', overflowX:'auto', gap:'12px', scrollSnapType:'x mandatory', WebkitOverflowScrolling:'touch', scrollbarWidth:'none', paddingRight:'15%' }}
+                >
+                  {featuredProjects.map(p => (
+                    <div key={p.id} style={{ minWidth:'85%', flexShrink:0, scrollSnapAlign:'start' }}>
+                      <ProjectCard project={p}/>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+                {/* Pagination dots */}
+                <div style={{ display:'flex', justifyContent:'center', gap:'8px', marginTop:'14px' }}>
+                  {featuredProjects.map((_, i) => (
+                    <div key={i} style={{ width: i===activeDot ? 18 : 6, height:6, borderRadius:3, background: i===activeDot ? 'var(--accent)' : 'var(--border-2)', transition:'all 0.25s ease' }}/>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -98,7 +125,6 @@ getProjects().then(data => {
           </div>
         )}
 
-        {/* All projects empty */}
         {showEmpty && (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'80px 24px', gap:'16px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-xl)' }}>
             <Layers size={40} style={{ color:'var(--text-3)' }} strokeWidth={1}/>
@@ -106,7 +132,6 @@ getProjects().then(data => {
           </div>
         )}
 
-        {/* Category empty */}
         {showEmptyCategory && (
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'60px 24px', gap:'16px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-xl)' }}>
             <Layers size={36} style={{ color:'var(--text-3)' }} strokeWidth={1}/>
@@ -134,15 +159,17 @@ getProjects().then(data => {
       </div>
 
       <style>{`
-        @media (max-width:1024px) {
-          .projects-grid { grid-template-columns: repeat(2,1fr) !important; }
+        @media (max-width: 1024px) {
+          .projects-grid      { grid-template-columns: repeat(2,1fr) !important; }
+          .feat-proj-desktop  { grid-template-columns: 1fr 1fr !important; }
         }
-        @media (max-width:640px) {
-          .projects-grid { grid-template-columns: 1fr !important; }
-          .featured-proj-grid { display: none !important; }
-          .featured-proj-scroll { display: flex !important; }
+        @media (max-width: 640px) {
+          .projects-grid            { grid-template-columns: 1fr !important; }
+          .feat-proj-desktop        { display: none !important; }
+          .feat-proj-mobile-single  { display: block !important; }
+          .feat-proj-mobile-multi   { display: block !important; }
         }
-        .featured-proj-scroll::-webkit-scrollbar { display: none; }
+        .feat-proj-mobile-multi > div:first-child::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
   );
