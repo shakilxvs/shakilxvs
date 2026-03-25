@@ -14,6 +14,7 @@ function Stars({ rating }) {
         <Star key={i} size={12} fill={i<rating?'#f5c518':'transparent'} color={i<rating?'#f5c518':'var(--border-3)'} strokeWidth={1.5}/>
       ))}
     </div>
+    <style>{`@media(max-width:640px){.review-action-btn span{display:none!important;} .review-action-btn{padding:6px!important;} }`}</style>
   );
 }
 
@@ -34,9 +35,9 @@ function ReviewRow({ review, actions }) {
             <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)' }}>{formatMonthYear(review.submittedAt||review.approvedAt)}</span>
           </div>
         </div>
-        <div style={{ display:'flex', gap:'8px', flexShrink:0 }} onClick={e=>e.stopPropagation()}>
+        <div style={{ display:'flex', gap:'6px', flexWrap:'wrap' }} onClick={e=>e.stopPropagation()}>
           {actions.map(({label, icon:Icon, onClick, color}) => (
-            <button key={label} onClick={onClick} title={label} style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'6px 12px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color: color||'var(--text-2)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s ease' }}
+            <button key={label} onClick={onClick} title={label} className="review-action-btn" style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'6px 10px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color: color||'var(--text-2)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem', cursor:'pointer', transition:'all 0.15s ease' }}
               onMouseEnter={e=>{ e.currentTarget.style.borderColor=color||'var(--accent-border)'; e.currentTarget.style.color=color||'var(--accent)'; }}
               onMouseLeave={e=>{ e.currentTarget.style.borderColor='var(--border-2)'; e.currentTarget.style.color=color||'var(--text-2)'; }}
             >
