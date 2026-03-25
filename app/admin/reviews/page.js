@@ -27,7 +27,7 @@ function ReviewRow({ review, actions }) {
             <span style={{ fontFamily:'Outfit,sans-serif', fontWeight:700, color:'var(--text-1)', fontSize:'0.9rem' }}>{review.name}</span>
             {review.verified && <ShieldCheck size={14} color="var(--accent)"/>}
             {review.videoUrl && <Video size={13} color="var(--text-3)"/>}
-            {review.service && <span style={{ padding:'2px 8px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:100, fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)' }}>{review.service}</span>}
+            {review.service && <span style={{ padding:'2px 8px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:100, fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', maxWidth:'120px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', display:'inline-block' }}>{review.service}</span>}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', marginTop:'4px' }}>
             <Stars rating={review.rating}/>
@@ -136,7 +136,7 @@ export default function AdminReviewsPage() {
 
   return (
     <div style={{ maxWidth:800 }}>
-      <div style={{ display:'flex', gap:'4px', marginBottom:'28px', background:'var(--bg-surface)', padding:'4px', borderRadius:'var(--radius-lg)', border:'1px solid var(--border-2)', width:'fit-content' }}>
+      <div style={{ display:'flex', gap:'4px', marginBottom:'28px', background:'var(--bg-surface)', padding:'4px', borderRadius:'var(--radius-lg)', border:'1px solid var(--border-2)', flexWrap:'wrap', maxWidth:'100%' }}>
         {TABS.map(t => (
           <button key={t} onClick={()=>setTab(t)} style={{
             padding:'8px 20px', borderRadius:'var(--radius-md)', border:'none',
