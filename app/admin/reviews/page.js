@@ -14,7 +14,6 @@ function Stars({ rating }) {
         <Star key={i} size={12} fill={i<rating?'#f5c518':'transparent'} color={i<rating?'#f5c518':'var(--border-3)'} strokeWidth={1.5}/>
       ))}
     </div>
-    <style>{`@media(max-width:640px){.review-action-btn span{display:none!important;} .review-action-btn{padding:6px!important;} }`}</style>
   );
 }
 
@@ -41,7 +40,7 @@ function ReviewRow({ review, actions }) {
               onMouseEnter={e=>{ e.currentTarget.style.borderColor=color||'var(--accent-border)'; e.currentTarget.style.color=color||'var(--accent)'; }}
               onMouseLeave={e=>{ e.currentTarget.style.borderColor='var(--border-2)'; e.currentTarget.style.color=color||'var(--text-2)'; }}
             >
-              <Icon size={13}/>{label}
+              <Icon size={13}/><span>{label}</span>
             </button>
           ))}
         </div>
@@ -58,11 +57,11 @@ function ReviewRow({ review, actions }) {
 }
 
 export default function AdminReviewsPage() {
-  const [tab, setTab]         = useState('Pending');
+  const [tab, setTab]           = useState('Pending');
   const [pending, setPending]   = useState([]);
   const [published, setPublished] = useState([]);
-  const [rejected, setRejected]   = useState([]);
-  const [loading, setLoading]     = useState(true);
+  const [rejected, setRejected] = useState([]);
+  const [loading, setLoading]   = useState(true);
 
   const load = async () => {
     setLoading(true);
@@ -137,7 +136,6 @@ export default function AdminReviewsPage() {
 
   return (
     <div style={{ maxWidth:800 }}>
-      {/* Tabs */}
       <div style={{ display:'flex', gap:'4px', marginBottom:'28px', background:'var(--bg-surface)', padding:'4px', borderRadius:'var(--radius-lg)', border:'1px solid var(--border-2)', width:'fit-content' }}>
         {TABS.map(t => (
           <button key={t} onClick={()=>setTab(t)} style={{
@@ -167,6 +165,13 @@ export default function AdminReviewsPage() {
           <ReviewRow key={review.id} review={review} actions={getActions(review)} />
         ))
       )}
+
+      <style>{`
+        @media (max-width: 640px) {
+          .review-action-btn span { display: none !important; }
+          .review-action-btn { padding: 6px !important; }
+        }
+      `}</style>
     </div>
   );
 }
