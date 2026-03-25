@@ -27,8 +27,8 @@ function SortableFile({ file, onUpdate, onDelete }) {
   const isFree = !local.price || local.price === '' || local.price === '0';
 
   return (
-    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', marginBottom:'10px', overflow:'hidden' }}>
-      <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'12px 16px', overflowX:'auto', scrollbarWidth:'none' }}>
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1, background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', marginBottom:'10px' }}>
+      <div style={{ display:'flex', alignItems:'center', gap:'8px', padding:'10px 14px', flexWrap:'wrap' }}>
         <div {...attributes} {...listeners} style={{ cursor:'grab', color:'var(--text-3)', flexShrink:0 }}><GripVertical size={16}/></div>
         <div style={{ padding:'2px 8px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:100, fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-2)', flexShrink:0 }}>{local.type||'FILE'}</div>
         <div style={{ flex:1, minWidth:0 }}>
@@ -38,7 +38,7 @@ function SortableFile({ file, onUpdate, onDelete }) {
         {local.featured && <Star size={14} fill="var(--gold)" color="var(--gold)" style={{ flexShrink:0 }}/>}
         <label style={{ display:'flex', alignItems:'center', gap:'5px', cursor:'pointer', flexShrink:0 }}>
           <input type="checkbox" checked={local.active} onChange={e=>set('active',e.target.checked)} style={{ accentColor:'var(--accent)' }}/>
-          <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', whiteSpace:'nowrap' }}>Active</span>
+          <span className="admin-row-active-label" style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', whiteSpace:'nowrap' }}>Active</span>
         </label>
         <button onClick={()=>setOpen(o=>!o)} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', flexShrink:0 }}>{open?<ChevronUp size={16}/>:<ChevronDown size={16}/>}</button>
         <button onClick={()=>onDelete(file.id)} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', flexShrink:0 }}><Trash2 size={15}/></button>
@@ -67,6 +67,7 @@ function SortableFile({ file, onUpdate, onDelete }) {
           </button>
         </div>
       )}
+    <style>{`@media(max-width:640px){.admin-row-active-label{display:none!important;}}`}</style>
     </div>
   );
 }
@@ -124,6 +125,7 @@ export default function AdminFilesPage() {
           </SortableContext>
         </DndContext>
       )}
+    <style>{`@media(max-width:640px){.admin-row-active-label{display:none!important;}}`}</style>
     </div>
   );
 }
