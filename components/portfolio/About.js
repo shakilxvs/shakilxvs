@@ -28,33 +28,14 @@ function CountUpStat({ target, suffix = '+', label }) {
   }, [target]);
 
   return (
-    <div ref={ref} style={{
-      background: 'var(--bg-elevated)',
-      border: '1px solid var(--border-2)',
-      borderRadius: 'var(--radius-lg)',
-      padding: '24px',
-      textAlign: 'center',
-      transition: 'border-color 0.2s ease',
-    }}
-    onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-border)'}
-    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-2)'}
+    <div ref={ref} style={{ background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'24px', textAlign:'center', transition:'border-color 0.2s ease' }}
+      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-border)'}
+      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-2)'}
     >
-      <div style={{
-        fontFamily: 'Bebas Neue, sans-serif',
-        fontSize: '3rem',
-        color: 'var(--accent)',
-        lineHeight: 1,
-        marginBottom: '6px',
-      }}>
+      <div style={{ fontFamily:'Bebas Neue, sans-serif', fontSize:'3rem', color:'var(--accent)', lineHeight:1, marginBottom:'6px' }}>
         {count.toLocaleString()}{suffix}
       </div>
-      <div style={{
-        fontFamily: 'Space Mono, monospace',
-        fontSize: '0.6rem',
-        color: 'var(--text-3)',
-        textTransform: 'uppercase',
-        letterSpacing: '0.15em',
-      }}>
+      <div style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.15em' }}>
         {label}
       </div>
     </div>
@@ -62,9 +43,10 @@ function CountUpStat({ target, suffix = '+', label }) {
 }
 
 export default function About({ data }) {
+  const sectionTitle   = data?.sectionTitle   || 'About Me';
+  const sectionHeading = data?.sectionHeading || 'Who I Am';
   const bio    = data?.bio || 'I\'m Shakil — a CMS specialist, Shopify developer, and digital marketing expert with 6+ years of experience helping businesses scale online. I\'ve worked with 5000+ global clients across eCommerce, SaaS, and service industries.\n\nI build fast, conversion-focused websites and run data-driven ad campaigns that consistently deliver measurable ROI.';
   const cvUrl  = data?.cvUrl || '#';
-  // Respect the showCV toggle — default true if not set
   const showCV = data?.showCV !== false;
 
   const stats = [
@@ -75,82 +57,37 @@ export default function About({ data }) {
   ];
 
   return (
-    <section style={{ padding: '100px 0', position: 'relative', zIndex: 1 }}>
-      {/* Background glow */}
-      <div style={{
-        position: 'absolute', bottom: '0', left: '-10%',
-        width: '500px', height: '400px',
-        background: 'radial-gradient(ellipse, rgba(35,77,194,0.07) 0%, transparent 70%)',
-        pointerEvents: 'none', zIndex: 0,
-      }} />
+    <section style={{ padding:'100px 0', position:'relative', zIndex:1 }}>
+      <div style={{ position:'absolute', bottom:'0', left:'-10%', width:'500px', height:'400px', background:'radial-gradient(ellipse, rgba(35,77,194,0.07) 0%, transparent 70%)', pointerEvents:'none', zIndex:0 }} />
 
-      <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
-        {/* Section label */}
-        <div style={{ marginBottom: '60px' }}>
-          <div className="section-label" style={{ marginBottom: '12px' }}>About Me</div>
-          <h2 style={{
-            fontFamily: 'Bebas Neue, sans-serif',
-            fontSize: 'clamp(2.5rem, 5vw, 4rem)',
-            color: 'var(--text-1)',
-            letterSpacing: '0.02em',
-            lineHeight: 1,
-          }}>
-            Who I Am
+      <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', position:'relative', zIndex:1 }}>
+        <div style={{ marginBottom:'60px' }}>
+          <div className="section-label" style={{ marginBottom:'12px' }}>{sectionTitle}</div>
+          <h2 style={{ fontFamily:'Bebas Neue, sans-serif', fontSize:'clamp(2.5rem, 5vw, 4rem)', color:'var(--text-1)', letterSpacing:'0.02em', lineHeight:1 }}>
+            {sectionHeading}
           </h2>
         </div>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '80px',
-          alignItems: 'start',
-        }} className="about-grid">
-
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'80px', alignItems:'start' }} className="about-grid">
           {/* Bio */}
           <div>
             {bio.split('\n\n').map((para, i) => (
-              <p key={i} style={{
-                fontFamily: 'Outfit, sans-serif',
-                fontSize: '1.05rem',
-                color: 'var(--text-2)',
-                lineHeight: 1.8,
-                marginBottom: '20px',
-              }}>
+              <p key={i} style={{ fontFamily:'Outfit, sans-serif', fontSize:'1.05rem', color:'var(--text-2)', lineHeight:1.8, marginBottom:'20px' }}>
                 {para}
               </p>
             ))}
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '32px', flexWrap: 'wrap' }}>
-              {/* Only show Download CV if showCV is true */}
+            <div style={{ display:'flex', gap:'12px', marginTop:'32px', flexWrap:'wrap' }}>
               {showCV && cvUrl && cvUrl !== '#' && (
-                <a
-                  href={cvUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: '8px',
-                    padding: '12px 22px',
-                    background: 'var(--accent)', color: '#fff',
-                    borderRadius: 'var(--radius-md)',
-                    fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: '0.875rem',
-                    textDecoration: 'none', transition: 'opacity 0.15s ease',
-                  }}
+                <a href={cvUrl} target="_blank" rel="noopener noreferrer"
+                  style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'12px 22px', background:'var(--accent)', color:'#fff', borderRadius:'var(--radius-md)', fontFamily:'Outfit, sans-serif', fontWeight:700, fontSize:'0.875rem', textDecoration:'none', transition:'opacity 0.15s ease' }}
                   onMouseEnter={e => e.currentTarget.style.opacity = '0.88'}
                   onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                 >
                   <Download size={15} /> Download CV
                 </a>
               )}
-              <Link
-                href="/contact"
-                style={{
-                  display: 'inline-flex', alignItems: 'center', gap: '8px',
-                  padding: '12px 22px',
-                  background: 'transparent', color: 'var(--text-1)',
-                  borderRadius: 'var(--radius-md)', border: '1px solid var(--border-3)',
-                  fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '0.875rem',
-                  textDecoration: 'none', transition: 'border-color 0.15s ease',
-                }}
+              <Link href="/contact"
+                style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'12px 22px', background:'transparent', color:'var(--text-1)', borderRadius:'var(--radius-md)', border:'1px solid var(--border-3)', fontFamily:'Outfit, sans-serif', fontWeight:600, fontSize:'0.875rem', textDecoration:'none', transition:'border-color 0.15s ease' }}
                 onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--accent-border)'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border-3)'}
               >
@@ -159,8 +96,8 @@ export default function About({ data }) {
             </div>
           </div>
 
-          {/* Stats grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          {/* Stats */}
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
             {stats.map(s => (
               <CountUpStat key={s.label} target={s.value} suffix={s.suffix} label={s.label} />
             ))}
