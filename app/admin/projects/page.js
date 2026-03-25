@@ -89,8 +89,11 @@ export default function AdminProjectsPage() {
 
   const handleAdd = async () => {
     try {
-      const id = await addProject({ ...EMPTY, order: projects.length });
-      setProjects(s => [...s, { ...EMPTY, id, order: s.length }]);
+      const id = await addProject({ ...EMPTY, order: 0 });
+      const newItem = { ...EMPTY, id, order: 0 };
+      const newProjects = [newItem, ...projects];
+      setProjects(newProjects);
+      await batchUpdateOrder('projects', newProjects);
       toast.success('Project added!');
     } catch { toast.error('Failed'); }
   };
