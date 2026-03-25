@@ -2,6 +2,8 @@ import PayPageClient from '@/components/portfolio/PayPageClient';
 import TrackPage from '@/components/TrackPage';
 import { getPortfolioDoc } from '@/lib/firestore';
 
+export const revalidate = 0;
+
 export async function generateMetadata() {
   try {
     const s = await getPortfolioDoc('siteSettings');
