@@ -15,6 +15,7 @@ const DEFAULT_NAV = [
   { href:'/reviews',  label:'Reviews',  visible:true  },
   { href:'/pay',      label:'Pay',      visible:true  },
   { href:'/contact',  label:'Contact',  visible:true  },
+  { href:'/services', label:'Services', visible:true  },
 ];
 
 
@@ -64,7 +65,7 @@ export default function AdminSettingsPage() {
   const [tracking,     setTracking]     = useState({ gaId:'', gtmId:'', metaPixelId:'', tiktokPixelId:'', pinterestTagId:'', pinterestDomainVerify:'' });
   const [footerText,   setFooterText]   = useState('');
   const [footerCopyright,setFooterCopyright]=useState('');
-  const [seo,          setSeo]          = useState({ home:{title:'',description:''}, projects:{title:'',description:''}, reviews:{title:'',description:''}, contact:{title:'',description:''}, apps:{title:'',description:''}, files:{title:'',description:''}, pay:{title:'',description:''} });
+  const [seo,          setSeo]          = useState({ home:{title:'',description:''}, projects:{title:'',description:''}, reviews:{title:'',description:''}, contact:{title:'',description:''}, apps:{title:'',description:''}, files:{title:'',description:''}, pay:{title:'',description:''}, services:{title:'',description:''} });
   const [currentPw,    setCurrentPw]    = useState('');
   const [newPw,        setNewPw]        = useState('');
   const [confirmPw,    setConfirmPw]    = useState('');
@@ -162,7 +163,7 @@ export default function AdminSettingsPage() {
     {key:'about',label:'About section'},{key:'skills',label:'Skills section'},
     {key:'projects',label:'Featured Projects'},{key:'reviews',label:'Reviews teaser'},{key:'cta',label:'CTA Banner'},
   ];
-  const SEO_PAGES = ['home','projects','reviews','contact','apps','files','pay'];
+  const SEO_PAGES = ['home','projects','reviews','contact','apps','files','pay','services'];
 
   return (
     <div style={{ maxWidth:820 }}>
