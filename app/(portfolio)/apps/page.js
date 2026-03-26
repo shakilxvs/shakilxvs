@@ -9,7 +9,7 @@ export async function generateMetadata() {
     return {
       title: seo.title || 'Apps | Shakil — CMS & Web Expert',
       description: seo.description || 'Web apps and digital products built by Shakil.',
-      alternates: { canonical: 'https://shakilxvs.vercel.app/apps' },
+      alternates: { canonical: 'https://shakilxvs.com/apps' },
     };
   } catch {
     return { title: 'Apps | Shakil — CMS & Web Expert' };
