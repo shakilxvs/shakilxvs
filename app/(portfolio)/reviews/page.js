@@ -11,7 +11,7 @@ export async function generateMetadata() {
     return {
       title: seo.title || 'Reviews | Shakil — CMS & Web Expert',
       description: seo.description || 'Read what clients say about working with Shakil. 5000+ projects, verified reviews.',
-      alternates: { canonical: 'https://shakilxvs.vercel.app/reviews' },
+      alternates: { canonical: 'https://shakilxvs.com/reviews' },
     };
   } catch {
     return { title: 'Reviews | Shakil — CMS & Web Expert' };
