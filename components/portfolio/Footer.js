@@ -105,13 +105,18 @@ export default function Footer() {
 
         <div style={{ height:'1px', background:'var(--border-1)', marginBottom:'24px' }}/>
 
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:'12px' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px' }}>
           <p style={{ fontFamily:'Space Mono, monospace', fontSize:'0.65rem', color:'var(--text-3)', letterSpacing:'0.05em' }}>
             © {year} {copyrightName}. All rights reserved.
           </p>
-          <Link href="/admin" style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', opacity:0.5 }}>
-            admin
-          </Link>
+          <div style={{ display:'flex', alignItems:'center', gap:'16px', flexShrink:0, whiteSpace:'nowrap' }}>
+            <Link href="/portal" style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', opacity:0.5 }}>
+              portal
+            </Link>
+            <Link href="/admin" style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', opacity:0.5 }}>
+              admin
+            </Link>
+          </div>
         </div>
       </div>
 
