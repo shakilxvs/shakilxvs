@@ -1,5 +1,5 @@
 export default function sitemap() {
-  const baseUrl = 'https://shakilxvs.vercel.app';
+  const baseUrl = 'https://shakilxvs.com';
   const pages = ['', '/projects', '/apps', '/files', '/reviews', '/pay', '/contact'];
 
   return pages.map(path => ({
