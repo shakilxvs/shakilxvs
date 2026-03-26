@@ -13,6 +13,7 @@ const DEFAULT_NAV = [
   { href:'/reviews',  label:'Reviews',  visible:true },
   { href:'/pay',      label:'Pay',      visible:true },
   { href:'/contact',  label:'Contact',  visible:true },
+  { href:'/services', label:'Services', visible:true },
 ];
 
 export default function Navbar() {
