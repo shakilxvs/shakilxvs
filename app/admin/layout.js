@@ -9,7 +9,7 @@ import SiteConfig from '@/components/SiteConfig';
 import {
   LayoutTemplate, User, Zap, Briefcase, AppWindow,
   FolderOpen, Star, CreditCard, Inbox, Settings,
-  ExternalLink, LogOut, Menu, ImagePlus, Users, BarChart2,
+  ExternalLink, LogOut, Menu, ImagePlus, Users, BarChart2, Layers,
 } from 'lucide-react';
 
 // roles: owner = all, admin = all except Team, staff = Messages + Reviews only
@@ -26,6 +26,7 @@ const ALL_NAV = [
   { href:'/admin/pay',       label:'Pay',       Icon:CreditCard,     roles:['owner','admin'] },
   { href:'/admin/messages',  label:'Messages',  Icon:Inbox,          roles:['owner','admin','staff'] },
   { href:'/admin/settings',  label:'Settings',  Icon:Settings,       roles:['owner','admin'] },
+  { href:'/admin/services',  label:'Services',  Icon:Layers,         roles:['owner','admin'] },
   { href:'/admin/team',      label:'Team',      Icon:Users,          roles:['owner'] },
 ];
 
