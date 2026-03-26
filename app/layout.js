@@ -4,11 +4,11 @@ import { Toaster } from 'react-hot-toast';
 export const metadata = {
   title: 'Shakil — CMS & Web Expert | Shopify Developer | Digital Marketer',
   description: 'Shakil is a CMS & Custom Web Expert, Shopify Developer, and Digital Marketer with 6+ years experience and 5000+ global projects.',
-  metadataBase: new URL('https://shakilxvs.vercel.app'),
+  metadataBase: new URL('https://shakilxvs.com'),
   openGraph: {
     title: 'Shakil — CMS & Web Expert',
     description: '6+ years · 5000+ projects · Global clients',
-    url: 'https://shakilxvs.vercel.app',
+    url: 'https://shakilxvs.com',
     images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',
   },
