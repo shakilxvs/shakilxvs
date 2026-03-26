@@ -17,7 +17,7 @@ export async function generateMetadata() {
     return {
       title: seo.title || 'Shakil — CMS & Web Expert | Shopify Developer | Digital Marketer',
       description: seo.description || 'Shakil is a CMS & Custom Web Expert, Shopify Developer, and Digital Marketer.',
-      alternates: { canonical: 'https://shakilxvs.vercel.app' },
+      alternates: { canonical: 'https://shakilxvs.com' },
     };
   } catch { return { title: 'Shakil — CMS & Web Expert' }; }
 }
