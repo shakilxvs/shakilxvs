@@ -22,14 +22,23 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [navItems, setNavItems] = useState(DEFAULT_NAV);
-  const [logo,     setLogo]     = useState(null);
+  const [logo,     setLogo]     = useState(undefined); // undefined=loading, null=default, object=custom
   const lastY = useRef(0);
 
   useEffect(() => {
-    getPortfolioDoc('siteSettings').then(s => {
-      if (s?.navItems?.length) setNavItems(s.navItems);
-      if (s?.logo)             setLogo(s.logo);
-    }).catch(() => {});
+    // Read synchronously from server-injected config (eliminates flash of default content)
+    const cfg = typeof window !== 'undefined' ? window.__SITE_CONFIG__ : null;
+    if (cfg) {
+      if (cfg.navItems?.length) setNavItems(cfg.navItems);
+      // null means no custom logo — use default. undefined means not loaded yet.
+      setLogo(cfg.logo ?? null);
+    } else {
+      // Fallback: fetch from Firestore (admin panel, portal, etc.)
+      getPortfolioDoc('siteSettings').then(s => {
+        if (s?.navItems?.length) setNavItems(s.navItems);
+        setLogo(s?.logo ?? null);
+      }).catch(() => { setLogo(null); });
+    }
   }, []);
 
   // Close mobile menu on route change
@@ -51,6 +60,9 @@ export default function Navbar() {
   const visibleNav = navItems.filter(n => n.visible !== false);
 
   const LogoEl = () => {
+    // undefined = still loading from server config — render invisible placeholder to hold space
+    if (logo === undefined)
+      return <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.85rem', color:'transparent', letterSpacing:'0.05em', userSelect:'none' }}>{'<shakil />'}</span>;
     if (logo?.type === 'image' && logo?.imageUrl)
       return <img src={logo.imageUrl} alt="Logo" style={{ height:32, width:'auto', maxWidth:160, objectFit:'contain', display:'block' }}/>;
     if (logo?.type === 'text' && logo?.text)
