@@ -52,9 +52,9 @@ function Sidebar({ user, userRole, pathname, sidebarOpen, setSidebarOpen }) {
               padding:'10px 12px', borderRadius:'var(--radius-md)', marginBottom:'2px',
               fontFamily:'Outfit, sans-serif', fontSize:'0.875rem', fontWeight:500,
               textDecoration:'none', transition:'all 0.15s ease',
-              background: pathname===href ? 'var(--accent-muted)' : 'transparent',
-              color:      pathname===href ? 'var(--accent)' : 'var(--text-2)',
-              border:     pathname===href ? '1px solid var(--accent-border)' : '1px solid transparent',
+              background: (pathname===href || pathname.startsWith(href+'/')) ? 'var(--accent-muted)' : 'transparent',
+              color:      (pathname===href || pathname.startsWith(href+'/')) ? 'var(--accent)' : 'var(--text-2)',
+              border:     (pathname===href || pathname.startsWith(href+'/')) ? '1px solid var(--accent-border)' : '1px solid transparent',
             }}>
               <Icon size={16} strokeWidth={1.75}/>{label}
             </Link>
@@ -146,7 +146,7 @@ export default function AdminLayout({ children }) {
 
   if (!user || userRole === 'none') return null;
 
-  const currentNav = ALL_NAV.find(n => n.href === pathname);
+  const currentNav = ALL_NAV.find(n => n.href === pathname || pathname.startsWith(n.href + '/'));
 
   return (
     <>
