@@ -9,7 +9,7 @@ export async function generateMetadata() {
     return {
       title: seo.title || 'Projects | Shakil — CMS & Web Expert',
       description: seo.description || '5000+ projects delivered. Shopify, WordPress, custom web apps and digital marketing.',
-      alternates: { canonical: 'https://shakilxvs.vercel.app/projects' },
+      alternates: { canonical: 'https://shakilxvs.com/projects' },
     };
   } catch {
     return { title: 'Projects | Shakil — CMS & Web Expert' };
