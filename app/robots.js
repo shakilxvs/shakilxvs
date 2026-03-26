@@ -3,6 +3,6 @@ export default function robots() {
     rules: [
       { userAgent: '*', allow: '/', disallow: '/admin/' },
     ],
-    sitemap: 'https://shakilxvs.vercel.app/sitemap.xml',
+    sitemap: 'https://shakilxvs.com/sitemap.xml',
   };
 }
