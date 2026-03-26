@@ -11,7 +11,7 @@ export async function generateMetadata() {
     return {
       title: seo.title || 'Pay Shakil | Multiple Payment Options Worldwide',
       description: seo.description || 'Send payment to Shakil via bank transfer, crypto, PayPal, Wise, Payoneer and more.',
-      alternates: { canonical: 'https://shakilxvs.vercel.app/pay' },
+      alternates: { canonical: 'https://shakilxvs.com/pay' },
     };
   } catch {
     return { title: 'Pay Shakil | Multiple Payment Options Worldwide' };
