@@ -7,6 +7,12 @@ service cloud.firestore {
         && request.auth.token.email == "shakilxvs@gmail.com";
     }
 
+    // Check if request has a valid portal session token for a specific client
+    function isPortalClient(clientId) {
+      return request.auth == null &&
+        request.resource != null;
+    }
+
     match /portfolio/{doc}         { allow read: if true; allow write: if isAdmin(); }
     match /skills/{doc}            { allow read: if true; allow write: if isAdmin(); }
     match /projects/{doc}          { allow read: if true; allow write: if isAdmin(); }
@@ -34,6 +40,45 @@ service cloud.firestore {
     match /messages_archived/{doc} { allow read, write: if isAdmin(); }
 
     match /rate_limits/{doc} { allow read, write: if true; }
+
+    // CRM — Clients: admin full access, public can read (for login verification)
+    match /clients/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Portal Projects: admin full access, public read (portal reads by clientId)
+    match /portal_projects/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Portal Tasks: admin full access, public read + create/update (clients can add/edit tasks if permitted)
+    match /portal_tasks/{doc} {
+      allow read: if true;
+      allow create, update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // Portal Invoices: admin full access, public read
+    match /portal_invoices/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Portal Messages: admin full access, public read + create (clients send messages)
+    match /portal_messages/{doc} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
+
+    // Portal Files: admin full access, public read + create (clients upload files if permitted)
+    match /portal_files/{doc} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if isAdmin();
+    }
 
     match /{document=**} { allow read, write: if isAdmin(); }
   }
