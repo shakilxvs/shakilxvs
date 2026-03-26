@@ -25,9 +25,10 @@ const ALL_NAV = [
   { href:'/admin/reviews',   label:'Reviews',   Icon:Star,           roles:['owner','admin','staff'] },
   { href:'/admin/pay',       label:'Pay',       Icon:CreditCard,     roles:['owner','admin'] },
   { href:'/admin/messages',  label:'Messages',  Icon:Inbox,          roles:['owner','admin','staff'] },
-  { href:'/admin/settings',  label:'Settings',  Icon:Settings,       roles:['owner','admin'] },
+  { href:'/admin/crm',       label:'CRM',       Icon:Users,          roles:['owner','admin'] },
   { href:'/admin/services',  label:'Services',  Icon:Layers,         roles:['owner','admin'] },
   { href:'/admin/team',      label:'Team',      Icon:Users,          roles:['owner'] },
+  { href:'/admin/settings',  label:'Settings',  Icon:Settings,       roles:['owner','admin'] },
 ];
 
 function Sidebar({ user, userRole, pathname, sidebarOpen, setSidebarOpen }) {
