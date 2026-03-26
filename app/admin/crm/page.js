@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import {
   getClients, addClient, updateClient, deleteClient,
   getClientProjects, addPortalProject, updatePortalProject, deletePortalProject,
@@ -545,7 +546,11 @@ function ClientCard({ client, onUpdate, onDelete }) {
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:'8px', flexWrap:'wrap' }}>
-            <span style={{ fontFamily:'Outfit,sans-serif', fontWeight:700, color:'var(--text-1)', fontSize:'0.9rem' }}>{client.name}</span>
+            <Link href={`/admin/crm/${client.username}`} onClick={e=>e.stopPropagation()} style={{ fontFamily:'Outfit,sans-serif', fontWeight:700, color:'var(--text-1)', fontSize:'0.9rem', textDecoration:'none', borderBottom:'1px solid transparent', transition:'border-color 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.borderBottomColor='var(--accent)'}
+              onMouseLeave={e=>e.currentTarget.style.borderBottomColor='transparent'}>
+              {client.name}
+            </Link>
             {client.company && <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', padding:'2px 7px', border:'1px solid var(--border-2)', borderRadius:100 }}>{client.company}</span>}
             {client.active===false && <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--fire)', padding:'2px 7px', border:'1px solid rgba(255,69,0,0.3)', borderRadius:100 }}>Suspended</span>}
           </div>
