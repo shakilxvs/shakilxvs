@@ -113,9 +113,6 @@ export default function Footer() {
             <Link href="/portal" style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', opacity:0.5 }}>
               portal
             </Link>
-            <Link href="/admin" style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', opacity:0.5 }}>
-              admin
-            </Link>
           </div>
         </div>
       </div>
