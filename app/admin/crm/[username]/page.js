@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import emailjs from 'emailjs-com';
 import {
   getClientByUsername, updateClient,
   getClientProjects, addPortalProject, updatePortalProject, deletePortalProject,
@@ -15,7 +16,7 @@ import toast from 'react-hot-toast';
 import {
   ChevronLeft, Plus, Trash2, Save, ChevronDown, ChevronUp,
   Briefcase, CreditCard, MessageSquare, X, Upload, Download,
-  Clock, FileText, Send, Eye, EyeOff,
+  Clock, FileText, Send, Eye, EyeOff, Mail, CheckCircle, TrendingUp,
 } from 'lucide-react';
 
 /* ─── Shared styles ─────────────────────────────────── */
@@ -53,7 +54,7 @@ async function hashPassword(pw) {
 /* ══════════════════════════════════════════════════════
    PROJECTS PANEL
 ══════════════════════════════════════════════════════ */
-function ProjectsPanel({ client }) {
+function ProjectsPanel({ client, emailNotify }) {
   const [projects, setProjects] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [adding,   setAdding]   = useState(false);
@@ -81,8 +82,18 @@ function ProjectsPanel({ client }) {
   const handleUpdate = async (id, data) => {
     try {
       await updatePortalProject(id, data);
+      const prevProject = projects.find(p=>p.id===id);
       setProjects(p => p.map(x => x.id===id ? {...x,...data} : x));
       toast.success('Saved');
+      // Email client when project marked Completed (if notify enabled)
+      if (data.status === 'Completed' && prevProject?.status !== 'Completed' && emailNotify && client?.email) {
+        sendStatusEmail({
+          toEmail: client.email,
+          toName:  client.name,
+          subject: `Project completed: ${data.title || prevProject?.title}`,
+          message: `Your project "${data.title || prevProject?.title}" has been marked as completed!\n\nThank you for working with us. Log in to your portal to download any final files or invoices: https://shakilxvs.com/portal`,
+        });
+      }
     } catch { toast.error('Failed'); }
   };
 
@@ -141,13 +152,16 @@ function ProjectsPanel({ client }) {
           onToggle={()=>setOpen(open===project.id?null:project.id)}
           onUpdate={data=>handleUpdate(project.id, data)}
           onDelete={()=>handleDelete(project.id)}
+          emailNotify={emailNotify}
+          client={client}
+          projects={projects}
         />
       ))}
     </div>
   );
 }
 
-function ProjectRow({ project, open, onToggle, onUpdate, onDelete }) {
+function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, client, projects }) {
   const [local,        setLocal]        = useState({ ...project });
   const [dirty,        setDirty]        = useState(false);
   const [saving,       setSaving]       = useState(false);
@@ -188,6 +202,18 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete }) {
     try {
       await updateTask(taskId, { status });
       setTasks(t => t.map(x => x.id===taskId ? {...x,status} : x));
+      // Email client when task is marked Done (if email notify enabled)
+      if (status === 'Done' && emailNotify && client?.email) {
+        const taskObj = tasks.find(t=>t.id===taskId);
+        if (taskObj) {
+          sendStatusEmail({
+            toEmail: client.email,
+            toName:  client.name,
+            subject: `Task completed: ${taskObj.title}`,
+            message: `Good news! The task "${taskObj.title}" on your project has been completed.\n\nLog in to your portal to see the latest progress: https://shakilxvs.com/portal`,
+          });
+        }
+      }
     } catch { toast.error('Failed'); }
   };
 
@@ -551,13 +577,147 @@ function EditClientPanel({ client, onSave }) {
           ))}
         </div>
       </div>
-      <label style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'16px', cursor:'pointer' }}>
+      <label style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'8px', cursor:'pointer' }}>
         <input type="checkbox" checked={local.active!==false} onChange={e=>set('active',e.target.checked)} style={{ accentColor:'var(--accent)', width:14, height:14 }}/>
         <span style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', color:'var(--text-1)' }}>Account Active (uncheck to suspend)</span>
+      </label>
+      <label style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'16px', cursor:'pointer' }}>
+        <input type="checkbox" checked={!!(local.emailNotify)} onChange={e=>set('emailNotify',e.target.checked)} style={{ accentColor:'var(--accent)', width:14, height:14 }}/>
+        <span style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', color:'var(--text-1)' }}>
+          Email Notifications — notify client when tasks or project status change
+        </span>
       </label>
       <button onClick={handleSave} disabled={saving} style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'9px 20px', background:saving?'var(--bg-elevated)':'var(--accent)', color:saving?'var(--text-3)':'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.875rem', cursor:saving?'not-allowed':'pointer' }}>
         <Save size={13}/>{saving?'Saving…':'Save Changes'}
       </button>
+    </div>
+  );
+}
+
+
+/* ─── Email notification helper ────────────────────────── */
+async function sendStatusEmail({ toEmail, toName, subject, message }) {
+  try {
+    await emailjs.send(
+      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+      process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+      {
+        subject,
+        from_name:  'Shakil',
+        to_name:    toName,
+        to_email:   toEmail,
+        email:      toEmail,
+        message,
+      },
+      process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+    );
+    return true;
+  } catch (e) {
+    console.error('sendStatusEmail:', e);
+    return false;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   TIMELINE PANEL
+══════════════════════════════════════════════════════ */
+function TimelinePanel({ client }) {
+  const [projects, setProjects] = useState([]);
+  const [tasks,    setTasks]    = useState({});
+  const [loading,  setLoading]  = useState(true);
+
+  useEffect(() => {
+    getClientProjects(client.id).then(async projs => {
+      setProjects(projs);
+      // Load tasks for each project
+      const taskMap = {};
+      await Promise.all(projs.map(async p => {
+        const t = await getProjectTasks(p.id);
+        taskMap[p.id] = t;
+      }));
+      setTasks(taskMap);
+      setLoading(false);
+    });
+  }, [client.id]);
+
+  if (loading) return <div style={{ padding:'20px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>Loading timeline…</div>;
+
+  if (projects.length === 0) return (
+    <div style={{ textAlign:'center', padding:'40px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-lg)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>
+      No projects yet. Add a project to see the timeline.
+    </div>
+  );
+
+  const STATUS_COLOR = {
+    'Planning':    '#f5c518',
+    'In Progress': '#5c8dff',
+    'Review':      '#a78bfa',
+    'Completed':   '#34d399',
+    'Cancelled':   '#ff6b35',
+  };
+
+  return (
+    <div>
+      {projects.map(project => {
+        const projectTasks = tasks[project.id] || [];
+        const done = projectTasks.filter(t=>t.status==='Done').length;
+        const progress = projectTasks.length > 0 ? Math.round((done/projectTasks.length)*100) : 0;
+        const color = STATUS_COLOR[project.status] || 'var(--accent)';
+
+        return (
+          <div key={project.id} style={{ marginBottom:'24px', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', overflow:'hidden' }}>
+            {/* Project header bar */}
+            <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--border-1)', display:'flex', alignItems:'center', gap:'12px', background:'var(--bg-elevated)', flexWrap:'wrap' }}>
+              <div style={{ width:10, height:10, borderRadius:'50%', background:color, flexShrink:0 }}/>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.9rem', color:'var(--text-1)' }}>{project.title}</div>
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'2px' }}>
+                  {project.status}{project.deadline?` · Due ${project.deadline}`:''}
+                  {project.budget?` · $${project.budget}`:''}
+                </div>
+              </div>
+              {projectTasks.length > 0 && (
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color, flexShrink:0 }}>
+                  {done}/{projectTasks.length} tasks · {progress}%
+                </div>
+              )}
+            </div>
+
+            {/* Progress bar */}
+            {projectTasks.length > 0 && (
+              <div style={{ height:4, background:'var(--border-2)' }}>
+                <div style={{ height:'100%', width:`${progress}%`, background:color, transition:'width 0.8s ease' }}/>
+              </div>
+            )}
+
+            {/* Task list */}
+            <div style={{ padding:'12px 18px' }}>
+              {projectTasks.length === 0 && (
+                <div style={{ color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', padding:'8px 0' }}>No tasks yet.</div>
+              )}
+              <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                {projectTasks.map((task, i) => (
+                  <div key={task.id} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                    {/* Timeline dot + line */}
+                    <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0, width:16 }}>
+                      <div style={{ width:10, height:10, borderRadius:'50%', background: task.status==='Done'?'#34d399':task.status==='In Progress'?'#5c8dff':'var(--border-3)', border:`2px solid ${task.status==='Done'?'#34d399':task.status==='In Progress'?'#5c8dff':'var(--border-3)'}`, flexShrink:0 }}/>
+                      {i < projectTasks.length-1 && <div style={{ width:2, flex:1, minHeight:12, background:'var(--border-2)', marginTop:'2px' }}/>}
+                    </div>
+                    <div style={{ flex:1, padding:'6px 0' }}>
+                      <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.85rem', color: task.status==='Done'?'var(--text-3)':'var(--text-1)', textDecoration: task.status==='Done'?'line-through':'none' }}>
+                        {task.title}
+                      </div>
+                      {task.status !== 'Todo' && (
+                        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.52rem', color: task.status==='Done'?'#34d399':'#5c8dff', marginTop:'1px' }}>{task.status}</div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -597,6 +757,7 @@ export default function AdminClientPage() {
     { id:'projects',  label:'Projects',  Icon:Briefcase     },
     { id:'invoices',  label:'Invoices',  Icon:CreditCard    },
     { id:'messages',  label:'Messages',  Icon:MessageSquare },
+    { id:'timeline',  label:'Timeline',  Icon:TrendingUp    },
     { id:'edit',      label:'Edit',      Icon:Save          },
   ];
 
@@ -651,9 +812,10 @@ export default function AdminClientPage() {
       </div>
 
       {/* Tab content */}
-      {tab === 'projects' && <ProjectsPanel client={client}/>}
+      {tab === 'projects' && <ProjectsPanel client={client} emailNotify={client.emailNotify}/>}
       {tab === 'invoices' && <InvoicesPanel client={client}/>}
       {tab === 'messages' && <MessagesPanel client={client}/>}
+      {tab === 'timeline' && <TimelinePanel client={client}/>}
       {tab === 'edit'     && <EditClientPanel client={client} onSave={handleSave}/>}
     </div>
   );
