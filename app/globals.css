@@ -274,3 +274,57 @@ textarea.input { resize: vertical; min-height: 100px; }
   .mq-pill { height: 36px !important; padding: 6px 16px !important; }
   .mq-img  { height: 20px !important; max-width: 48px !important; }
 }
+
+/* ─── Light Theme ────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg-void:     #f0f2f8;
+  --bg-base:     #f4f6fc;
+  --bg-surface:  #ffffff;
+  --bg-elevated: #eef0f8;
+  --bg-overlay:  #e4e8f4;
+
+  --text-1: #0d1117;
+  --text-2: #4a5568;
+  --text-3: #8896b3;
+
+  --border-1: #dde2f0;
+  --border-2: #c8d0e8;
+  --border-3: #b0bcdc;
+}
+
+[data-theme="light"] body {
+  background-color: var(--bg-base);
+  color: var(--text-1);
+}
+
+[data-theme="light"] body::before {
+  background-image:
+    linear-gradient(rgba(35, 77, 194, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(35, 77, 194, 0.04) 1px, transparent 1px);
+}
+
+[data-theme="light"] body::after {
+  opacity: 0.015;
+}
+
+[data-theme="light"] ::-webkit-scrollbar-track { background: var(--bg-base); }
+[data-theme="light"] * { scrollbar-color: var(--accent) var(--bg-base); }
+
+[data-theme="light"] .skeleton {
+  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-overlay) 50%, var(--bg-elevated) 75%);
+  background-size: 200% 100%;
+}
+
+[data-theme="light"] .admin-sidebar {
+  background: var(--bg-surface);
+  border-right-color: var(--border-1);
+}
+
+[data-theme="light"] .admin-layout {
+  background: var(--bg-base);
+}
+
+/* Portal light theme */
+[data-theme="light"] .portal-sidebar-wrap {
+  background: var(--bg-surface);
+}
