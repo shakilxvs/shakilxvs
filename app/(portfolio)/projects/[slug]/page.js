@@ -30,15 +30,40 @@ export default async function CaseStudyPage({ params }) {
 
   const hasContent = challenge || solution || results || fullDescription;
 
+  // Schema.org CreativeWork + BreadcrumbList
+  const caseStudySchema = {
+    '@context': 'https://schema.org',
+    '@type': 'CreativeWork',
+    name: title,
+    description: fullDescription || description || '',
+    author: { '@type': 'Person', name: 'Shakil Ahmed', url: 'https://shakilxvs.com' },
+    url: `https://shakilxvs.com/projects/${project.slug || ''}`,
+    ...(thumbnailUrl ? { image: thumbnailUrl } : {}),
+    ...(liveUrl ? { sameAs: liveUrl } : {}),
+    keywords: tags.join(', '),
+    genre: category,
+  };
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',     item: 'https://shakilxvs.com' },
+      { '@type': 'ListItem', position: 2, name: 'Projects', item: 'https://shakilxvs.com/projects' },
+      { '@type': 'ListItem', position: 3, name: title,      item: `https://shakilxvs.com/projects/${project.slug || ''}` },
+    ],
+  };
+
   return (
     <div style={{ position:'relative', zIndex:1 }}>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(caseStudySchema) }}/>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}/>
       {/* Hero */}
       <section style={{ paddingTop:'80px', paddingBottom:'60px', borderBottom:'1px solid var(--border-1)' }}>
         <div style={{ maxWidth:900, margin:'0 auto', padding:'0 24px' }}>
           {/* Back link */}
           <Link href="/projects" style={{ display:'inline-flex', alignItems:'center', gap:'6px', fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:'28px', transition:'color 0.15s' }}
-            onMouseEnter={e=>e.currentTarget.style.color='var(--accent)'}
-            onMouseLeave={e=>e.currentTarget.style.color='var(--text-3)'}>
+            className="back-link">
             <ArrowLeft size={12}/> All Projects
           </Link>
 
@@ -75,8 +100,7 @@ export default async function CaseStudyPage({ params }) {
           {liveUrl && (
             <a href={liveUrl} target="_blank" rel="noopener noreferrer"
               style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'11px 22px', background:'var(--accent)', color:'#fff', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.9rem', textDecoration:'none', transition:'opacity 0.15s' }}
-              onMouseEnter={e=>e.currentTarget.style.opacity='0.88'}
-              onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+              className="live-btn">
               <ExternalLink size={15}/> View Live Site
             </a>
           )}
@@ -153,6 +177,8 @@ export default async function CaseStudyPage({ params }) {
 
       <style>{`
         @media(max-width:640px){.case-grid{grid-template-columns:1fr!important;}}
+        .back-link:hover{color:var(--accent)!important;}
+        .live-btn:hover{opacity:0.88;}
       `}</style>
     </div>
   );
