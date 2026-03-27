@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { getPendingReviews, getApprovedReviews, getRejectedReviews, approveReview, rejectReview, restoreReview, deleteDocument, updateDocument } from '@/lib/firestore';
+import { getPendingReviews, getApprovedReviews, getRejectedReviews, approveReview, rejectReview, restoreReview, unpublishReview, deleteDocument, updateDocument } from '@/lib/firestore';
 import { formatMonthYear } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import { CheckCircle, X, RotateCcw, Trash2, Star, Video, ShieldCheck } from 'lucide-react';
@@ -117,14 +117,7 @@ export default function AdminReviewsPage() {
   const handleUnpublish = async (review) => {
     if (!confirm('Move this review back to pending?')) return;
     try {
-      // Move from 'reviews' → 'reviews_pending' using a batch
-      const { writeBatch, doc, collection, serverTimestamp } = await import('firebase/firestore');
-      const { db } = await import('@/lib/firebase');
-      const batch = writeBatch(db);
-      const pendingRef = doc(collection(db, 'reviews_pending'));
-      batch.set(pendingRef, { ...review, status:'pending', submittedAt: review.submittedAt || serverTimestamp() });
-      batch.delete(doc(db, 'reviews', review.id));
-      await batch.commit();
+      await unpublishReview(review.id, review);
       toast.success('Review moved back to pending');
       load();
     } catch { toast.error('Failed to unpublish'); }
