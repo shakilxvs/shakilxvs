@@ -114,6 +114,22 @@ export default function AdminReviewsPage() {
     } catch { toast.error('Failed'); }
   };
 
+  const handleUnpublish = async (review) => {
+    if (!confirm('Move this review back to pending?')) return;
+    try {
+      // Move from 'reviews' → 'reviews_pending' using a batch
+      const { writeBatch, doc, collection, serverTimestamp } = await import('firebase/firestore');
+      const { db } = await import('@/lib/firebase');
+      const batch = writeBatch(db);
+      const pendingRef = doc(collection(db, 'reviews_pending'));
+      batch.set(pendingRef, { ...review, status:'pending', submittedAt: review.submittedAt || serverTimestamp() });
+      batch.delete(doc(db, 'reviews', review.id));
+      await batch.commit();
+      toast.success('Review moved back to pending');
+      load();
+    } catch { toast.error('Failed to unpublish'); }
+  };
+
   const tabData = { Pending: pending, Published: published, Rejected: rejected };
   const current = tabData[tab] || [];
 
@@ -125,7 +141,7 @@ export default function AdminReviewsPage() {
     ];
     if (tab === 'Published') return [
       { label: review.verified?'Remove Verify':'Verify', icon:ShieldCheck, onClick:()=>handleToggleVerify(review), color:'var(--accent)' },
-      { label:'Unpublish', icon:RotateCcw, onClick:()=>handleReject(review), color:'var(--text-2)' },
+      { label:'Unpublish', icon:RotateCcw, onClick:()=>handleUnpublish(review), color:'var(--text-2)' },
       { label:'Delete',    icon:Trash2,    onClick:()=>handleDelete('reviews', review.id), color:'#ff4500' },
     ];
     if (tab === 'Rejected') return [
