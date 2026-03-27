@@ -9,7 +9,7 @@ import SiteConfig from '@/components/SiteConfig';
 import {
   LayoutTemplate, User, Zap, Briefcase, AppWindow,
   FolderOpen, Star, CreditCard, Inbox, Settings,
-  ExternalLink, LogOut, Menu, ImagePlus, Users, BarChart2, Layers,
+  ExternalLink, LogOut, Menu, ImagePlus, Users, BarChart2, Layers, Sun, Moon,
 } from 'lucide-react';
 
 // roles: owner = all, admin = all except Team, staff = Messages + Reviews only
@@ -33,6 +33,25 @@ const ALL_NAV = [
 
 function Sidebar({ user, userRole, pathname, sidebarOpen, setSidebarOpen }) {
   const navItems = ALL_NAV.filter(n => n.roles.includes(userRole));
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== 'undefined') return localStorage.getItem('admin_theme') || 'dark';
+    return 'dark';
+  });
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('admin_theme', next);
+    const layout = document.querySelector('.admin-layout');
+    if (layout) layout.setAttribute('data-theme', next === 'light' ? 'light' : '');
+  };
+
+  useEffect(() => {
+    const saved = localStorage.getItem('admin_theme') || 'dark';
+    setTheme(saved);
+    const layout = document.querySelector('.admin-layout');
+    if (layout && saved === 'light') layout.setAttribute('data-theme', 'light');
+  }, []);
   return (
     <>
       {sidebarOpen && (
@@ -74,6 +93,10 @@ function Sidebar({ user, userRole, pathname, sidebarOpen, setSidebarOpen }) {
               </div>
             </div>
           )}
+          <button onClick={toggleTheme} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'8px 12px', borderRadius:'var(--radius-md)', fontFamily:'Outfit, sans-serif', fontSize:'0.8rem', color:'var(--text-2)', background:'transparent', border:'1px solid var(--border-2)', cursor:'pointer', width:'100%', textAlign:'left', marginBottom:'0' }}>
+            {theme === 'dark' ? <Sun size={14} strokeWidth={1.75}/> : <Moon size={14} strokeWidth={1.75}/>}
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </button>
           <button onClick={() => signOut(auth)} style={{ display:'flex', alignItems:'center', gap:'8px', padding:'8px 12px', borderRadius:'var(--radius-md)', fontFamily:'Outfit, sans-serif', fontSize:'0.8rem', color:'var(--text-2)', background:'transparent', border:'1px solid var(--border-2)', cursor:'pointer', width:'100%', textAlign:'left' }}>
             <LogOut size={14} strokeWidth={1.75}/> Sign Out
           </button>
