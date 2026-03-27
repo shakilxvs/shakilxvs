@@ -65,6 +65,22 @@ export default function AdminSettingsPage() {
   const [tracking,     setTracking]     = useState({ gaId:'', gtmId:'', metaPixelId:'', tiktokPixelId:'', pinterestTagId:'', pinterestDomainVerify:'' });
   const [footerText,   setFooterText]   = useState('');
   const [footerCopyright,setFooterCopyright]=useState('');
+  const [headingFont,  setHeadingFont]  = useState('Bebas Neue');
+  const [bodyFont,     setBodyFont]     = useState('Outfit');
+  const [footerLinks,  setFooterLinks]  = useState([
+    { title:'Work',    links:[{label:'Projects',href:'/projects'},{label:'Apps',href:'/apps'},{label:'Files',href:'/files'}] },
+    { title:'Connect', links:[{label:'Reviews',href:'/reviews'},{label:'Contact',href:'/contact'},{label:'Pay',href:'/pay'}] },
+    { title:'Services',links:[{label:'Shopify Development',href:'/projects'},{label:'Digital Marketing',href:'/projects'},{label:'Custom Web Apps',href:'/projects'}] },
+  ]);
+  const [footerSocials, setFooterSocials] = useState([
+    { label:'Instagram', href:'https://instagram.com/shakilxvs',   show:true  },
+    { label:'LinkedIn',  href:'https://linkedin.com/in/shakilxvs', show:true  },
+    { label:'Twitter',   href:'https://twitter.com/shakilxvs',     show:true  },
+    { label:'Facebook',  href:'https://facebook.com/shakilxvs',    show:true  },
+    { label:'GitHub',    href:'https://github.com/shakilxvs',      show:true  },
+  ]);
+  const [stripeEnabled,  setStripeEnabled]  = useState(false);
+  const [stripePayUrl,   setStripePayUrl]   = useState('');
   const [seo,          setSeo]          = useState({ home:{title:'',description:''}, projects:{title:'',description:''}, reviews:{title:'',description:''}, contact:{title:'',description:''}, apps:{title:'',description:''}, files:{title:'',description:''}, pay:{title:'',description:''}, services:{title:'',description:''} });
   const [currentPw,    setCurrentPw]    = useState('');
   const [newPw,        setNewPw]        = useState('');
@@ -83,6 +99,9 @@ export default function AdminSettingsPage() {
   const [savingSeo,      setSavingSeo]      = useState(false);
   const [changingPw,     setChangingPw]     = useState(false);
   const [seeding,        setSeeding]        = useState(false);
+  const [savingFonts,    setSavingFonts]    = useState(false);
+  const [savingFooterLinks, setSavingFooterLinks] = useState(false);
+  const [savingStripe,   setSavingStripe]   = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -101,6 +120,12 @@ export default function AdminSettingsPage() {
         if (s.seo)          setSeo(x=>({...x,...s.seo}));
         if (s.footerText)   setFooterText(s.footerText);
         if (s.footerCopyright) setFooterCopyright(s.footerCopyright);
+        if (s.headingFont)  setHeadingFont(s.headingFont);
+        if (s.bodyFont)     setBodyFont(s.bodyFont);
+        if (s.footerLinks?.length)   setFooterLinks(s.footerLinks);
+        if (s.footerSocials?.length) setFooterSocials(s.footerSocials);
+        if (s.stripeEnabled !== undefined) setStripeEnabled(s.stripeEnabled);
+        if (s.stripePayUrl) setStripePayUrl(s.stripePayUrl);
       }
       if (c) setContact(x=>({...x,...c}));
       if (cp) setCustomPagesS(cp);
@@ -128,7 +153,10 @@ export default function AdminSettingsPage() {
   const saveAccent   = () => { setSavingAccent(true);   setPortfolioDoc('siteSettings',{accentColor}).then(()=>toast.success('Accent color saved! Redeploy to apply.')).catch(()=>toast.error('Save failed')).finally(()=>setSavingAccent(false)); };
   const saveTracking = () => { setSavingTracking(true); setPortfolioDoc('siteSettings',{tracking}).then(()=>toast.success('Tracking IDs saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingTracking(false)); };
   const [savingFooter, setSavingFooter] = useState(false);
-  const saveFooter   = () => { setSavingFooter(true); setPortfolioDoc('siteSettings',{footerText,footerCopyright}).then(()=>toast.success('Footer saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingFooter(false)); };
+  const saveFooter      = () => { setSavingFooter(true); setPortfolioDoc('siteSettings',{footerText,footerCopyright}).then(()=>toast.success('Footer saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingFooter(false)); };
+  const saveFonts       = () => { setSavingFonts(true); setPortfolioDoc('siteSettings',{headingFont,bodyFont}).then(()=>toast.success('Fonts saved! Redeploy to apply.')).catch(()=>toast.error('Save failed')).finally(()=>setSavingFonts(false)); };
+  const saveFooterLinks = () => { setSavingFooterLinks(true); setPortfolioDoc('siteSettings',{footerLinks,footerSocials}).then(()=>toast.success('Footer links saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingFooterLinks(false)); };
+  const saveStripe      = () => { setSavingStripe(true); setPortfolioDoc('siteSettings',{stripeEnabled,stripePayUrl}).then(()=>toast.success('Stripe settings saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingStripe(false)); };
   const saveSeo      = () => { setSavingSeo(true);      setPortfolioDoc('siteSettings',{seo}).then(()=>toast.success('SEO saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingSeo(false)); };
 
   const handleChangePassword = async () => {
@@ -473,6 +501,117 @@ export default function AdminSettingsPage() {
               onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--border-2)';e.currentTarget.style.color='var(--text-2)';}}
             ><ExternalLink size={13}/> {l}</a>
           ))}
+        </div>
+      </div>
+
+      {/* ── Google Fonts ─────────────────────────────────────────── */}
+      <div style={cd}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
+          <div>
+            <div style={hd}>Google Fonts</div>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'-10px' }}>Requires redeploy to apply. Space Mono stays locked as the label font.</div>
+          </div>
+          <SaveBtn onClick={saveFonts} saving={savingFonts} label="Save Fonts"/>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px' }}>
+          {[
+            { label:'Heading Font', value:headingFont, setter:setHeadingFont, fonts:['Bebas Neue','Oswald','Montserrat','Raleway','Playfair Display','Roboto Condensed','Anton','Barlow Condensed'] },
+            { label:'Body Font',    value:bodyFont,    setter:setBodyFont,    fonts:['Outfit','Inter','Poppins','DM Sans','Nunito','Lato','Source Sans 3','Rubik'] },
+          ].map(({ label, value, setter, fonts }) => (
+            <div key={label}>
+              <label style={lb}>{label}</label>
+              <select style={fi} value={value} onChange={e=>setter(e.target.value)} onFocus={foc} onBlur={blr}>
+                {fonts.map(f=><option key={f} value={f}>{f}</option>)}
+              </select>
+              <div style={{ fontFamily:`'${value}',sans-serif`, fontSize:'1rem', color:'var(--text-1)', marginTop:'8px', padding:'8px 12px', background:'var(--bg-elevated)', border:'1px solid var(--border-1)', borderRadius:'var(--radius-md)' }}>
+                The quick brown fox — {value}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Footer Links & Socials ─────────────────────────────────── */}
+      <div style={cd}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
+          <div>
+            <div style={hd}>Footer Links & Socials</div>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'-10px' }}>Edit link columns and social icon URLs shown in the footer.</div>
+          </div>
+          <SaveBtn onClick={saveFooterLinks} saving={savingFooterLinks} label="Save Footer"/>
+        </div>
+
+        {/* Link columns */}
+        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:'10px' }}>Link Columns</div>
+        <div style={{ display:'flex', flexDirection:'column', gap:'16px', marginBottom:'20px' }}>
+          {footerLinks.map((col, ci) => (
+            <div key={ci} style={{ background:'var(--bg-elevated)', border:'1px solid var(--border-1)', borderRadius:'var(--radius-md)', padding:'14px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'10px' }}>
+                <div style={{ flex:1 }}>
+                  <label style={lb}>Column Title</label>
+                  <input style={fi} value={col.title} onChange={e=>setFooterLinks(cols=>cols.map((c,i)=>i===ci?{...c,title:e.target.value}:c))} onFocus={foc} onBlur={blr}/>
+                </div>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:'6px', marginBottom:'8px' }}>
+                {col.links.map((link, li) => (
+                  <div key={li} style={{ display:'grid', gridTemplateColumns:'1fr 1fr auto', gap:'6px', alignItems:'end' }}>
+                    <div><label style={lb}>Label</label><input style={fi} value={link.label} onChange={e=>setFooterLinks(cols=>cols.map((c,i)=>i===ci?{...c,links:c.links.map((l,j)=>j===li?{...l,label:e.target.value}:l)}:c))} onFocus={foc} onBlur={blr}/></div>
+                    <div><label style={lb}>URL</label><input style={fi} value={link.href} onChange={e=>setFooterLinks(cols=>cols.map((c,i)=>i===ci?{...c,links:c.links.map((l,j)=>j===li?{...l,href:e.target.value}:l)}:c))} onFocus={foc} onBlur={blr}/></div>
+                    <button onClick={()=>setFooterLinks(cols=>cols.map((c,i)=>i===ci?{...c,links:c.links.filter((_,j)=>j!==li)}:c))} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', padding:'8px', display:'flex', alignItems:'center' }} disabled={col.links.length<=1}>✕</button>
+                  </div>
+                ))}
+              </div>
+              <button onClick={()=>setFooterLinks(cols=>cols.map((c,i)=>i===ci?{...c,links:[...c.links,{label:'',href:'/'}]}:c))} style={{ display:'inline-flex', alignItems:'center', gap:'4px', padding:'5px 10px', background:'var(--accent-muted)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-sm)', color:'var(--accent)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem', cursor:'pointer' }}>
+                + Add Link
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {/* Social icons */}
+        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:'10px' }}>Social Icons</div>
+        <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+          {footerSocials.map((social, si) => (
+            <div key={si} style={{ display:'grid', gridTemplateColumns:'auto 1fr 1fr', gap:'10px', alignItems:'end', padding:'10px 12px', background:'var(--bg-elevated)', border:'1px solid var(--border-1)', borderRadius:'var(--radius-md)' }}>
+              <label style={{ display:'flex', alignItems:'center', gap:'6px', cursor:'pointer', paddingBottom:'2px' }}>
+                <input type="checkbox" checked={social.show} onChange={e=>setFooterSocials(s=>s.map((x,i)=>i===si?{...x,show:e.target.checked}:x))} style={{ accentColor:'var(--accent)' }}/>
+                <span style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', color:'var(--text-1)', whiteSpace:'nowrap' }}>{social.label}</span>
+              </label>
+              <div><label style={lb}>URL</label><input style={fi} value={social.href} onChange={e=>setFooterSocials(s=>s.map((x,i)=>i===si?{...x,href:e.target.value}:x))} onFocus={foc} onBlur={blr}/></div>
+              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color: social.show?'var(--accent)':'var(--text-3)', paddingBottom:'10px' }}>{social.show?'Visible':'Hidden'}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Stripe Payments ───────────────────────────────────────── */}
+      <div style={cd}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
+          <div>
+            <div style={hd}>Stripe Invoice Payments</div>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'-10px' }}>Optional. Enable this when you have a Stripe account set up.</div>
+          </div>
+          <SaveBtn onClick={saveStripe} saving={savingStripe} label="Save Stripe"/>
+        </div>
+        <div style={{ background:'rgba(35,77,194,0.05)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-md)', padding:'12px 16px', marginBottom:'16px' }}>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', marginBottom:'6px', textTransform:'uppercase', letterSpacing:'0.1em' }}>How to activate</div>
+          <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', color:'var(--text-2)', lineHeight:1.6 }}>
+            1. Create a Stripe account at stripe.com and set up a Payment Link<br/>
+            2. Paste your Stripe Payment Link URL below<br/>
+            3. Toggle "Enable Stripe" to ON — Pay Now buttons will go directly to Stripe
+          </div>
+        </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
+          <label style={{ display:'flex', alignItems:'center', gap:'10px', cursor:'pointer' }}>
+            <input type="checkbox" checked={stripeEnabled} onChange={e=>setStripeEnabled(e.target.checked)} style={{ accentColor:'var(--accent)', width:16, height:16 }}/>
+            <span style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.9rem', color:'var(--text-1)', fontWeight:500 }}>Enable Stripe Payments</span>
+            <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:stripeEnabled?'var(--accent)':'var(--text-3)', padding:'2px 8px', border:`1px solid ${stripeEnabled?'var(--accent-border)':'var(--border-2)'}`, borderRadius:100 }}>{stripeEnabled?'Active':'Inactive'}</span>
+          </label>
+          <div>
+            <label style={lb}>Stripe Payment Link URL</label>
+            <input style={fi} value={stripePayUrl} onChange={e=>setStripePayUrl(e.target.value)} placeholder="https://buy.stripe.com/..." onFocus={foc} onBlur={blr}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'4px' }}>When enabled, invoice Pay Now buttons will redirect to this URL.</div>
+          </div>
         </div>
       </div>
 
