@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getServices } from '@/lib/firestore';
+import { getServices, getPortfolioDoc } from '@/lib/firestore';
 import { CheckCircle, ArrowRight, Star } from 'lucide-react';
 
 /* ─── Defaults (shown when Firestore is empty) ─────────────── */
@@ -185,6 +185,8 @@ function Skeleton() {
 export default function ServicesPageClient() {
   const [data,    setData]    = useState(null);
   const [loading, setLoading] = useState(true);
+  const [faqItems,setFaqItems]= useState([]);
+  const [faqOpen, setFaqOpen] = useState(null);
 
   useEffect(() => {
     getServices().then(d => {
@@ -194,6 +196,9 @@ export default function ServicesPageClient() {
       setData(DEFAULT_DATA);
       setLoading(false);
     });
+    getPortfolioDoc('faq').then(doc => {
+      setFaqItems(doc?.items || []);
+    }).catch(() => {});
   }, []);
 
   const d = data || DEFAULT_DATA;
@@ -260,6 +265,49 @@ export default function ServicesPageClient() {
           </div>
         )}
       </div>
+
+        {/* FAQ Section */}
+        {faqItems.length > 0 && (
+          <div style={{ marginTop:'80px' }}>
+            <div style={{ textAlign:'center', marginBottom:'48px' }}>
+              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.65rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.2em', marginBottom:'12px' }}>Common Questions</div>
+              <h2 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(2rem,4vw,3.5rem)', color:'var(--text-1)', letterSpacing:'0.02em', lineHeight:1 }}>Frequently Asked Questions</h2>
+            </div>
+            <div style={{ maxWidth:720, margin:'0 auto', display:'flex', flexDirection:'column', gap:'8px' }}>
+              {faqItems.map((item, i) => (
+                <div key={i} style={{ background:'var(--bg-surface)', border:`1px solid ${faqOpen===i?'var(--accent-border)':'var(--border-2)'}`, borderRadius:'var(--radius-lg)', overflow:'hidden', transition:'border-color 0.2s' }}>
+                  <button
+                    onClick={() => setFaqOpen(faqOpen===i ? null : i)}
+                    style={{ width:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px', padding:'18px 20px', background:'none', border:'none', cursor:'pointer', textAlign:'left' }}>
+                    <span style={{ fontFamily:'Outfit,sans-serif', fontWeight:600, fontSize:'0.95rem', color:'var(--text-1)', lineHeight:1.4 }}>{item.question}</span>
+                    <span style={{ flexShrink:0, fontFamily:'monospace', fontSize:'1.3rem', color:'var(--accent)', lineHeight:1, transform: faqOpen===i?'rotate(45deg)':'none', transition:'transform 0.2s', display:'inline-block' }}>+</span>
+                  </button>
+                  {faqOpen === i && (
+                    <div style={{ padding:'0 20px 18px', fontFamily:'Outfit,sans-serif', fontSize:'0.9rem', color:'var(--text-2)', lineHeight:1.75, borderTop:'1px solid var(--border-1)' }}>
+                      <div style={{ paddingTop:'14px' }}>{item.answer}</div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* FAQPage Schema */}
+        {faqItems.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: faqItems.map(item => ({
+                '@type': 'Question',
+                name: item.question,
+                acceptedAnswer: { '@type': 'Answer', text: item.answer },
+              })),
+            }) }}
+          />
+        )}
 
       <style>{`
         @media (max-width: 1024px) { .services-grid { grid-template-columns: 1fr 1fr !important; } }
