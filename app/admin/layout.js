@@ -10,6 +10,7 @@ import {
   LayoutTemplate, User, Zap, Briefcase, AppWindow,
   FolderOpen, Star, CreditCard, Inbox, Settings,
   ExternalLink, LogOut, Menu, ImagePlus, Users, BarChart2, Layers, Sun, Moon,
+  FileText, MessageCircle,
 } from 'lucide-react';
 
 // roles: owner = all, admin = all except Team, staff = Messages + Reviews only
@@ -27,6 +28,8 @@ const ALL_NAV = [
   { href:'/admin/pay',       label:'Pay',       Icon:CreditCard,     roles:['owner','admin'] },
   { href:'/admin/messages',  label:'Messages',  Icon:Inbox,          roles:['owner','admin','staff'] },
   { href:'/admin/crm',       label:'CRM',       Icon:Users,          roles:['owner','admin'] },
+  { href:'/admin/blog',      label:'Blog',      Icon:FileText,       roles:['owner','admin'] },
+  { href:'/admin/faq',       label:'FAQ',       Icon:MessageCircle,  roles:['owner','admin'] },
   { href:'/admin/services',  label:'Services',  Icon:Layers,         roles:['owner','admin'] },
   { href:'/admin/team',      label:'Team',      Icon:Users,          roles:['owner'] },
   { href:'/admin/settings',  label:'Settings',  Icon:Settings,       roles:['owner','admin'] },
