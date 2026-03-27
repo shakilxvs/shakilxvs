@@ -1,10 +1,11 @@
 'use client';
-import { ExternalLink } from 'lucide-react';
+import Link from 'next/link';
+import { ExternalLink, ArrowRight } from 'lucide-react';
 
 export default function ProjectCard({ project }) {
   const {
     title, description, category, tags = [],
-    thumbnailUrl, liveUrl, metrics,
+    thumbnailUrl, liveUrl, metrics, slug,
   } = project;
 
   const letter = title?.[0]?.toUpperCase() || 'P';
@@ -16,7 +17,7 @@ export default function ProjectCard({ project }) {
       borderRadius: 'var(--radius-lg)',
       overflow: 'hidden',
       transition: 'border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease',
-      cursor: liveUrl ? 'pointer' : 'default',
+      cursor: (liveUrl || slug) ? 'pointer' : 'default',
       height: '100%',
       display: 'flex',
       flexDirection: 'column',
@@ -68,27 +69,26 @@ export default function ProjectCard({ project }) {
           </div>
         )}
 
-        {/* Hover overlay */}
-        {liveUrl && (
+        {/* Hover overlay — case study takes priority over live url */}
+        {(slug || liveUrl) && (
           <div className="card-overlay" style={{
             position: 'absolute', inset: 0,
             background: 'rgba(0,0,0,0.65)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '10px',
             opacity: 0,
             transition: 'opacity 0.2s ease',
           }}>
-            <div style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '10px 20px',
-              background: 'var(--accent)',
-              color: '#fff',
-              borderRadius: 'var(--radius-md)',
-              fontFamily: 'Outfit, sans-serif',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-            }}>
-              <ExternalLink size={14} /> Visit Site
-            </div>
+            {slug && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'var(--accent)', color: '#fff', borderRadius: 'var(--radius-md)', fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '0.82rem' }}>
+                <ArrowRight size={13}/> Case Study
+              </div>
+            )}
+            {liveUrl && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'rgba(255,255,255,0.12)', color: '#fff', border: '1px solid rgba(255,255,255,0.25)', borderRadius: 'var(--radius-md)', fontFamily: 'Outfit, sans-serif', fontWeight: 600, fontSize: '0.82rem' }}>
+                <ExternalLink size={13}/> Live Site
+              </div>
+            )}
           </div>
         )}
 
@@ -184,6 +184,14 @@ export default function ProjectCard({ project }) {
     </div>
   );
 
+  // Slug → case study page takes full priority
+  if (slug) {
+    return (
+      <Link href={`/projects/${slug}`} style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
+        {cardContent}
+      </Link>
+    );
+  }
   if (liveUrl) {
     return (
       <a href={liveUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', display: 'block', height: '100%' }}>
