@@ -8,7 +8,11 @@ import toast from 'react-hot-toast';
 import { Plus, Trash2, GripVertical, Save, ChevronDown, ChevronUp, Star } from 'lucide-react';
 
 const CATS  = ['CMS', 'Custom Built', 'Marketing', 'Design', 'Web App'];
-const EMPTY = { title:'', description:'', category:'CMS', tags:[], thumbnailUrl:'', liveUrl:'', metrics:'', featured:false, active:true };
+const EMPTY = { title:'', description:'', category:'CMS', tags:[], thumbnailUrl:'', liveUrl:'', metrics:'', featured:false, active:true, slug:'', fullDescription:'', challenge:'', solution:'', results:'' };
+
+function slugify(text) {
+  return (text||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
 
 function SortableProject({ project, onUpdate, onDelete }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: project.id });
@@ -60,6 +64,17 @@ function SortableProject({ project, onUpdate, onDelete }) {
             <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Tags (comma separated)</label><input style={fi} value={(local.tags||[]).join(', ')} onChange={e=>set('tags', e.target.value.split(',').map(s=>s.trim()).filter(Boolean))} /></div>
             <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Thumbnail URL</label><input style={fi} value={local.thumbnailUrl||''} onChange={e=>set('thumbnailUrl',e.target.value)} placeholder="https://..." /></div>
             <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Live URL</label><input style={fi} value={local.liveUrl||''} onChange={e=>set('liveUrl',e.target.value)} placeholder="https://..." /></div>
+            <div style={{ gridColumn:'1/-1' }}>
+              <label style={lbl}>Slug (URL: /projects/[slug])</label>
+              <div style={{ display:'flex', gap:'8px' }}>
+                <input style={fi} value={local.slug||''} onChange={e=>set('slug',e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,''))} placeholder="e.g. shopify-store-redesign" />
+                <button onClick={()=>set('slug', slugify(local.title))} style={{ padding:'8px 12px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-2)', fontFamily:'Outfit,sans-serif', fontSize:'0.78rem', cursor:'pointer', whiteSpace:'nowrap', flexShrink:0 }}>Auto</button>
+              </div>
+            </div>
+            <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Full Description (case study)</label><textarea style={{ ...fi, minHeight:80, resize:'vertical' }} value={local.fullDescription||''} onChange={e=>set('fullDescription',e.target.value)} placeholder="Detailed writeup for the case study page…" /></div>
+            <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Challenge</label><textarea style={{ ...fi, minHeight:60, resize:'vertical' }} value={local.challenge||''} onChange={e=>set('challenge',e.target.value)} placeholder="What problem did the client have?" /></div>
+            <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Solution</label><textarea style={{ ...fi, minHeight:60, resize:'vertical' }} value={local.solution||''} onChange={e=>set('solution',e.target.value)} placeholder="What did you build / do?" /></div>
+            <div style={{ gridColumn:'1/-1' }}><label style={lbl}>Results</label><textarea style={{ ...fi, minHeight:60, resize:'vertical' }} value={local.results||''} onChange={e=>set('results',e.target.value)} placeholder="Outcomes, metrics, client feedback…" /></div>
           </div>
           <label style={{ display:'flex', alignItems:'center', gap:'8px', cursor:'pointer', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', color:'var(--text-2)', marginBottom:'16px' }}>
             <input type="checkbox" checked={local.featured} onChange={e=>set('featured',e.target.checked)} style={{ accentColor:'var(--accent)' }} />
