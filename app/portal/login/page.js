@@ -103,7 +103,7 @@ export default function PortalLogin() {
       <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'48px 40px', width:'100%', maxWidth:'420px', position:'relative', zIndex:1 }}>
         {/* Header */}
         <div style={{ textAlign:'center', marginBottom:'36px' }}>
-          <Link href="/" style={{ fontFamily:'Space Mono,monospace', fontSize:'0.85rem', color:'var(--accent)', letterSpacing:'0.05em', textDecoration:'none' }}>{'<shakil />'}</Link>
+          <Link href="/" style={{ fontFamily:'Space Mono,monospace', fontSize:'0.85rem', color:'var(--accent)', letterSpacing:'0.05em', textDecoration:'none' }}>@shakilxvs</Link>
           <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'6px', letterSpacing:'0.15em', textTransform:'uppercase' }}>Client Portal</div>
           <h1 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'2.2rem', color:'var(--text-1)', letterSpacing:'0.05em', marginTop:'16px', lineHeight:1 }}>Sign In</h1>
           <p style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', color:'var(--text-3)', marginTop:'6px' }}>Use your email or username to access your portal.</p>
