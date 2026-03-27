@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="7" fill="#234DC2"/>
+  <!-- Cat head + ears as one white shape -->
+  <path d="M16,6 C10,6 5,11 5,17 C5,23 10,27 16,27 C22,27 27,23 27,17 C27,11 22,6 16,6 Z
+           M6,14 L9,7 L13,13
+           M26,14 L23,7 L19,13" fill="none"/>
+  <!-- Solid cat shape: head circle + ear triangles -->
+  <path d="M9,7 L6,14 Q5,11 7,9 Z" fill="white"/>
+  <path d="M23,7 L26,14 Q27,11 25,9 Z" fill="white"/>
+  <ellipse cx="16" cy="17" rx="11" ry="10" fill="white"/>
+  <!-- Eyes — blue holes through white -->
+  <ellipse cx="12.5" cy="16" rx="1.8" ry="2" fill="#234DC2"/>
+  <ellipse cx="19.5" cy="16" rx="1.8" ry="2" fill="#234DC2"/>
+  <!-- Tiny shine dots in eyes -->
+  <circle cx="13.2" cy="15.2" r="0.5" fill="white"/>
+  <circle cx="20.2" cy="15.2" r="0.5" fill="white"/>
+  <!-- Nose -->
+  <ellipse cx="16" cy="20" rx="1.2" ry="0.8" fill="#234DC2"/>
+  <!-- Mouth -->
+  <path d="M14.5,21.5 Q16,22.5 17.5,21.5" fill="none" stroke="#234DC2" stroke-width="0.7" stroke-linecap="round"/>
+</svg>
