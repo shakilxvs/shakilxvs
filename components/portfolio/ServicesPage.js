@@ -273,7 +273,7 @@ export default function ServicesPageClient() {
               <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.65rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.2em', marginBottom:'12px' }}>Common Questions</div>
               <h2 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(2rem,4vw,3.5rem)', color:'var(--text-1)', letterSpacing:'0.02em', lineHeight:1 }}>Frequently Asked Questions</h2>
             </div>
-            <div style={{ maxWidth:720, margin:'0 auto', display:'flex', flexDirection:'column', gap:'8px' }}>
+            <div style={{ maxWidth:720, margin:'0 auto', padding:'0 24px', display:'flex', flexDirection:'column', gap:'8px' }}>
               {faqItems.map((item, i) => (
                 <div key={i} style={{ background:'var(--bg-surface)', border:`1px solid ${faqOpen===i?'var(--accent-border)':'var(--border-2)'}`, borderRadius:'var(--radius-lg)', overflow:'hidden', transition:'border-color 0.2s' }}>
                   <button
