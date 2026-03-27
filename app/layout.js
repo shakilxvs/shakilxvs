@@ -2,7 +2,7 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import { getPortfolioDoc } from '@/lib/firestore';
 
-export const dynamic = 'force-dynamic'; // Always fetch fresh siteSettings — no stale accent/logo
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Shakil — CMS & Web Expert | Shopify Developer | Digital Marketer',
@@ -19,11 +19,34 @@ export const metadata = {
   robots: { index: true, follow: true },
 };
 
+// Curated safe font list — all available on Google Fonts
+const FONT_MAP = {
+  // Heading fonts
+  'Bebas Neue':    'Bebas+Neue',
+  'Oswald':        'Oswald:wght@400;700',
+  'Montserrat':    'Montserrat:wght@400;600;700;800',
+  'Raleway':       'Raleway:wght@400;600;700;800',
+  'Playfair Display': 'Playfair+Display:wght@400;600;700',
+  'Roboto Condensed': 'Roboto+Condensed:wght@400;700',
+  'Anton':         'Anton',
+  'Barlow Condensed': 'Barlow+Condensed:wght@400;600;700',
+  // Body fonts
+  'Outfit':        'Outfit:wght@300;400;500;600;700;800',
+  'Inter':         'Inter:wght@300;400;500;600;700',
+  'Poppins':       'Poppins:wght@300;400;500;600;700',
+  'DM Sans':       'DM+Sans:wght@300;400;500;600;700',
+  'Nunito':        'Nunito:wght@300;400;500;600;700',
+  'Lato':          'Lato:wght@300;400;700',
+  'Source Sans 3': 'Source+Sans+3:wght@300;400;600;700',
+  'Rubik':         'Rubik:wght@300;400;500;600;700',
+};
+
 export default async function RootLayout({ children }) {
-  // Fetch siteSettings server-side so accent color and logo are known
-  // before the first byte of HTML is sent — eliminates flash of default content.
-  let accentColor = null;
-  let siteConfig  = null;
+  let accentColor  = null;
+  let siteConfig   = null;
+  let headingFont  = 'Bebas Neue';
+  let bodyFont     = 'Outfit';
+
   try {
     const s = await getPortfolioDoc('siteSettings');
     if (s) {
@@ -33,15 +56,32 @@ export default async function RootLayout({ children }) {
         navItems: s.navItems || null,
         badge:    s.badge    || null,
       };
+      if (s.headingFont) headingFont = s.headingFont;
+      if (s.bodyFont)    bodyFont    = s.bodyFont;
     }
   } catch {}
 
-  // Build accent CSS vars — injected before any JS, eliminates color flash
+  // Build Google Fonts URL — always load Space Mono + selected heading + selected body
+  const fontsToLoad = ['Space+Mono:wght@400;700'];
+  const headingSlug = FONT_MAP[headingFont];
+  const bodySlug    = FONT_MAP[bodyFont];
+  if (headingSlug && !fontsToLoad.includes(headingSlug)) fontsToLoad.push(headingSlug);
+  if (bodySlug    && !fontsToLoad.includes(bodySlug))    fontsToLoad.push(bodySlug);
+  const googleFontsUrl = `https://fonts.googleapis.com/css2?${fontsToLoad.map(f=>`family=${f}`).join('&')}&display=swap`;
+
+  // Font override CSS — only inject if different from defaults
+  const headingCss = headingFont !== 'Bebas Neue'
+    ? `.font-bebas, [style*="Bebas Neue"] { font-family: '${headingFont}', sans-serif !important; }`
+    : null;
+  const bodyCss = bodyFont !== 'Outfit'
+    ? `body, .font-outfit, [style*="Outfit"] { font-family: '${bodyFont}', sans-serif !important; }`
+    : null;
+
   const accentStyle = accentColor
     ? `:root{--accent:${accentColor};--accent-glow:${accentColor}2e;--accent-border:${accentColor}59;--accent-muted:${accentColor}1a;}`
     : null;
 
-  // Serialize site config for inline script — read synchronously by Navbar
+  const fullStyleBlock = [accentStyle, headingCss, bodyCss].filter(Boolean).join('\n');
   const siteConfigJson = siteConfig ? JSON.stringify(siteConfig) : 'null';
 
   return (
@@ -49,18 +89,9 @@ export default async function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
-        {/* Inject accent color BEFORE first paint — eliminates flash of default color */}
-        {accentStyle && <style dangerouslySetInnerHTML={{ __html: accentStyle }}/>}
-        {/* Inject site config synchronously — Navbar reads this instead of async Firestore */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `window.__SITE_CONFIG__=${siteConfigJson};`
-          }}
-        />
+        <link href={googleFontsUrl} rel="stylesheet" />
+        {fullStyleBlock && <style dangerouslySetInnerHTML={{ __html: fullStyleBlock }}/>}
+        <script dangerouslySetInnerHTML={{ __html: `window.__SITE_CONFIG__=${siteConfigJson};` }}/>
       </head>
       <body>
         {children}
