@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { LayoutTemplate, Briefcase, CreditCard, MessageSquare, User, LogOut, Menu, X } from 'lucide-react';
+import { LayoutTemplate, Briefcase, CreditCard, MessageSquare, User, LogOut, Menu, X, Sun, Moon } from 'lucide-react';
 
 const PORTAL_NAV = [
   { href:'/portal',          label:'Dashboard', Icon:LayoutTemplate },
@@ -18,6 +18,22 @@ export default function PortalLayout({ children }) {
   const [client,     setClient]     = useState(null);
   const [loading,    setLoading]    = useState(true);
   const [sidebarOpen,setSidebarOpen]= useState(false);
+  const [theme,      setTheme]      = useState('dark');
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('portal_theme', next);
+    const wrap = document.querySelector('.portal-theme-wrap');
+    if (wrap) wrap.setAttribute('data-theme', next === 'light' ? 'light' : '');
+  };
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('portal_theme') || 'dark';
+    setTheme(savedTheme);
+    const wrap = document.querySelector('.portal-theme-wrap');
+    if (wrap && savedTheme === 'light') wrap.setAttribute('data-theme', 'light');
+  }, []);
 
   useEffect(() => {
     if (pathname === '/portal/login') { setLoading(false); return; }
@@ -58,7 +74,7 @@ export default function PortalLayout({ children }) {
   const initial = (client.name||'?')[0].toUpperCase();
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--bg-void)', display:'flex' }}>
+    <div className="portal-theme-wrap" data-theme={theme === 'light' ? 'light' : ''} style={{ minHeight:'100vh', background:'var(--bg-void)', display:'flex' }}>
       {/* Sidebar overlay on mobile */}
       {sidebarOpen && (
         <div onClick={()=>setSidebarOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:99 }}/>
@@ -106,6 +122,10 @@ export default function PortalLayout({ children }) {
               {client.company && <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{client.company}</div>}
             </div>
           </div>
+          <button onClick={toggleTheme} style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', padding:'8px 12px', background:'none', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-2)', fontFamily:'Outfit,sans-serif', fontSize:'0.8rem', cursor:'pointer', marginBottom:'6px' }}>
+            {theme === 'dark' ? <Sun size={13} strokeWidth={1.75}/> : <Moon size={13} strokeWidth={1.75}/>}
+            {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+          </button>
           <button onClick={handleLogout} style={{ display:'flex', alignItems:'center', gap:'8px', width:'100%', padding:'8px 12px', background:'none', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-2)', fontFamily:'Outfit,sans-serif', fontSize:'0.8rem', cursor:'pointer' }}>
             <LogOut size={13} strokeWidth={1.75}/> Sign Out
           </button>
