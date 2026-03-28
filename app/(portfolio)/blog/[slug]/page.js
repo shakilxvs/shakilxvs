@@ -85,6 +85,30 @@ function renderBlock(block, index) {
   }
 }
 
+// Detect if a blog post is a how-to / guide based on its title
+function isHowToPost(title) {
+  return /^how\s+to\b/i.test(title) ||
+    /\b(step[\s-]by[\s-]step|guide\s+to|complete\s+guide|beginner.s\s+guide|tutorial|walkthrough|checklist|how\s+i\s+built|how\s+to\s+set\s+up|how\s+to\s+create|how\s+to\s+build|how\s+to\s+start)\b/i.test(title);
+}
+
+// Build HowTo steps from heading + following paragraph blocks
+function buildHowToSteps(blocks) {
+  const steps = [];
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    if (block.type === 'heading' && (block.level === 2 || block.level === 3) && block.content?.trim()) {
+      // Find the next paragraph after this heading
+      const nextPara = blocks.slice(i + 1).find(b => b.type === 'paragraph');
+      steps.push({
+        '@type': 'HowToStep',
+        name: block.content.trim(),
+        text: nextPara?.content?.trim() || block.content.trim(),
+      });
+    }
+  }
+  return steps;
+}
+
 export default async function BlogPostPage({ params }) {
   const post = await getBlogPostBySlug(params.slug).catch(() => null);
   if (!post || post.status !== 'published') notFound();
@@ -95,14 +119,24 @@ export default async function BlogPostPage({ params }) {
       ? new Date(post.publishedAt).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' })
       : null;
 
-  // Article schema
+  // ── Article schema — publisher fixed to Organization ────────
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'Article',
     headline: post.title,
     description: post.excerpt || '',
     author: { '@type': 'Person', name: 'Shakil Ahmed', url: 'https://shakilxvs.com' },
-    publisher: { '@type': 'Person', name: 'Shakil Ahmed', url: 'https://shakilxvs.com' },
+    publisher: {
+      '@type': 'Organization',
+      name: 'Shakil Ahmed',
+      url: 'https://shakilxvs.com',
+      logo: {
+        '@type': 'ImageObject',
+        url: 'https://shakilxvs.com/og-image.png',
+        width: 1200,
+        height: 630,
+      },
+    },
     url: `https://shakilxvs.com/blog/${post.slug}`,
     ...(post.coverImage ? { image: post.coverImage } : {}),
     ...(date ? { datePublished: date } : {}),
@@ -110,6 +144,7 @@ export default async function BlogPostPage({ params }) {
     timeRequired: `PT${post.readTime||1}M`,
   };
 
+  // ── BreadcrumbList schema ───────────────────────────────────
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -120,10 +155,31 @@ export default async function BlogPostPage({ params }) {
     ],
   };
 
+  // ── HowTo schema — auto-generated for step-by-step posts ───
+  // Fires when the post title indicates a how-to or guide.
+  // Steps are built from h2/h3 heading blocks + their following paragraphs.
+  let howToSchema = null;
+  if (isHowToPost(post.title) && post.blocks?.length > 0) {
+    const steps = buildHowToSteps(post.blocks);
+    if (steps.length >= 2) {
+      howToSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'HowTo',
+        name: post.title,
+        description: post.excerpt || '',
+        ...(post.coverImage ? { image: post.coverImage } : {}),
+        step: steps,
+      };
+    }
+  }
+
   return (
     <div style={{ position:'relative', zIndex:1 }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}/>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}/>
+      {howToSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}/>
+      )}
 
       {/* Hero */}
       <section style={{ paddingTop:'80px', paddingBottom:'48px' }}>
