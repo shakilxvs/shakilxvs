@@ -62,7 +62,7 @@ export default function AdminSettingsPage() {
   const [logo,         setLogo]         = useState({ type:'default', imageUrl:'', text:'<shakil />' });
   const [badge,        setBadge]        = useState({ show:false, text:'Available for work', color:'#00cc66' });
   const [accentColor,  setAccentColor]  = useState('#234DC2');
-  const [tracking,     setTracking]     = useState({ gaId:'', gtmId:'', metaPixelId:'', tiktokPixelId:'', pinterestTagId:'', pinterestDomainVerify:'' });
+  const [tracking,     setTracking]     = useState({ gaId:'', gtmId:'', metaPixelId:'', tiktokPixelId:'', pinterestTagId:'', pinterestDomainVerify:'', googleSiteVerify:'', bingSiteVerify:'', yandexVerify:'' });
   const [footerText,   setFooterText]   = useState('');
   const [footerCopyright,setFooterCopyright]=useState('');
   const [headingFont,  setHeadingFont]  = useState('Bebas Neue');
@@ -81,6 +81,9 @@ export default function AdminSettingsPage() {
   ]);
   const [stripeEnabled,  setStripeEnabled]  = useState(false);
   const [stripePayUrl,   setStripePayUrl]   = useState('');
+  const [invoiceSender,  setInvoiceSender]  = useState({
+    name:'', email:'', phone:'', address:'', website:'shakilxvs.com',
+  });
   const [seo,          setSeo]          = useState({ home:{title:'',description:''}, projects:{title:'',description:''}, reviews:{title:'',description:''}, contact:{title:'',description:''}, apps:{title:'',description:''}, files:{title:'',description:''}, pay:{title:'',description:''}, services:{title:'',description:''} });
   const [currentPw,    setCurrentPw]    = useState('');
   const [newPw,        setNewPw]        = useState('');
@@ -102,6 +105,7 @@ export default function AdminSettingsPage() {
   const [savingFonts,    setSavingFonts]    = useState(false);
   const [savingFooterLinks, setSavingFooterLinks] = useState(false);
   const [savingStripe,   setSavingStripe]   = useState(false);
+  const [savingInvoice,  setSavingInvoice]  = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -126,6 +130,7 @@ export default function AdminSettingsPage() {
         if (s.footerSocials?.length) setFooterSocials(s.footerSocials);
         if (s.stripeEnabled !== undefined) setStripeEnabled(s.stripeEnabled);
         if (s.stripePayUrl) setStripePayUrl(s.stripePayUrl);
+        if (s.invoiceSender) setInvoiceSender(s.invoiceSender);
       }
       if (c) setContact(x=>({...x,...c}));
       if (cp) setCustomPagesS(cp);
@@ -157,6 +162,7 @@ export default function AdminSettingsPage() {
   const saveFonts       = () => { setSavingFonts(true); setPortfolioDoc('siteSettings',{headingFont,bodyFont}).then(()=>toast.success('Fonts saved! Redeploy to apply.')).catch(()=>toast.error('Save failed')).finally(()=>setSavingFonts(false)); };
   const saveFooterLinks = () => { setSavingFooterLinks(true); setPortfolioDoc('siteSettings',{footerLinks,footerSocials}).then(()=>toast.success('Footer links saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingFooterLinks(false)); };
   const saveStripe      = () => { setSavingStripe(true); setPortfolioDoc('siteSettings',{stripeEnabled,stripePayUrl}).then(()=>toast.success('Stripe settings saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingStripe(false)); };
+  const saveInvoice     = () => { setSavingInvoice(true); setPortfolioDoc('siteSettings',{invoiceSender}).then(()=>toast.success('Invoice sender saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingInvoice(false)); };
   const saveSeo      = () => { setSavingSeo(true);      setPortfolioDoc('siteSettings',{seo}).then(()=>toast.success('SEO saved!')).catch(()=>toast.error('Save failed')).finally(()=>setSavingSeo(false)); };
 
   const handleChangePassword = async () => {
@@ -410,6 +416,31 @@ export default function AdminSettingsPage() {
             <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', marginBottom:'12px', lineHeight:1.7 }}>Get your Tag ID from Pinterest Ads Manager → Conversions → Pinterest Tag.</div>
             <label style={lb}>Domain Verification Code</label>
             <input style={fi} value={tracking.pinterestDomainVerify||''} onChange={e=>setTracking(t=>({...t,pinterestDomainVerify:e.target.value}))} placeholder="paste only the content= value (no quotes)" onFocus={foc} onBlur={blr}/>
+
+          {/* Site Verification */}
+          <div style={{ marginTop:'8px', padding:'16px', background:'rgba(35,77,194,0.05)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-md)' }}>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'12px' }}>Site Verification Meta Tags</div>
+            <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.8rem', color:'var(--text-2)', marginBottom:'14px', lineHeight:1.6 }}>
+              These inject directly into your page &lt;head&gt; as static HTML — verified by crawlers and bots that don't run JavaScript. Paste only the <strong>content=</strong> value from each platform's verification code.
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+              <div>
+                <label style={lb}>Google Search Console</label>
+                <input style={fi} value={tracking.googleSiteVerify||''} onChange={e=>setTracking(t=>({...t,googleSiteVerify:e.target.value}))} placeholder="Paste content= value from Google Search Console verify meta tag" onFocus={foc} onBlur={blr}/>
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'4px' }}>Google Search Console → Settings → Ownership Verification → HTML tag → copy only the content= value</div>
+              </div>
+              <div>
+                <label style={lb}>Bing Webmaster Tools</label>
+                <input style={fi} value={tracking.bingSiteVerify||''} onChange={e=>setTracking(t=>({...t,bingSiteVerify:e.target.value}))} placeholder="Paste content= value from Bing verify meta tag" onFocus={foc} onBlur={blr}/>
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'4px' }}>Bing Webmaster Tools → Settings → Site Verification → Meta tag → copy only the content= value</div>
+              </div>
+              <div>
+                <label style={lb}>Yandex Webmaster</label>
+                <input style={fi} value={tracking.yandexVerify||''} onChange={e=>setTracking(t=>({...t,yandexVerify:e.target.value}))} placeholder="Paste content= value from Yandex verify meta tag" onFocus={foc} onBlur={blr}/>
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'4px' }}>Yandex Webmaster → Site Verification → HTML meta tag → copy only the content= value</div>
+              </div>
+            </div>
+          </div>
             <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', lineHeight:1.7 }}>From Pinterest Settings → Claim → Website → HTML tag. Copy ONLY the value after content= (without quotes).</div>
           </TrackingCard>
         </div>
@@ -581,6 +612,24 @@ export default function AdminSettingsPage() {
               <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color: social.show?'var(--accent)':'var(--text-3)', paddingBottom:'10px' }}>{social.show?'Visible':'Hidden'}</div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ── Invoice Sender Details ──────────────────────────────────── */}
+      <div style={cd}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
+          <div>
+            <div style={hd}>Invoice Sender Details</div>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', marginTop:'-10px' }}>Your details that appear on every PDF invoice sent to clients.</div>
+          </div>
+          <SaveBtn onClick={saveInvoice} saving={savingInvoice} label="Save"/>
+        </div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+          <div><label style={lb}>Full Name *</label><input style={fi} value={invoiceSender.name} onChange={e=>setInvoiceSender(s=>({...s,name:e.target.value}))} placeholder="e.g. Shakil Ahmed" onFocus={foc} onBlur={blr}/></div>
+          <div><label style={lb}>Email *</label><input style={fi} value={invoiceSender.email} onChange={e=>setInvoiceSender(s=>({...s,email:e.target.value}))} placeholder="shakilxvs@gmail.com" onFocus={foc} onBlur={blr}/></div>
+          <div><label style={lb}>Phone</label><input style={fi} value={invoiceSender.phone} onChange={e=>setInvoiceSender(s=>({...s,phone:e.target.value}))} placeholder="+880 1234 567890" onFocus={foc} onBlur={blr}/></div>
+          <div><label style={lb}>Website</label><input style={fi} value={invoiceSender.website} onChange={e=>setInvoiceSender(s=>({...s,website:e.target.value}))} placeholder="shakilxvs.com" onFocus={foc} onBlur={blr}/></div>
+          <div style={{ gridColumn:'1/-1' }}><label style={lb}>Address</label><input style={fi} value={invoiceSender.address} onChange={e=>setInvoiceSender(s=>({...s,address:e.target.value}))} placeholder="Dhaka, Bangladesh" onFocus={foc} onBlur={blr}/></div>
         </div>
       </div>
 
