@@ -47,6 +47,7 @@ export default async function RootLayout({ children }) {
   let headingFont  = 'Bebas Neue';
   let bodyFont     = 'Outfit';
 
+  let tracking = {};
   try {
     const s = await getPortfolioDoc('siteSettings');
     if (s) {
@@ -58,6 +59,7 @@ export default async function RootLayout({ children }) {
       };
       if (s.headingFont) headingFont = s.headingFont;
       if (s.bodyFont)    bodyFont    = s.bodyFont;
+      if (s.tracking)   tracking    = s.tracking || {};
     }
   } catch {}
 
@@ -92,6 +94,20 @@ export default async function RootLayout({ children }) {
         <link href={googleFontsUrl} rel="stylesheet" />
         {fullStyleBlock && <style dangerouslySetInnerHTML={{ __html: fullStyleBlock }}/>}
         <script dangerouslySetInnerHTML={{ __html: `window.__SITE_CONFIG__=${siteConfigJson};` }}/>
+
+        {/* ── Site Verification Meta Tags (server-side — crawlers need these in static HTML) ── */}
+        {tracking.pinterestDomainVerify && (
+          <meta name="p:domain_verify" content={tracking.pinterestDomainVerify}/>
+        )}
+        {tracking.googleSiteVerify && (
+          <meta name="google-site-verification" content={tracking.googleSiteVerify}/>
+        )}
+        {tracking.bingSiteVerify && (
+          <meta name="msvalidate.01" content={tracking.bingSiteVerify}/>
+        )}
+        {tracking.yandexVerify && (
+          <meta name="yandex-verification" content={tracking.yandexVerify}/>
+        )}
       </head>
       <body>
         {children}
