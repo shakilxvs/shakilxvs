@@ -416,32 +416,35 @@ export default function AdminSettingsPage() {
             <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', marginBottom:'12px', lineHeight:1.7 }}>Get your Tag ID from Pinterest Ads Manager → Conversions → Pinterest Tag.</div>
             <label style={lb}>Domain Verification Code</label>
             <input style={fi} value={tracking.pinterestDomainVerify||''} onChange={e=>setTracking(t=>({...t,pinterestDomainVerify:e.target.value}))} placeholder="paste only the content= value (no quotes)" onFocus={foc} onBlur={blr}/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', lineHeight:1.7 }}>From Pinterest Settings → Claim → Website → HTML tag. Copy ONLY the value after content= (without quotes).</div>
+          </TrackingCard>
 
           {/* Site Verification */}
-          <div style={{ marginTop:'8px', padding:'16px', background:'rgba(35,77,194,0.05)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-md)' }}>
-            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'12px' }}>Site Verification Meta Tags</div>
-            <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.8rem', color:'var(--text-2)', marginBottom:'14px', lineHeight:1.6 }}>
-              These inject directly into your page &lt;head&gt; as static HTML — verified by crawlers and bots that don't run JavaScript. Paste only the <strong>content=</strong> value from each platform's verification code.
+          <TrackingCard
+            name="Site Verification Meta Tags"
+            color="#34d399"
+            active={!!(tracking.googleSiteVerify || tracking.bingSiteVerify || tracking.yandexVerify)}
+          >
+            <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', color:'var(--text-2)', marginBottom:'14px', lineHeight:1.6 }}>
+              These inject into your page &lt;head&gt; as static HTML so crawlers and bots can verify your site. Paste only the <strong>content=</strong> value — not the full meta tag.
             </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:'12px' }}>
               <div>
                 <label style={lb}>Google Search Console</label>
-                <input style={fi} value={tracking.googleSiteVerify||''} onChange={e=>setTracking(t=>({...t,googleSiteVerify:e.target.value}))} placeholder="Paste content= value from Google Search Console verify meta tag" onFocus={foc} onBlur={blr}/>
-                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'4px' }}>Google Search Console → Settings → Ownership Verification → HTML tag → copy only the content= value</div>
+                <input style={fi} value={tracking.googleSiteVerify||''} onChange={e=>setTracking(t=>({...t,googleSiteVerify:e.target.value}))} placeholder="Paste content= value from Google Search Console HTML tag" onFocus={foc} onBlur={blr}/>
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'4px', lineHeight:1.7 }}>Search Console → Settings → Ownership Verification → HTML tag → copy only the content= value</div>
               </div>
               <div>
                 <label style={lb}>Bing Webmaster Tools</label>
-                <input style={fi} value={tracking.bingSiteVerify||''} onChange={e=>setTracking(t=>({...t,bingSiteVerify:e.target.value}))} placeholder="Paste content= value from Bing verify meta tag" onFocus={foc} onBlur={blr}/>
-                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'4px' }}>Bing Webmaster Tools → Settings → Site Verification → Meta tag → copy only the content= value</div>
+                <input style={fi} value={tracking.bingSiteVerify||''} onChange={e=>setTracking(t=>({...t,bingSiteVerify:e.target.value}))} placeholder="Paste content= value from Bing meta tag" onFocus={foc} onBlur={blr}/>
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'4px', lineHeight:1.7 }}>Bing Webmaster Tools → Settings → Site Verification → Meta tag → copy only the content= value</div>
               </div>
               <div>
                 <label style={lb}>Yandex Webmaster</label>
-                <input style={fi} value={tracking.yandexVerify||''} onChange={e=>setTracking(t=>({...t,yandexVerify:e.target.value}))} placeholder="Paste content= value from Yandex verify meta tag" onFocus={foc} onBlur={blr}/>
-                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'4px' }}>Yandex Webmaster → Site Verification → HTML meta tag → copy only the content= value</div>
+                <input style={fi} value={tracking.yandexVerify||''} onChange={e=>setTracking(t=>({...t,yandexVerify:e.target.value}))} placeholder="Paste content= value from Yandex meta tag" onFocus={foc} onBlur={blr}/>
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'4px', lineHeight:1.7 }}>Yandex Webmaster → Site Verification → HTML meta tag → copy only the content= value</div>
               </div>
             </div>
-          </div>
-            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.54rem', color:'var(--text-3)', marginTop:'6px', lineHeight:1.7 }}>From Pinterest Settings → Claim → Website → HTML tag. Copy ONLY the value after content= (without quotes).</div>
           </TrackingCard>
         </div>
         <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'12px' }}>
