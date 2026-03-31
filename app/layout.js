@@ -5,8 +5,8 @@ import { getPortfolioDoc } from '@/lib/firestore';
 export const dynamic = 'force-dynamic';
 
 export const metadata = {
-  title: 'Shakil — CMS & Web Expert | Shopify Developer | Digital Marketer',
-  description: 'Shakil is a CMS & Custom Web Expert, Shopify Developer, and Digital Marketer with 6+ years experience and 5000+ global projects.',
+  title: 'Shakil Ahmed — Freelance Website & CMS Expert | Global',
+  description: 'Hire Shakil Ahmed — a top-rated freelance website and CMS expert working with global clients. Specialist in CMS development, custom web apps, SaaS, and eCommerce. 6+ years · 5000+ global projects · 47 countries.',
   metadataBase: new URL('https://shakilxvs.com'),
   openGraph: {
     title: 'Shakil — CMS & Web Expert',
