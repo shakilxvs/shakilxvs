@@ -82,6 +82,7 @@ function BankDetails({ bank }) {
   );
   const rows = [
     ['Bank Name',        bank.bankName],
+    ['Branch Name',      bank.branchName],
     ['Account Name',     bank.accountName],
     ['Account Number',   bank.accountNumber],
     ['Routing Number',   bank.routingNumber],
