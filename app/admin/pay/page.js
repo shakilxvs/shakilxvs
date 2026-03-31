@@ -100,16 +100,17 @@ function LogoListManager({ title, description, items, onChange }) {
 }
 
 /* ─── BankForm OUTSIDE parent to prevent re-mount focus loss ── */
-const EMPTY_BANK = { bankName:'', accountName:'', accountNumber:'', routingNumber:'', swiftCode:'', iban:'', address:'', city:'', district:'', state:'', postalCode:'', country:'', notes:'', customFields:[] };
+const EMPTY_BANK = { bankName:'', branchName:'', accountName:'', accountNumber:'', routingNumber:'', swiftCode:'', iban:'', address:'', city:'', district:'', state:'', postalCode:'', country:'', notes:'', customFields:[] };
 
 function BankForm({ title, subtitle, initialData, onSave, saving }) {
   const [local, setLocal] = useState({ ...EMPTY_BANK, ...initialData });
   const set = (k,v) => setLocal(p=>({...p,[k]:v}));
   useEffect(() => { setLocal({...EMPTY_BANK,...initialData}); }, [JSON.stringify(initialData)]);
   const ROWS = [
-    [['bankName','Bank Name'],['accountName','Account Holder Name']],
-    [['accountNumber','Account Number'],['routingNumber','Routing Number']],
-    [['swiftCode','SWIFT / BIC Code'],['iban','IBAN']],
+    [['bankName','Bank Name'],['branchName','Branch Name']],
+    [['accountName','Account Holder Name'],['accountNumber','Account Number']],
+    [['routingNumber','Routing Number'],['swiftCode','SWIFT / BIC Code']],
+    [['iban','IBAN']],
     [['address','Street Address']],
     [['city','City'],['district','District']],
     [['state','State / Province'],['postalCode','Postal / ZIP Code']],
