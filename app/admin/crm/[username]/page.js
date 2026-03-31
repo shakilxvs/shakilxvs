@@ -554,7 +554,14 @@ function EditClientPanel({ client, onSave }) {
         <div><label style={LB}>Email</label><input style={FI} value={local.email||''} onChange={e=>set('email',e.target.value.toLowerCase())} onFocus={foc} onBlur={blr}/></div>
         <div><label style={LB}>Company</label><input style={FI} value={local.company||''} onChange={e=>set('company',e.target.value)} onFocus={foc} onBlur={blr}/></div>
         <div><label style={LB}>Phone</label><input style={FI} value={local.phone||''} onChange={e=>set('phone',e.target.value)} onFocus={foc} onBlur={blr}/></div>
+        <div style={{ gridColumn:'1/-1' }}><label style={LB}>Address</label><input style={FI} value={local.address||''} onChange={e=>set('address',e.target.value)} placeholder="Street address" onFocus={foc} onBlur={blr}/></div>
+        <div><label style={LB}>City</label><input style={FI} value={local.city||''} onChange={e=>set('city',e.target.value)} onFocus={foc} onBlur={blr}/></div>
+        <div><label style={LB}>State / Province</label><input style={FI} value={local.state||''} onChange={e=>set('state',e.target.value)} onFocus={foc} onBlur={blr}/></div>
+        <div><label style={LB}>Postal / ZIP Code</label><input style={FI} value={local.zip||''} onChange={e=>set('zip',e.target.value)} onFocus={foc} onBlur={blr}/></div>
         <div><label style={LB}>Country</label><input style={FI} value={local.country||''} onChange={e=>set('country',e.target.value)} onFocus={foc} onBlur={blr}/></div>
+        <div style={{ gridColumn:'1/-1' }}><label style={LB}>Address</label><input style={FI} value={local.address||''} onChange={e=>set('address',e.target.value)} placeholder="Street address" onFocus={foc} onBlur={blr}/></div>
+        <div><label style={LB}>City</label><input style={FI} value={local.city||''} onChange={e=>set('city',e.target.value)} onFocus={foc} onBlur={blr}/></div>
+        <div><label style={LB}>State / ZIP</label><input style={FI} value={local.state||''} onChange={e=>set('state',e.target.value)} placeholder="e.g. California, 90001" onFocus={foc} onBlur={blr}/></div>
         <div style={{ gridColumn:'1/-1' }}>
           <label style={LB}>
             New Password {client.passwordPlain && <span style={{ color:'var(--text-3)', textTransform:'none', letterSpacing:0 }}>— current: <span style={{ color:'var(--accent)' }}>{showPw?client.passwordPlain:'••••••••'}</span></span>}
