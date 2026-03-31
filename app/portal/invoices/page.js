@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getClientInvoices, getPortfolioDoc } from '@/lib/firestore';
+import { getClientInvoices, getPortfolioDoc, getClientById } from '@/lib/firestore';
 import Link from 'next/link';
 import { ArrowRight, CheckCircle, Clock, AlertTriangle, Download } from 'lucide-react';
 
@@ -15,32 +15,42 @@ function downloadInvoicePDF(invoice, client, siteConfig) {
   const win = window.open('', '_blank');
   if (!win) return;
 
-  // Sender details — hardcoded with Firestore override if admin sets invoiceSender
-  const sender = siteConfig?.invoiceSender || {};
+  // ── Sender (your) details ───────────────────────────────────
+  const sender      = siteConfig?.invoiceSender || {};
   const fromName    = sender.name    || 'Shakil Ahmed';
   const fromEmail   = sender.email   || 'shakilxvs@gmail.com';
   const fromPhone   = sender.phone   || '+880 1234 567890';
   const fromAddress = sender.address || 'Dhaka, Bangladesh';
   const fromWebsite = sender.website || 'shakilxvs.com';
 
-  const accent      = '#234DC2';
-  const clientName  = client?.name    || 'Client';
-  const clientCo    = client?.company || '';
-  const clientEmail = client?.email   || '';
-  const now         = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
-  const status      = invoice.status  || 'Unpaid';
-  const statusColor = status === 'Paid' ? '#16a34a' : status === 'Overdue' ? '#dc2626' : '#b45309';
-  const statusBg    = status === 'Paid' ? '#f0fdf4' : status === 'Overdue' ? '#fef2f2' : '#fffbeb';
-  const invoiceNum  = invoice.number  ? `INV-${invoice.number}` : 'INVOICE';
-  const currency    = invoice.currency || 'USD';
-  const payUrl      = invoice.payUrl  || '/pay';
-  const showPayBtn  = status !== 'Paid' && payUrl;
+  // ── Client details (from portal session) ───────────────────
+  const accent       = '#234DC2';
+  const clientName   = client?.name    || 'Client';
+  const clientCo     = client?.company || '';
+  const clientEmail  = client?.email   || '';
+  const clientPhone  = client?.phone   || '';
+  const clientAddr   = client?.address || '';
+  const clientCity   = client?.city    || '';
+  const clientState  = client?.state   || '';
+  const clientZip    = client?.zip     || '';
+  const clientCountry= client?.country || '';
+
+  // Build the client address lines for the PDF
+  const clientCityLine = [clientCity, clientState, clientZip].filter(Boolean).join(', ');
+
+  const now        = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const status     = invoice.status  || 'Unpaid';
+  const statusColor= status === 'Paid' ? '#16a34a' : status === 'Overdue' ? '#dc2626' : '#b45309';
+  const statusBg   = status === 'Paid' ? '#f0fdf4' : status === 'Overdue' ? '#fef2f2' : '#fffbeb';
+  const invoiceNum = invoice.number  ? `INV-${invoice.number}` : 'INVOICE';
+  const currency   = invoice.currency || 'USD';
+  const payUrl     = invoice.payUrl  || '/pay';
+  const showPayBtn = status !== 'Paid' && payUrl;
 
   // Line items — fall back to single row from invoice amount/description
   const lineItems = invoice.lineItems?.length
     ? invoice.lineItems
     : [{ description: invoice.description || 'Services Rendered', qty: 1, unitPrice: Number(invoice.amount || 0) }];
-
   const subtotal = lineItems.reduce((s, it) => s + Number(it.qty || 1) * Number(it.unitPrice || 0), 0);
 
   const itemRows = lineItems.map(it => {
@@ -119,14 +129,13 @@ function downloadInvoicePDF(invoice, client, siteConfig) {
 <div class="page">
   <div class="top-accent"></div>
   <div class="inner">
-
     <!-- Header: Sender info + Invoice number -->
     <div class="header">
       <div>
         <div class="sender-name">${fromName}</div>
         <div class="sender-detail">
-          ${fromEmail ? fromEmail + '<br/>' : ''}
-          ${fromPhone ? fromPhone + '<br/>' : ''}
+          ${fromEmail   ? fromEmail   + '<br/>' : ''}
+          ${fromPhone   ? fromPhone   + '<br/>' : ''}
           ${fromAddress ? fromAddress + '<br/>' : ''}
           ${fromWebsite ? fromWebsite : ''}
         </div>
@@ -137,17 +146,19 @@ function downloadInvoicePDF(invoice, client, siteConfig) {
         <div class="inv-date">Issued ${now}</div>
       </div>
     </div>
-
     <div class="divider"></div>
-
     <!-- Billed to -->
     <div class="bill-row">
       <div>
         <div class="bill-label">Billed To</div>
         <div class="bill-name">${clientName}</div>
         <div class="bill-detail">
-          ${clientCo ? clientCo + '<br/>' : ''}
-          ${clientEmail ? clientEmail : ''}
+          ${clientCo      ? clientCo      + '<br/>' : ''}
+          ${clientPhone   ? clientPhone   + '<br/>' : ''}
+          ${clientAddr    ? clientAddr    + '<br/>' : ''}
+          ${clientCityLine? clientCityLine + '<br/>': ''}
+          ${clientCountry ? clientCountry + '<br/>' : ''}
+          ${clientEmail   ? clientEmail               : ''}
         </div>
       </div>
       <div>
@@ -158,7 +169,6 @@ function downloadInvoicePDF(invoice, client, siteConfig) {
         <span class="status-pill">${status}</span>
       </div>
     </div>
-
     <!-- Meta row -->
     <div class="meta">
       <div class="meta-item">
@@ -175,7 +185,6 @@ function downloadInvoicePDF(invoice, client, siteConfig) {
         <div class="meta-val">${status}</div>
       </div>
     </div>
-
     <!-- Line items -->
     <table>
       <thead>
@@ -188,7 +197,6 @@ function downloadInvoicePDF(invoice, client, siteConfig) {
       </thead>
       <tbody>${itemRows}</tbody>
     </table>
-
     <!-- Totals -->
     <div class="totals">
       <div class="totals-inner">
@@ -196,7 +204,6 @@ function downloadInvoicePDF(invoice, client, siteConfig) {
         <div class="tot-row grand"><span>Total Due</span><span class="v">${currency} ${subtotal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></div>
       </div>
     </div>
-
     <!-- Pay Now button -->
     ${showPayBtn ? `
     <div class="pay-section">
@@ -204,20 +211,16 @@ function downloadInvoicePDF(invoice, client, siteConfig) {
       <div class="pay-sub">Click the button above or visit:</div>
       <div class="pay-url">${payUrl}</div>
     </div>` : ''}
-
     <!-- Footer -->
     <div class="foot">
       <div class="foot-note">Thank you for your business!</div>
       <div class="foot-note">${fromEmail}</div>
     </div>
-
   </div>
 </div>
-
 <button class="save-btn no-print" onclick="window.print()">⬇ Save as PDF</button>
 </body>
 </html>`);
-
   win.document.close();
 }
 
@@ -225,16 +228,13 @@ function InvoiceRow({ invoice, client, siteConfig }) {
   const cfg = STATUS_CONFIG[invoice.status] || STATUS_CONFIG['Unpaid'];
   const Icon = cfg.Icon;
   const isActionable = invoice.status === 'Unpaid' || invoice.status === 'Overdue';
-
   return (
     <div style={{ background:'var(--bg-surface)', border:`1px solid ${isActionable?'var(--border-2)':'var(--border-1)'}`, borderRadius:'var(--radius-lg)', padding:'18px 20px', marginBottom:'12px', display:'flex', alignItems:'center', gap:'16px', flexWrap:'wrap', transition:'border-color 0.2s' }}
       onMouseEnter={e=>isActionable&&(e.currentTarget.style.borderColor='var(--accent-border)')}
       onMouseLeave={e=>isActionable&&(e.currentTarget.style.borderColor='var(--border-2)')}>
-
       <div style={{ width:38, height:38, borderRadius:'var(--radius-md)', background:cfg.bg, border:`1px solid ${cfg.border}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
         <Icon size={16} color={cfg.color} strokeWidth={1.75}/>
       </div>
-
       <div style={{ flex:1, minWidth:0 }}>
         <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap', marginBottom:'3px' }}>
           <span style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'1.4rem', color:'var(--text-1)', lineHeight:1 }}>
@@ -251,11 +251,9 @@ function InvoiceRow({ invoice, client, siteConfig }) {
           </div>
         )}
       </div>
-
       <span style={{ padding:'4px 12px', borderRadius:100, fontFamily:'Space Mono,monospace', fontSize:'0.58rem', background:cfg.bg, color:cfg.color, border:`1px solid ${cfg.border}`, whiteSpace:'nowrap', flexShrink:0 }}>
         {invoice.status}
       </span>
-
       {/* Download PDF */}
       <button onClick={() => downloadInvoicePDF(invoice, client, siteConfig)}
         style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'8px 14px', background:'var(--bg-elevated)', color:'var(--text-2)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:600, fontSize:'0.8rem', cursor:'pointer', flexShrink:0, transition:'all 0.15s' }}
@@ -263,7 +261,6 @@ function InvoiceRow({ invoice, client, siteConfig }) {
         onMouseLeave={e=>{ e.currentTarget.style.borderColor='var(--border-2)'; e.currentTarget.style.color='var(--text-2)'; }}>
         <Download size={13}/> PDF
       </button>
-
       {/* Pay Now */}
       {isActionable && (
         <Link href={invoice.payUrl||'/pay'}
@@ -294,9 +291,12 @@ export default function PortalInvoices() {
       Promise.all([
         getClientInvoices(session.clientId),
         getPortfolioDoc('siteSettings'),
-      ]).then(([inv, sc]) => {
+        getClientById(session.clientId),
+      ]).then(([inv, sc, freshClient]) => {
         setInvoices(inv);
         setSiteConfig(sc);
+        // Always use fresh Firestore data so address/phone/company are current
+        if (freshClient) setClient(freshClient);
         setLoading(false);
       });
     } catch { router.replace('/portal/login'); }
@@ -317,7 +317,6 @@ export default function PortalInvoices() {
           </div>
         )}
       </div>
-
       {invoices.length > 0 && (
         <div className="pill-bar" style={{ marginBottom:'20px' }}>
           {FILTERS.map(f => (
@@ -325,24 +324,20 @@ export default function PortalInvoices() {
           ))}
         </div>
       )}
-
       {loading && (
         <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
           {[0,1,2].map(i=><div key={i} style={{ height:80, background:'var(--bg-surface)', borderRadius:'var(--radius-lg)' }} className="skeleton"/>)}
         </div>
       )}
-
       {!loading && invoices.length === 0 && (
         <div style={{ textAlign:'center', padding:'80px 24px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-xl)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif' }}>
           <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'1.5rem', color:'var(--text-2)', marginBottom:'8px' }}>No Invoices Yet</div>
           <div style={{ fontSize:'0.875rem' }}>Invoices will appear here when they are created.</div>
         </div>
       )}
-
       {!loading && filtered.length === 0 && invoices.length > 0 && (
         <div style={{ textAlign:'center', padding:'40px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>No {filter.toLowerCase()} invoices.</div>
       )}
-
       {filtered.map(invoice => (
         <InvoiceRow key={invoice.id} invoice={invoice} client={client} siteConfig={siteConfig}/>
       ))}
