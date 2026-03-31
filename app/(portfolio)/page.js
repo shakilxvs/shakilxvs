@@ -11,15 +11,45 @@ import TrackPage from '@/components/TrackPage';
 export const revalidate = 0;
 
 export async function generateMetadata() {
+  const defaultTitle       = 'Shakil Ahmed — Freelance Website & CMS Expert | Global';
+  const defaultDescription = 'Hire Shakil Ahmed — a top-rated freelance website and CMS expert working with global clients. Specialist in CMS development, custom web apps, SaaS, and eCommerce. 6+ years · 5000+ global projects · 47 countries.';
+  const defaultKeywords    = 'Shakil Ahmed, freelance website expert, CMS developer, hire web developer, custom website developer, SaaS developer, eCommerce developer, best freelancer, Shakil CMS expert, shakilxvs';
+
   try {
     const s = await getPortfolioDoc('siteSettings');
     const seo = s?.seo?.home || {};
+    const title       = seo.title       || defaultTitle;
+    const description = seo.description || defaultDescription;
     return {
-      title: seo.title || 'Shakil — CMS & Web Expert | Shopify Developer | Digital Marketer',
-      description: seo.description || 'Shakil is a CMS & Custom Web Expert, Shopify Developer, and Digital Marketer.',
+      title,
+      description,
+      keywords: defaultKeywords,
+      alternates: { canonical: 'https://shakilxvs.com' },
+      openGraph: {
+        title,
+        description,
+        url: 'https://shakilxvs.com',
+        siteName: 'Shakil Ahmed',
+        images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Shakil Ahmed — Freelance Website & CMS Expert | Global' }],
+        type: 'website',
+        locale: 'en_US',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        creator: '@shakilxvs',
+        images: ['/og-image.png'],
+      },
+    };
+  } catch {
+    return {
+      title: defaultTitle,
+      description: defaultDescription,
+      keywords: defaultKeywords,
       alternates: { canonical: 'https://shakilxvs.com' },
     };
-  } catch { return { title: 'Shakil — CMS & Web Expert' }; }
+  }
 }
 
 export default async function HomePage() {
