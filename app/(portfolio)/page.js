@@ -17,9 +17,13 @@ export async function generateMetadata() {
 
   try {
     const s = await getPortfolioDoc('siteSettings');
-    const seo = s?.seo?.home || {};
+    const seo     = s?.seo?.home || {};
     const title       = seo.title       || defaultTitle;
     const description = seo.description || defaultDescription;
+    const ogImage     = s?.ogImageUrl   || null;
+    const images      = ogImage
+      ? [{ url: ogImage, width: 1200, height: 630, alt: title }]
+      : [];
     return {
       title,
       description,
@@ -30,7 +34,7 @@ export async function generateMetadata() {
         description,
         url: 'https://shakilxvs.com',
         siteName: 'Shakil Ahmed',
-        images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Shakil Ahmed — Freelance Website & CMS Expert | Global' }],
+        images,
         type: 'website',
         locale: 'en_US',
       },
@@ -39,7 +43,7 @@ export async function generateMetadata() {
         title,
         description,
         creator: '@shakilxvs',
-        images: ['/og-image.png'],
+        ...(ogImage ? { images: [ogImage] } : {}),
       },
     };
   } catch {
