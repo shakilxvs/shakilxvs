@@ -90,6 +90,7 @@ export default async function RootLayout({ children }) {
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preload" href={googleFontsUrl} as="style" />
         <link href={googleFontsUrl} rel="stylesheet" />
         {fullStyleBlock && <style dangerouslySetInnerHTML={{ __html: fullStyleBlock }}/>}
         <script dangerouslySetInnerHTML={{ __html: `window.__SITE_CONFIG__=${siteConfigJson};` }}/>
