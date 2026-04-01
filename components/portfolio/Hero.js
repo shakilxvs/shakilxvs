@@ -122,7 +122,7 @@ function Layout1({ h, badge }) {
           <div style={{ position:'absolute', width:'280px', height:'280px', borderRadius:'50%', background:'radial-gradient(circle, rgba(35,77,194,0.3) 0%, rgba(35,77,194,0.1) 50%, transparent 75%)', filter:'blur(20px)', zIndex:0 }}/>
           <div style={{ width:'260px', height:'260px', borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(35,77,194,0.4)', background:'var(--bg-elevated)', position:'relative', zIndex:1, boxShadow:'0 0 60px rgba(35,77,194,0.25), 0 0 120px rgba(35,77,194,0.1)' }}>
             {hasPhoto
-              ? <img src={h.profileImageUrl} alt={h.name} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}/>
+              ? <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}/>
               : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Bebas Neue,sans-serif', fontSize:'6rem', color:'var(--accent)', opacity:0.5 }}>{h.name?.[0]||'S'}</div>
             }
             <div style={{ position:'absolute', inset:0, borderRadius:'50%', background:'radial-gradient(circle at center, transparent 55%, rgba(9,12,20,0.6) 80%, rgba(9,12,20,0.95) 100%)', pointerEvents:'none' }}/>
@@ -226,7 +226,7 @@ function Layout3({ h, badge }) {
           <div style={{ position:'absolute', inset:'-10px', borderRadius:'calc(var(--radius-xl) + 4px)', background:'rgba(35,77,194,0.05)', border:'1px solid rgba(35,77,194,0.1)', pointerEvents:'none' }}/>
           <div style={{ position:'relative', borderRadius:'var(--radius-xl)', overflow:'hidden', aspectRatio:'3/4', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', boxShadow:'0 24px 60px rgba(0,0,0,0.45)' }}>
             {hasPhoto
-              ? <img src={h.profileImageUrl} alt={h.name} style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }}/>
+              ? <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }}/>
               : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Bebas Neue,sans-serif', fontSize:'8rem', color:'var(--accent)', opacity:0.25 }}>{h.name?.[0]||'S'}</div>
             }
             <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'45%', background:'linear-gradient(to top, rgba(5,7,15,0.85), transparent)', pointerEvents:'none' }}/>
