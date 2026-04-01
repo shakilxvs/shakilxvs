@@ -7,12 +7,12 @@ export const dynamic = 'force-dynamic';
 export const metadata = {
   title: 'Shakil Ahmed — Freelance Website & CMS Expert | Global',
   description: 'Hire Shakil Ahmed — a top-rated freelance website and CMS expert working with global clients. Specialist in CMS development, custom web apps, SaaS, and eCommerce. 6+ years · 5000+ global projects · 47 countries.',
+  keywords: 'Shakil Ahmed, shakilxvs, freelance website expert, CMS expert, CMS developer, hire web developer, custom website developer, SaaS developer, eCommerce developer, web app developer, Shopify developer, Shopify specialist, Shopify theme developer, WordPress developer, WordPress expert, WooCommerce developer, Webflow developer, Squarespace developer, headless CMS, Next.js developer, React developer, Firebase developer, best freelancer, hire freelancer, website developer for hire, web developer Bangladesh, Shakil website expert',
   metadataBase: new URL('https://shakilxvs.com'),
   openGraph: {
-    title: 'Shakil — CMS & Web Expert',
-    description: '6+ years · 5000+ projects · Global clients',
+    title: 'Shakil Ahmed — Freelance Website & CMS Expert | Global',
+    description: 'Hire Shakil Ahmed — a top-rated freelance website and CMS expert working with global clients. 6+ years · 5000+ global projects · 47 countries.',
     url: 'https://shakilxvs.com',
-    images: [{ url: '/og-image.png', width: 1200, height: 630 }],
     type: 'website',
   },
   twitter: { card: 'summary_large_image', creator: '@shakilxvs' },
@@ -46,7 +46,6 @@ export default async function RootLayout({ children }) {
   let siteConfig   = null;
   let headingFont  = 'Bebas Neue';
   let bodyFont     = 'Outfit';
-
   let tracking = {};
   try {
     const s = await getPortfolioDoc('siteSettings');
