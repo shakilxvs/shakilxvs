@@ -2,10 +2,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { getApprovedReviews , trackPageView } from '@/lib/firestore';
 import { getAverageRating, getRatingDistribution, formatMonthYear, getVideoType, getYouTubeEmbedUrl, getVimeoEmbedUrl } from '@/lib/utils';
-import { Star, ChevronLeft, ChevronRight, Send, Check } from 'lucide-react';
+import { Star, ChevronLeft, ChevronRight, Send, Check, Play, Pause } from 'lucide-react';
 import { VerifiedBadge } from '@/components/portfolio/ReviewsTeaser';
 import emailjs from 'emailjs-com';
-
 function Stars({ rating, size = 14 }) {
   return (
     <div style={{ display:'flex', gap:'2px' }}>
@@ -15,7 +14,6 @@ function Stars({ rating, size = 14 }) {
     </div>
   );
 }
-
 function Avatar({ name, imageUrl, size = 40 }) {
   const letter = name?.[0]?.toUpperCase() || '?';
   const colors = ['#234DC2','#7c3aed','#f59e0b','#10b981','#ef4444','#ec4899'];
@@ -29,17 +27,53 @@ function Avatar({ name, imageUrl, size = 40 }) {
     </div>
   );
 }
-
-/* Fixed VideoCard — proper allow attrs, no autoplay, fallback on bad URL */
+/* VideoCard — custom play/pause only, no default controls, single video at a time */
 function VideoCard({ review }) {
   const videoType = getVideoType(review.videoUrl);
   const ytSrc     = videoType === 'youtube' ? getYouTubeEmbedUrl(review.videoUrl) : null;
   const vmSrc     = videoType === 'vimeo'   ? getVimeoEmbedUrl(review.videoUrl)   : null;
   const videoRef  = useRef(null);
+  const [playing,  setPlaying]  = useState(false);
+  const [hovered,  setHovered]  = useState(false);
+
+  const togglePlay = () => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    if (vid.paused) {
+      // Pause every other video on the page first
+      document.querySelectorAll('video').forEach(v => {
+        if (v !== vid) v.pause();
+      });
+      vid.play();
+    } else {
+      vid.pause();
+    }
+  };
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onPlay  = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    const onEnded = () => setPlaying(false);
+    vid.addEventListener('play',  onPlay);
+    vid.addEventListener('pause', onPause);
+    vid.addEventListener('ended', onEnded);
+    return () => {
+      vid.removeEventListener('play',  onPlay);
+      vid.removeEventListener('pause', onPause);
+      vid.removeEventListener('ended', onEnded);
+    };
+  }, []);
 
   return (
     <div style={{ flexShrink:0, width:200, display:'flex', flexDirection:'column', gap:'12px' }}>
-      <div style={{ position:'relative', aspectRatio:'9/16', borderRadius:'var(--radius-lg)', overflow:'hidden', background:'var(--bg-elevated)', border:'1px solid var(--border-2)' }}>
+      <div
+        style={{ position:'relative', aspectRatio:'9/16', borderRadius:'var(--radius-lg)', overflow:'hidden', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', cursor: videoType==='direct' ? 'pointer' : 'default' }}
+        onMouseEnter={() => videoType==='direct' && setHovered(true)}
+        onMouseLeave={() => videoType==='direct' && setHovered(false)}
+        onClick={() => videoType==='direct' && togglePlay()}
+      >
         {videoType === 'youtube' && (
           ytSrc ? (
             <iframe
@@ -73,13 +107,46 @@ function VideoCard({ review }) {
           )
         )}
         {videoType === 'direct' && (
-          <video
-            ref={videoRef}
-            src={review.videoUrl}
-            controls
-            playsInline
-            style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'top' }}
-          />
+          <>
+            <video
+              ref={videoRef}
+              src={review.videoUrl}
+              playsInline
+              preload="metadata"
+              style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'top' }}
+            />
+            {/* Custom play/pause overlay — shown always when paused, shown on hover when playing */}
+            <div style={{
+              position:'absolute', inset:0,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              background: playing && !hovered ? 'transparent' : 'rgba(0,0,0,0.32)',
+              transition:'background 0.2s',
+            }}>
+              <button
+                onClick={e => { e.stopPropagation(); togglePlay(); }}
+                style={{
+                  width:52, height:52,
+                  borderRadius:'50%',
+                  background:'rgba(255,255,255,0.15)',
+                  backdropFilter:'blur(6px)',
+                  WebkitBackdropFilter:'blur(6px)',
+                  border:'2px solid rgba(255,255,255,0.55)',
+                  display:'flex', alignItems:'center', justifyContent:'center',
+                  cursor:'pointer',
+                  opacity: playing && !hovered ? 0 : 1,
+                  transform: playing && !hovered ? 'scale(0.85)' : 'scale(1)',
+                  transition:'opacity 0.2s, transform 0.2s',
+                  color:'#fff',
+                }}
+                aria-label={playing ? 'Pause video' : 'Play video'}
+              >
+                {playing
+                  ? <Pause size={20} fill="#fff" strokeWidth={0}/>
+                  : <Play  size={20} fill="#fff" strokeWidth={0} style={{ marginLeft:2 }}/>
+                }
+              </button>
+            </div>
+          </>
         )}
       </div>
       <div>
@@ -93,7 +160,6 @@ function VideoCard({ review }) {
     </div>
   );
 }
-
 function ReviewCard({ review }) {
   const [expanded, setExpanded] = useState(false);
   const text   = review.text || '';
@@ -124,7 +190,6 @@ function ReviewCard({ review }) {
     </div>
   );
 }
-
 /* Full validation */
 function validate(form) {
   const errors = {};
@@ -138,9 +203,7 @@ function validate(form) {
   }
   return errors;
 }
-
 const ERR_STYLE = { fontFamily:'Outfit,sans-serif', fontSize:'0.75rem', color:'var(--fire)', marginTop:'4px', display:'block' };
-
 function SubmitForm() {
   const [form, setForm]       = useState({ name:'', email:'', service:'', rating:0, text:'', videoUrl:'' });
   const [errors, setErrors]   = useState({});
@@ -148,13 +211,11 @@ function SubmitForm() {
   const [submitting, setSub]  = useState(false);
   const [success, setSuccess] = useState(false);
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
-
   const handleSubmit = async () => {
     setTouched(true);
     const errs = validate(form);
     setErrors(errs);
     if (Object.keys(errs).length) return;
-
     setSub(true);
     try {
       const res = await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(form) });
@@ -174,10 +235,8 @@ function SubmitForm() {
       }
     } catch {} finally { setSub(false); }
   };
-
   const fi = { width:'100%', padding:'10px 14px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.9rem', outline:'none', boxSizing:'border-box' };
   const lb = { fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'6px', display:'block' };
-
   if (success) return (
     <div style={{ textAlign:'center', padding:'60px 24px', background:'var(--bg-surface)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-xl)' }}>
       <div style={{ width:64, height:64, borderRadius:'50%', background:'var(--accent-muted)', border:'2px solid var(--accent-border)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
@@ -187,9 +246,7 @@ function SubmitForm() {
       <p style={{ fontFamily:'Outfit,sans-serif', color:'var(--text-2)', fontSize:'0.9rem' }}>Thank you! Your review will appear after verification.</p>
     </div>
   );
-
   const disabled = submitting || !form.name || !form.email || !form.rating || !form.text;
-
   return (
     <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'40px' }}>
       <div className="section-label" style={{ marginBottom:'8px' }}>Share Your Experience</div>
@@ -238,23 +295,18 @@ function SubmitForm() {
     </div>
   );
 }
-
 export default function ReviewsPageClient() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const swiperRef = useRef(null);
-
   useEffect(() => {
     trackPageView('reviews');
     getApprovedReviews().then(data=>{ setReviews(data); setLoading(false); });
   }, []);
-
   const avg    = getAverageRating(reviews);
   const dist   = getRatingDistribution(reviews);
   const videos = reviews.filter(r=>r.videoUrl);
-
   const scroll = (dir) => { if (swiperRef.current) swiperRef.current.scrollBy({ left:dir*230, behavior:'smooth' }); };
-
   return (
     <div style={{ minHeight:'100vh', paddingTop:'100px', paddingBottom:'80px', position:'relative', zIndex:1 }}>
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
@@ -262,7 +314,6 @@ export default function ReviewsPageClient() {
           <div className="section-label" style={{ marginBottom:'12px' }}>Testimonials</div>
           <h1 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(3rem,6vw,5rem)', color:'var(--text-1)', letterSpacing:'0.02em', lineHeight:1 }}>Client Reviews</h1>
         </div>
-
         {!loading && reviews.length > 0 && (
           <div style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:'40px', alignItems:'center', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'32px 40px', marginBottom:'60px' }} className="stats-bar-grid">
             <div style={{ textAlign:'center' }}>
@@ -291,7 +342,6 @@ export default function ReviewsPageClient() {
             </div>
           </div>
         )}
-
         {videos.length > 0 && (
           <div style={{ marginBottom:'80px' }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'20px' }}>
@@ -306,7 +356,6 @@ export default function ReviewsPageClient() {
             </div>
           </div>
         )}
-
         {loading ? (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px' }} className="reviews-grid">
             {Array.from({length:6}).map((_,i)=><div key={i} style={{ height:200, borderRadius:'var(--radius-lg)' }} className="skeleton"/>)}
@@ -318,7 +367,6 @@ export default function ReviewsPageClient() {
             {reviews.map(r=><ReviewCard key={r.id} review={r}/>)}
           </div>
         )}
-
         <SubmitForm/>
       </div>
       <style>{`
@@ -328,4 +376,3 @@ export default function ReviewsPageClient() {
     </div>
   );
 }
-
