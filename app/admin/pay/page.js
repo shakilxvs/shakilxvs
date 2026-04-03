@@ -136,8 +136,8 @@ const EMPTY_BANK = {
   receiverNationality: '', receiverIdType: '', receiverIdNumber: '',
   receiverCustomFields: [],  // new — Receiver custom fields (Option B)
   // ── New bank fields ──
-  branchAddress: '', accountType: '', sortCode: '', bsbNumber: '',
-  ifscCode: '', transitNumber: '', bankCountry: '', bankCity: '', currency: '',
+  branchAddress: '', bankCity: '', bankDistrict: '', bankState: '', bankPostalCode: '', bankCountry: '',
+  accountType: '', currency: '',
 };
 
 /* ─── Section card header inside BankForm ──────────────────── */
@@ -237,13 +237,13 @@ function BankForm({ title, subtitle, initialData, onSave, saving }) {
       />
 
       {inputRow([["bankName", "Bank Name", "Dutch-Bangla Bank Limited"], ["branchName", "Branch Name", "Mirpur Branch"]])} {/* existing keys */}
-      {inputRow([["branchAddress", "Branch Address", "House 12, Road 4, Mirpur, Dhaka"]])}
-      {inputRow([["accountNumber", "Account Number / IBAN", "1234567890"], ["accountType", "Account Type", "Savings / Checking / Current"]])} {/* existing key */}
+      {inputRow([["branchAddress", "Branch Address", "House 12, Road 4"]])}
+      {inputRow([["bankCity", "City", "Dhaka"], ["bankDistrict", "District", "Dhaka"]])}
+      {inputRow([["bankState", "State / Province", "Dhaka Division"], ["bankPostalCode", "Postal / ZIP Code", "1207"]])}
+      {inputRow([["bankCountry", "Country", "Bangladesh"]])}
+      {inputRow([["accountNumber", "Account Number", "1234567890"], ["accountType", "Account Type", "Savings / Checking / Current"]])} {/* existing key */}
       {inputRow([["iban", "IBAN", "BD12DBBL1234567890"]])}                           {/* existing key */}
       {inputRow([["routingNumber", "Routing Number / ABA", "026073150"], ["swiftCode", "SWIFT / BIC Code", "DBBLDDDH"]])} {/* existing keys */}
-      {inputRow([["sortCode", "Sort Code (UK)", "20-00-00"], ["bsbNumber", "BSB Number (Australia)", "062-000"]])}
-      {inputRow([["ifscCode", "IFSC Code (India)", "SBIN0001234"], ["transitNumber", "Transit Number (Canada)", "00102"]])}
-      {inputRow([["bankCountry", "Bank Country", "Bangladesh"], ["bankCity", "Bank City", "Dhaka"]])}
       {inputRow([["currency", "Currency", "BDT / USD / EUR"]])}
       {/* Notes is handled as textarea below */}
       <div style={{ marginBottom: '10px' }}>
