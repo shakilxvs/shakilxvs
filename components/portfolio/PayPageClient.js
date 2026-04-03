@@ -132,10 +132,10 @@ function SectionLabel({ label }) {
   );
 }
 
-/* ── FieldBox — each field is its own distinct box ─────────────
-// full=true → box always takes the full row width (for long values like IBAN, address)
-// full=false → box takes flex share, pairs with other boxes on the same row
-// Returns null if value is empty so no blank boxes ever appear
+// ── FieldBox — each field is its own distinct box ───────────
+// full=true  → spans full row width (long values: IBAN, address)
+// full=false → flex share, pairs with neighbour boxes
+// Returns null when value is empty — no blank boxes ever shown
 function FieldBox({ label, value, full }) {
   if (!value) return null;
   return (
