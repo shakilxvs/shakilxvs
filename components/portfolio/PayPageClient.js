@@ -69,9 +69,10 @@ function LogoRow({ logos = [], size = 'section' }) {
   const active = logos.filter(l => l.active !== false);
   if (!active.length) return null;
   return (
-    <div style={{
+    <div className="logo-row-scroll" style={{
       display: 'flex', gap: '6px', alignItems: 'center',
-      overflowX: 'auto', flexWrap: 'nowrap', scrollbarWidth: 'none',
+      overflowX: 'auto', flexWrap: 'nowrap',
+      scrollbarWidth: 'none', msOverflowStyle: 'none',
     }}>
       {/* FIX: Stable key using url+label instead of array index.
           Index keys cause React to reuse the same component when logos change,
@@ -186,17 +187,16 @@ function BankDetails({ bank }) {
     ['Bank Name',       bank.bankName],               // existing key: bankName
     ['Branch Name',     bank.branchName],             // existing key: branchName
     ['Branch Address',  bank.branchAddress],
+    ['City',            bank.bankCity],
+    ['District',        bank.bankDistrict],
+    ['State / Province',bank.bankState],
+    ['Postal / ZIP',    bank.bankPostalCode],
+    ['Country',         bank.bankCountry],
     ['Account Number',  bank.accountNumber],          // existing key: accountNumber
     ['Account Type',    bank.accountType],
     ['IBAN',            bank.iban],                   // existing key: iban
     ['Routing Number',  bank.routingNumber],          // existing key: routingNumber
     ['SWIFT / BIC',     bank.swiftCode],              // existing key: swiftCode
-    ['Sort Code',       bank.sortCode],
-    ['BSB Number',      bank.bsbNumber],
-    ['IFSC Code',       bank.ifscCode],
-    ['Transit Number',  bank.transitNumber],
-    ['Bank Country',    bank.bankCountry],
-    ['Bank City',       bank.bankCity],
     ['Currency',        bank.currency],
   ].filter(([, v]) => v);
 
@@ -450,6 +450,8 @@ export default function PayPageClient() {
   const hasAnyPlatform = PLATFORMS.some(p => { const d = getPD(links, p.key); return d.link || d.paymentHandle; });
 
   return (
+    <>
+    <style>{`.logo-row-scroll::-webkit-scrollbar{display:none}`}</style>
     <div style={{ minHeight: '100vh', paddingTop: '100px', paddingBottom: '80px', position: 'relative', zIndex: 1 }}>
       <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translateX(-50%)', width: '700px', height: '400px', background: 'radial-gradient(ellipse,rgba(35,77,194,0.07) 0%,transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ maxWidth: 780, margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
@@ -565,5 +567,6 @@ export default function PayPageClient() {
 
       </div>
     </div>
+    </>
   );
 }
