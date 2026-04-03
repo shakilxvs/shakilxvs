@@ -132,36 +132,35 @@ function SectionLabel({ label }) {
   );
 }
 
-/* ── FieldRow — one semantic row, 1–3 items side by side ────── */
-// Each item in `items` is [label, value].
-// Items with a value render side by side (flex). Items without value are skipped.
-// If ALL items empty, nothing renders — no gap.
-// flex: 1 1 160px means two items fit at ≥320px (most phones), wrap below that.
-function FieldRow({ items }) {
-  const visible = items.filter(([, v]) => v);
-  if (!visible.length) return null;
+/* ── FieldBox — each field is its own distinct box ─────────────
+// full=true → box always takes the full row width (for long values like IBAN, address)
+// full=false → box takes flex share, pairs with other boxes on the same row
+// Returns null if value is empty so no blank boxes ever appear
+function FieldBox({ label, value, full }) {
+  if (!value) return null;
   return (
-    <div className="field-row" style={{ display: 'flex', flexWrap: 'wrap', borderBottom: '1px solid var(--border-1)' }}>
-      {visible.map(([label, value], i) => (
-        <div key={label} style={{
-          flex: '1 1 160px', minWidth: 0, padding: '10px 16px',
-          borderRight: i < visible.length - 1 ? '1px solid var(--border-1)' : 'none',
-        }}>
-          <div style={{
-            fontFamily: 'Space Mono,monospace', fontSize: '0.5rem',
-            color: 'var(--text-3)', textTransform: 'uppercase',
-            letterSpacing: '0.1em', marginBottom: '3px',
-          }}>{label}</div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-            <span style={{
-              fontFamily: 'Outfit,sans-serif', fontWeight: 600,
-              color: 'var(--text-1)', fontSize: '0.875rem',
-              wordBreak: 'break-word', lineHeight: 1.4, flex: 1, minWidth: 0,
-            }}>{value}</span>
-            <CopyBtn text={value} />
-          </div>
-        </div>
-      ))}
+    <div style={{
+      flex: full ? '1 1 100%' : '1 1 180px',
+      background: 'var(--bg-surface)',
+      border: '1px solid var(--border-2)',
+      borderRadius: 'var(--radius-md)',
+      padding: '11px 14px',
+      minWidth: 0,
+      boxSizing: 'border-box',
+    }}>
+      <div style={{
+        fontFamily: 'Space Mono,monospace', fontSize: '0.5rem',
+        color: 'var(--accent)', textTransform: 'uppercase',
+        letterSpacing: '0.12em', marginBottom: '6px',
+      }}>{label}</div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+        <span style={{
+          fontFamily: 'Outfit,sans-serif', fontWeight: 600,
+          color: 'var(--text-1)', fontSize: '0.875rem',
+          wordBreak: 'break-all', lineHeight: 1.4, flex: 1, minWidth: 0,
+        }}>{value}</span>
+        <CopyBtn text={value} />
+      </div>
     </div>
   );
 }
@@ -211,30 +210,32 @@ function BankDetails({ bank }) {
       {hasBank && (
         <div style={cardStyle}>
           <SectionLabel label="Bank Info" />
-
-          {/* Account identity — most important, top */}
-          <FieldRow items={[['Bank Name', bank.bankName]]} />
-          <FieldRow items={[['Account Number', bank.accountNumber], ['Account Type', bank.accountType]]} />
-          <FieldRow items={[['IBAN', bank.iban]]} />
-
-          {/* Routing & transfer codes */}
-          <FieldRow items={[['Branch Name', bank.branchName], ['Routing Number', bank.routingNumber]]} />
-          <FieldRow items={[['SWIFT / BIC', bank.swiftCode], ['Currency', bank.currency]]} />
-
-          {/* Branch address */}
-          <FieldRow items={[['Branch Address', bank.branchAddress]]} />
-          <FieldRow items={[['City', bank.bankCity], ['District', bank.bankDistrict]]} />
-          <FieldRow items={[['State / Province', bank.bankState], ['Postal / ZIP', bank.bankPostalCode]]} />
-          <FieldRow items={[['Country', bank.bankCountry]]} />
-
-          {/* Custom bank fields */}
-          {bankCustom.map((field, i) => (
-            <FieldRow key={'bc-' + i} items={[[field.label, field.value]]} />
-          ))}
-
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '12px' }}>
+            {/* Account identity — most important, at the top */}
+            <FieldBox label="Bank Name"       value={bank.bankName}       full />
+            <FieldBox label="Account Number"  value={bank.accountNumber}  />
+            <FieldBox label="Account Type"    value={bank.accountType}    />
+            <FieldBox label="IBAN"            value={bank.iban}           full />
+            {/* Routing & transfer codes */}
+            <FieldBox label="Branch Name"     value={bank.branchName}     />
+            <FieldBox label="Routing Number"  value={bank.routingNumber}  />
+            <FieldBox label="SWIFT / BIC"     value={bank.swiftCode}      />
+            <FieldBox label="Currency"        value={bank.currency}       />
+            {/* Branch address — below the identifiers */}
+            <FieldBox label="Branch Address"  value={bank.branchAddress}  full />
+            <FieldBox label="City"            value={bank.bankCity}       />
+            <FieldBox label="District"        value={bank.bankDistrict}   />
+            <FieldBox label="State / Province" value={bank.bankState}     />
+            <FieldBox label="Postal / ZIP"    value={bank.bankPostalCode} />
+            <FieldBox label="Country"         value={bank.bankCountry}    full />
+            {/* Custom bank fields */}
+            {bankCustom.map((field, i) => (
+              <FieldBox key={'bc-' + i} label={field.label} value={field.value} />
+            ))}
+          </div>
           {/* Notes */}
           {bank.notes && (
-            <div style={{ padding: '10px 16px', background: 'rgba(35,77,194,0.06)', borderTop: '1px solid var(--accent-border)' }}>
+            <div style={{ padding: '10px 14px', background: 'rgba(35,77,194,0.06)', borderTop: '1px solid var(--accent-border)', margin: '0 0 4px' }}>
               <div style={{ fontFamily: 'Outfit,sans-serif', fontSize: '0.8rem', color: 'var(--text-2)' }}>{bank.notes}</div>
             </div>
           )}
@@ -245,19 +246,24 @@ function BankDetails({ bank }) {
       {hasReceiver && (
         <div style={cardStyle}>
           <SectionLabel label="Receiver's Info" />
-
-          <FieldRow items={[['Receiver\'s Full Name', bank.accountName]]} />
-          <FieldRow items={[['Email', bank.receiverEmail], ['Phone', bank.receiverPhone]]} />
-          <FieldRow items={[['Date of Birth', bank.receiverDob], ['Nationality', bank.receiverNationality]]} />
-          <FieldRow items={[['ID Type', bank.receiverIdType], ['ID Number', bank.receiverIdNumber]]} />
-          <FieldRow items={[['Street Address', bank.address]]} />
-          <FieldRow items={[['City', bank.city], ['District', bank.district]]} />
-          <FieldRow items={[['State / Province', bank.state], ['Postal / ZIP', bank.postalCode]]} />
-          <FieldRow items={[['Country', bank.country]]} />
-
-          {receiverCustom.map((field, i) => (
-            <FieldRow key={'rc-' + i} items={[[field.label, field.value]]} />
-          ))}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '12px' }}>
+            <FieldBox label="Receiver's Full Name" value={bank.accountName}         full />
+            <FieldBox label="Email"               value={bank.receiverEmail}         />
+            <FieldBox label="Phone"               value={bank.receiverPhone}         />
+            <FieldBox label="Date of Birth"       value={bank.receiverDob}           />
+            <FieldBox label="Nationality"         value={bank.receiverNationality}   />
+            <FieldBox label="ID Type"             value={bank.receiverIdType}        />
+            <FieldBox label="ID Number"           value={bank.receiverIdNumber}      />
+            <FieldBox label="Street Address"      value={bank.address}    full />
+            <FieldBox label="City"                value={bank.city}               />
+            <FieldBox label="District"            value={bank.district}           />
+            <FieldBox label="State / Province"    value={bank.state}              />
+            <FieldBox label="Postal / ZIP"        value={bank.postalCode}         />
+            <FieldBox label="Country"             value={bank.country}    full />
+            {receiverCustom.map((field, i) => (
+              <FieldBox key={'rc-' + i} label={field.label} value={field.value} />
+            ))}
+          </div>
         </div>
       )}
     </>
@@ -433,7 +439,7 @@ export default function PayPageClient() {
 
   return (
     <>
-    <style>{`.logo-row-scroll::-webkit-scrollbar{display:none}.field-row:last-of-type{border-bottom:none!important}`}</style>
+    <style>{`.logo-row-scroll::-webkit-scrollbar{display:none}`}</style>
     <div style={{ minHeight: '100vh', paddingTop: '100px', paddingBottom: '80px', position: 'relative', zIndex: 1 }}>
       <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translateX(-50%)', width: '700px', height: '400px', background: 'radial-gradient(ellipse,rgba(35,77,194,0.07) 0%,transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ maxWidth: 780, margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
