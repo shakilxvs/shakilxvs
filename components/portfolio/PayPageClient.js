@@ -114,32 +114,8 @@ function CopyBtn({ text }) {
   );
 }
 
-/* ── Single copyable info row ─────────────────────────────── */
-function InfoRow({ label, value, last }) {
-  return (
-    <div style={{
-      display: 'grid', gridTemplateColumns: '1fr auto',
-      alignItems: 'center', gap: '10px', padding: '10px 16px',
-      borderBottom: last ? 'none' : '1px solid var(--border-1)',
-    }}>
-      <div style={{ minWidth: 0 }}>
-        <div style={{
-          fontFamily: 'Space Mono,monospace', fontSize: '0.5rem',
-          color: 'var(--text-3)', textTransform: 'uppercase',
-          letterSpacing: '0.1em', marginBottom: '2px',
-        }}>{label}</div>
-        <div style={{
-          fontFamily: 'Outfit,sans-serif', fontWeight: 600,
-          color: 'var(--text-1)', fontSize: '0.875rem',
-          wordBreak: 'break-word', lineHeight: 1.4,
-        }}>{value}</div>
-      </div>
-      <CopyBtn text={value} />
-    </div>
-  );
-}
-
 /* ── Section label inside a bank card ────────────────────── */
+/* ── Section label inside a bank card ──────────────── */
 function SectionLabel({ label }) {
   return (
     <div style={{
@@ -156,62 +132,66 @@ function SectionLabel({ label }) {
   );
 }
 
-/* ── Bank details — split into Receiver's Info & Bank Info ── */
+/* ── FieldRow — one semantic row, 1–3 items side by side ────── */
+// Each item in `items` is [label, value].
+// Items with a value render side by side (flex). Items without value are skipped.
+// If ALL items empty, nothing renders — no gap.
+// flex: 1 1 160px means two items fit at ≥320px (most phones), wrap below that.
+function FieldRow({ items }) {
+  const visible = items.filter(([, v]) => v);
+  if (!visible.length) return null;
+  return (
+    <div className="field-row" style={{ display: 'flex', flexWrap: 'wrap', borderBottom: '1px solid var(--border-1)' }}>
+      {visible.map(([label, value], i) => (
+        <div key={label} style={{
+          flex: '1 1 160px', minWidth: 0, padding: '10px 16px',
+          borderRight: i < visible.length - 1 ? '1px solid var(--border-1)' : 'none',
+        }}>
+          <div style={{
+            fontFamily: 'Space Mono,monospace', fontSize: '0.5rem',
+            color: 'var(--text-3)', textTransform: 'uppercase',
+            letterSpacing: '0.1em', marginBottom: '3px',
+          }}>{label}</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+            <span style={{
+              fontFamily: 'Outfit,sans-serif', fontWeight: 600,
+              color: 'var(--text-1)', fontSize: '0.875rem',
+              wordBreak: 'break-word', lineHeight: 1.4, flex: 1, minWidth: 0,
+            }}>{value}</span>
+            <CopyBtn text={value} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── Bank details — Bank Info first, Receiver’s Info second ── */
 function BankDetails({ bank }) {
   if (!bank) return null;
 
-  // ── RECEIVER'S INFO ──
-  // All existing field keys preserved exactly. New fields added alongside.
-  const receiverRows = [
-    ["Receiver's Full Name", bank.accountName],       // existing key: accountName
-    ['Email',                bank.receiverEmail],
-    ['Phone',                bank.receiverPhone],
-    ['Date of Birth',        bank.receiverDob],
-    ['Nationality',          bank.receiverNationality],
-    ['ID Type',              bank.receiverIdType],
-    ['ID Number',            bank.receiverIdNumber],
-    ['Street Address',       bank.address],           // existing key: address
-    ['City',                 bank.city],              // existing key: city
-    ['District',             bank.district],          // existing key: district
-    ['State / Province',     bank.state],             // existing key: state
-    ['Postal / ZIP',         bank.postalCode],        // existing key: postalCode
-    ['Country',              bank.country],           // existing key: country
-  ].filter(([, v]) => v);
+  // ── BANK INFO: visibility check ──────────────────────────
+  const hasBank = !!(
+    bank.bankName || bank.accountNumber || bank.accountType ||
+    bank.iban || bank.branchName || bank.routingNumber || bank.swiftCode ||
+    bank.currency || bank.branchAddress || bank.bankCity || bank.bankDistrict ||
+    bank.bankState || bank.bankPostalCode || bank.bankCountry || bank.notes ||
+    (bank.customFields || []).some(f => f.label && f.value)
+  );
 
-  // Option B: separate custom fields for receiver
-  const receiverCustom = (bank.receiverCustomFields || []).filter(f => f.label && f.value);
-  const hasReceiver = receiverRows.length > 0 || receiverCustom.length > 0;
+  // ── RECEIVER INFO: visibility check ──────────────────────
+  const hasReceiver = !!(
+    bank.accountName || bank.receiverEmail || bank.receiverPhone ||
+    bank.receiverDob || bank.receiverNationality ||
+    bank.receiverIdType || bank.receiverIdNumber ||
+    bank.address || bank.city || bank.district ||
+    bank.state || bank.postalCode || bank.country ||
+    (bank.receiverCustomFields || []).some(f => f.label && f.value)
+  );
 
-  // ── BANK INFO ──
-  const bankRows = [
-    ['Bank Name',       bank.bankName],               // existing key: bankName
-    ['Branch Name',     bank.branchName],             // existing key: branchName
-    ['Branch Address',  bank.branchAddress],
-    ['City',            bank.bankCity],
-    ['District',        bank.bankDistrict],
-    ['State / Province',bank.bankState],
-    ['Postal / ZIP',    bank.bankPostalCode],
-    ['Country',         bank.bankCountry],
-    ['Account Number',  bank.accountNumber],          // existing key: accountNumber
-    ['Account Type',    bank.accountType],
-    ['IBAN',            bank.iban],                   // existing key: iban
-    ['Routing Number',  bank.routingNumber],          // existing key: routingNumber
-    ['SWIFT / BIC',     bank.swiftCode],              // existing key: swiftCode
-    ['Currency',        bank.currency],
-  ].filter(([, v]) => v);
-
-  // Option B: existing customFields key kept as bank custom fields (backward compatible)
-  const bankCustom = (bank.customFields || []).filter(f => f.label && f.value);
-  const hasNotes = !!bank.notes;
-  const hasBank = bankRows.length > 0 || bankCustom.length > 0 || hasNotes;
-
-  // If both sections are empty, show placeholder
-  if (!hasReceiver && !hasBank) {
+  if (!hasBank && !hasReceiver) {
     return (
-      <div style={{
-        fontFamily: 'Outfit,sans-serif', color: 'var(--text-3)',
-        fontSize: '0.82rem', padding: '8px 0 12px',
-      }}>
+      <div style={{ fontFamily: 'Outfit,sans-serif', color: 'var(--text-3)', fontSize: '0.82rem', padding: '8px 0 12px' }}>
         Bank details not configured yet.
       </div>
     );
@@ -222,60 +202,62 @@ function BankDetails({ bank }) {
     borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: '12px',
   };
 
+  const bankCustom    = (bank.customFields        || []).filter(f => f.label && f.value);
+  const receiverCustom = (bank.receiverCustomFields || []).filter(f => f.label && f.value);
+
   return (
     <>
-      {/* ── RECEIVER'S INFO — only shown if any receiver field is filled ── */}
-      {hasReceiver && (
-        <div style={cardStyle}>
-          <SectionLabel label="Receiver's Info" />
-          {receiverRows.map(([label, value], i) => (
-            <InfoRow
-              key={label}
-              label={label}
-              value={value}
-              last={i === receiverRows.length - 1 && receiverCustom.length === 0}
-            />
-          ))}
-          {receiverCustom.map((field, i) => (
-            <InfoRow
-              key={`rc-${i}`}
-              label={field.label}
-              value={field.value}
-              last={i === receiverCustom.length - 1}
-            />
-          ))}
-        </div>
-      )}
-
-      {/* ── BANK INFO — only shown if any bank field is filled ── */}
+      {/* ── BANK INFO (first) ────────────────────────────────────── */}
       {hasBank && (
         <div style={cardStyle}>
           <SectionLabel label="Bank Info" />
-          {bankRows.map(([label, value], i) => (
-            <InfoRow
-              key={label}
-              label={label}
-              value={value}
-              last={i === bankRows.length - 1 && bankCustom.length === 0 && !hasNotes}
-            />
-          ))}
+
+          {/* Account identity — most important, top */}
+          <FieldRow items={[['Bank Name', bank.bankName]]} />
+          <FieldRow items={[['Account Number', bank.accountNumber], ['Account Type', bank.accountType]]} />
+          <FieldRow items={[['IBAN', bank.iban]]} />
+
+          {/* Routing & transfer codes */}
+          <FieldRow items={[['Branch Name', bank.branchName], ['Routing Number', bank.routingNumber]]} />
+          <FieldRow items={[['SWIFT / BIC', bank.swiftCode], ['Currency', bank.currency]]} />
+
+          {/* Branch address */}
+          <FieldRow items={[['Branch Address', bank.branchAddress]]} />
+          <FieldRow items={[['City', bank.bankCity], ['District', bank.bankDistrict]]} />
+          <FieldRow items={[['State / Province', bank.bankState], ['Postal / ZIP', bank.bankPostalCode]]} />
+          <FieldRow items={[['Country', bank.bankCountry]]} />
+
+          {/* Custom bank fields */}
           {bankCustom.map((field, i) => (
-            <InfoRow
-              key={`bc-${i}`}
-              label={field.label}
-              value={field.value}
-              last={i === bankCustom.length - 1 && !hasNotes}
-            />
+            <FieldRow key={'bc-' + i} items={[[field.label, field.value]]} />
           ))}
-          {hasNotes && (
-            <div style={{
-              padding: '10px 16px',
-              background: 'rgba(35,77,194,0.06)',
-              borderTop: '1px solid var(--accent-border)',
-            }}>
+
+          {/* Notes */}
+          {bank.notes && (
+            <div style={{ padding: '10px 16px', background: 'rgba(35,77,194,0.06)', borderTop: '1px solid var(--accent-border)' }}>
               <div style={{ fontFamily: 'Outfit,sans-serif', fontSize: '0.8rem', color: 'var(--text-2)' }}>{bank.notes}</div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ── RECEIVER’S INFO (second) ────────────────────────────── */}
+      {hasReceiver && (
+        <div style={cardStyle}>
+          <SectionLabel label="Receiver's Info" />
+
+          <FieldRow items={[['Receiver\'s Full Name', bank.accountName]]} />
+          <FieldRow items={[['Email', bank.receiverEmail], ['Phone', bank.receiverPhone]]} />
+          <FieldRow items={[['Date of Birth', bank.receiverDob], ['Nationality', bank.receiverNationality]]} />
+          <FieldRow items={[['ID Type', bank.receiverIdType], ['ID Number', bank.receiverIdNumber]]} />
+          <FieldRow items={[['Street Address', bank.address]]} />
+          <FieldRow items={[['City', bank.city], ['District', bank.district]]} />
+          <FieldRow items={[['State / Province', bank.state], ['Postal / ZIP', bank.postalCode]]} />
+          <FieldRow items={[['Country', bank.country]]} />
+
+          {receiverCustom.map((field, i) => (
+            <FieldRow key={'rc-' + i} items={[[field.label, field.value]]} />
+          ))}
         </div>
       )}
     </>
@@ -451,7 +433,7 @@ export default function PayPageClient() {
 
   return (
     <>
-    <style>{`.logo-row-scroll::-webkit-scrollbar{display:none}`}</style>
+    <style>{`.logo-row-scroll::-webkit-scrollbar{display:none}.field-row:last-of-type{border-bottom:none!important}`}</style>
     <div style={{ minHeight: '100vh', paddingTop: '100px', paddingBottom: '80px', position: 'relative', zIndex: 1 }}>
       <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translateX(-50%)', width: '700px', height: '400px', background: 'radial-gradient(ellipse,rgba(35,77,194,0.07) 0%,transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
       <div style={{ maxWidth: 780, margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
