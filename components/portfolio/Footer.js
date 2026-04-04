@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Github, Instagram, Linkedin, Twitter, Facebook } from 'lucide-react';
+import { Github, Instagram, Linkedin, Twitter, Facebook, Sun, Moon } from 'lucide-react';
 import { getPortfolioDoc } from '@/lib/firestore';
 
 const DEFAULT_LINKS = [
@@ -9,7 +9,6 @@ const DEFAULT_LINKS = [
   { title:'Connect', links:[{ label:'Reviews', href:'/reviews' },{ label:'Contact', href:'/contact' },{ label:'Pay', href:'/pay' }] },
   { title:'Services',links:[{ label:'Shopify Development', href:'/projects' },{ label:'Digital Marketing', href:'/projects' },{ label:'Custom Web Apps', href:'/projects' }] },
 ];
-
 const DEFAULT_SOCIALS = [
   { label:'Instagram', href:'https://instagram.com/shakilxvs',   show:true },
   { label:'LinkedIn',  href:'https://linkedin.com/in/shakilxvs', show:true },
@@ -17,7 +16,6 @@ const DEFAULT_SOCIALS = [
   { label:'Facebook',  href:'https://facebook.com/shakilxvs',    show:true },
   { label:'GitHub',    href:'https://github.com/shakilxvs',      show:true },
 ];
-
 const SOCIAL_ICONS = { Instagram, LinkedIn: Linkedin, Twitter, Facebook, GitHub: Github };
 
 export default function Footer() {
@@ -28,6 +26,32 @@ export default function Footer() {
   const [footerLinks,   setFooterLinks]   = useState(DEFAULT_LINKS);
   const [footerSocials, setFooterSocials] = useState(DEFAULT_SOCIALS);
 
+  // ── Theme toggle ─────────────────────────────────────────────
+  const [theme, setTheme] = useState('dark');
+
+  useEffect(() => {
+    // Restore saved theme on mount
+    const saved = localStorage.getItem('site_theme') || 'dark';
+    setTheme(saved);
+    if (saved === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    localStorage.setItem('site_theme', next);
+    if (next === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+  };
+
+  // ── Firestore settings ───────────────────────────────────────
   useEffect(() => {
     getPortfolioDoc('siteSettings').then(s => {
       if (!s) return;
@@ -49,14 +73,13 @@ export default function Footer() {
 
   const visibleSocials = footerSocials.filter(s => s.show !== false);
   const copyrightName  = copyright || 'Shakil';
+  const isLight        = theme === 'light';
 
   return (
     <footer style={{ background:'var(--bg-void)', borderTop:'1px solid var(--border-1)', paddingTop:'64px', paddingBottom:'32px', position:'relative', zIndex:1 }}>
       <div style={{ position:'absolute', top:'-80px', left:'50%', transform:'translateX(-50%)', width:'400px', height:'200px', background:'var(--accent-glow)', borderRadius:'50%', filter:'blur(80px)', pointerEvents:'none' }}/>
-
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
         <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr 1fr', gap:'48px', marginBottom:'48px' }} className="footer-grid">
-
           {/* Brand */}
           <div>
             <div style={{ marginBottom:'12px' }}><LogoEl/></div>
@@ -79,7 +102,6 @@ export default function Footer() {
               })}
             </div>
           </div>
-
           {/* Link columns */}
           {footerLinks.map(({ title, links }) => (
             <div key={title}>
@@ -103,14 +125,45 @@ export default function Footer() {
 
         <div style={{ height:'1px', background:'var(--border-1)', marginBottom:'24px' }}/>
 
+        {/* Bottom bar: copyright · portal link · theme toggle */}
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px' }}>
           <p style={{ fontFamily:'Space Mono, monospace', fontSize:'0.65rem', color:'var(--text-3)', letterSpacing:'0.05em' }}>
             © {year} {copyrightName}. All rights reserved.
           </p>
-          <div style={{ display:'flex', alignItems:'center', gap:'16px', flexShrink:0, whiteSpace:'nowrap' }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'12px', flexShrink:0 }}>
             <Link href="/portal" style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', opacity:0.5 }}>
               portal
             </Link>
+
+            {/* Theme toggle button */}
+            <button
+              onClick={toggleTheme}
+              aria-label={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+              title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+              style={{
+                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                width: 32, height: 32, flexShrink: 0,
+                background: isLight ? 'var(--bg-surface)' : 'var(--bg-elevated)',
+                border: '1px solid var(--border-2)',
+                borderRadius: 'var(--radius-md)',
+                color: isLight ? '#f5a623' : 'var(--text-2)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.borderColor = 'var(--accent-border)';
+                e.currentTarget.style.color = isLight ? '#f5a623' : 'var(--accent)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.borderColor = 'var(--border-2)';
+                e.currentTarget.style.color = isLight ? '#f5a623' : 'var(--text-2)';
+              }}
+            >
+              {isLight
+                ? <Moon size={14} strokeWidth={1.75} />
+                : <Sun  size={14} strokeWidth={1.75} />
+              }
+            </button>
           </div>
         </div>
       </div>
