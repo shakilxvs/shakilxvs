@@ -39,7 +39,7 @@ function LogoPill({ src, alt, invert, size = 'section' }) {
   return (
     <div title={alt} style={{
       height: h, padding: p,
-      background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.08)',
+      background: '#0b0e1a', border: '1px solid rgba(255,255,255,0.1)',
       borderRadius: 7, display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       flexShrink: 0, minWidth: 36,
     }}>
@@ -545,7 +545,7 @@ export default function PayPageClient() {
                 const d = getPD(links, p.key); if (!d.link && !d.paymentHandle) return null;
                 return (
                   <div key={p.key} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: '12px', padding: '14px 16px', background: 'var(--bg-elevated)', border: '1px solid var(--border-1)', borderRadius: 'var(--radius-lg)' }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: '#0b0e1a', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       {p.logoUrl
                         ? <img src={p.logoUrl} alt={p.name} style={{ height: 22, width: 'auto', maxWidth: 60, objectFit: 'contain', filter: p.invert ? 'brightness(0) invert(1)' : 'none' }} onError={e => e.target.style.display = 'none'} />
                         : <span style={{ fontFamily: 'Bebas Neue,sans-serif', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)' }}>{p.name[0]}</span>
@@ -585,7 +585,7 @@ export default function PayPageClient() {
                   <div key={c.id} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-1)', borderRadius: 'var(--radius-lg)', padding: '18px', display: 'grid', gridTemplateColumns: c.qrImageUrl ? '1fr auto' : '1fr', gap: '16px', alignItems: 'start' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
-                        {src && <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.09)', border: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {src && <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#0b0e1a', border: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                           <img src={src} alt={c.network} width="22" height="22" style={{ objectFit: 'contain' }} onError={e => e.target.style.display = 'none'} />
                         </div>}
                         <div style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: 'var(--text-1)', fontSize: '0.9rem' }}>{c.network}</div>
