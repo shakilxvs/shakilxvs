@@ -157,17 +157,11 @@ function SectionLabel({ label }) {
 }
 
 // ── FieldBox ─────────────────────────────────────────────────
-// LABEL          ← above box, flush with box left border, small font
-// ┌───────────────────────────────────┐
-// │ value text here             [□]   │
-// └───────────────────────────────────┘
-// • flex: 1 1 auto  → boxes grow to fill the row — no blank trailing space
-// • full=true       → always claims the full row (Bank Name, IBAN, address…)
-// • value: flex:1   → always left-aligned, pushes icon to far right
-// • padding uniform → equal space on all 4 sides, compact height
+// Styled exactly like the crypto wallet address box:
+// bg-void background, border-1, Space Mono font, compact height.
+// Label sits above, copy icon is inside on the right.
 function FieldBox({ label, value, full }) {
   if (!value) return null;
-  const pad = 9; // px — same on all sides so height = width feel balanced
   return (
     <div style={{
       flex: full ? '1 1 100%' : '1 1 auto',
@@ -177,7 +171,6 @@ function FieldBox({ label, value, full }) {
       flexDirection: 'column',
       gap: '4px',
     }}>
-      {/* Label: aligned with box border edge (no left indent) */}
       <div style={{
         fontFamily: 'Space Mono,monospace',
         fontSize: '0.47rem',
@@ -185,28 +178,25 @@ function FieldBox({ label, value, full }) {
         textTransform: 'uppercase',
         letterSpacing: '0.12em',
         lineHeight: 1,
-        paddingLeft: 0,
       }}>{label}</div>
-
-      {/* Value box: value text left, copy icon right, equal padding all sides */}
       <div style={{
-        background: 'var(--bg-elevated)',
-        border: '1px solid var(--border-2)',
+        background: 'var(--bg-void)',
+        border: '1px solid var(--border-1)',
         borderRadius: 'var(--radius-md)',
-        padding: pad,
+        padding: '8px 10px',
         display: 'flex',
         alignItems: 'center',
         gap: 8,
         minWidth: 0,
       }}>
         <span style={{
-          fontFamily: 'Outfit,sans-serif',
-          fontWeight: 600,
+          fontFamily: 'Space Mono,monospace',
+          fontWeight: 400,
           color: 'var(--text-1)',
-          fontSize: '0.875rem',
+          fontSize: '0.72rem',
           wordBreak: 'break-all',
-          lineHeight: 1.4,
-          flex: 1,       // always pushes icon to far right
+          lineHeight: 1.5,
+          flex: 1,
           minWidth: 0,
         }}>{value}</span>
         <CopyIconBtn text={value} />
@@ -527,15 +517,18 @@ export default function PayPageClient() {
               {[{ key: 'bkash', label: 'bKash', color: '#E2136E' }, { key: 'nagad', label: 'Nagad', color: '#F7941D' }].map(({ key, label, color }) => {
                 const num = wallets[key]?.number; if (!num) return null;
                 return (
-                  <div key={key} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: '12px', padding: '14px 16px', background: 'var(--bg-elevated)', border: '1px solid var(--border-1)', borderRadius: 'var(--radius-lg)' }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-md)', background: `${color}22`, border: `1px solid ${color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <span style={{ fontFamily: 'Bebas Neue,sans-serif', fontSize: '0.6rem', color: '#fff', letterSpacing: '0.03em' }}>{label}</span>
-                    </div>
-                    <div>
+                  <div key={key} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-2)', borderRadius: 'var(--radius-lg)', padding: '14px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-md)', background: `${color}22`, border: `1px solid ${color}44`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <span style={{ fontFamily: 'Bebas Neue,sans-serif', fontSize: '0.55rem', color: color, letterSpacing: '0.03em' }}>{label}</span>
+                      </div>
                       <div style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: 'var(--text-1)', fontSize: '0.9rem' }}>{label}</div>
-                      <div style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.75rem', color: 'var(--text-2)', marginTop: '2px' }}>{num}</div>
                     </div>
-                    <CopyBtn text={num} />
+                    <div style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.47rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '4px' }}>Number</div>
+                    <div style={{ background: 'var(--bg-void)', border: '1px solid var(--border-1)', borderRadius: 'var(--radius-md)', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.72rem', color: 'var(--text-1)', flex: 1 }}>{num}</span>
+                      <CopyIconBtn text={num} />
+                    </div>
                   </div>
                 );
               })}
@@ -558,19 +551,23 @@ export default function PayPageClient() {
                         : <span style={{ fontFamily: 'Bebas Neue,sans-serif', fontSize: '0.65rem', color: 'rgba(255,255,255,0.4)' }}>{p.name[0]}</span>
                       }
                     </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: 'var(--text-1)', fontSize: '0.9rem' }}>{p.name}</div>
-                      {d.paymentHandle && <div style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.62rem', color: 'var(--text-2)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.paymentHandle}</div>}
-                      {d.instructions && <div style={{ fontFamily: 'Outfit,sans-serif', fontSize: '0.72rem', color: 'var(--text-3)', marginTop: '2px', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.instructions}</div>}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: 'var(--text-1)', fontSize: '0.9rem', marginBottom: d.paymentHandle || d.instructions ? '8px' : 0 }}>{p.name}</div>
+                      {d.instructions && <div style={{ fontFamily: 'Outfit,sans-serif', fontSize: '0.72rem', color: 'var(--text-3)', marginBottom: '6px', fontStyle: 'italic' }}>{d.instructions}</div>}
+                      {d.paymentHandle && (
+                        <div style={{ background: 'var(--bg-void)', border: '1px solid var(--border-1)', borderRadius: 'var(--radius-md)', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.72rem', color: 'var(--text-1)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.paymentHandle}</span>
+                          <CopyIconBtn text={d.paymentHandle} />
+                        </div>
+                      )}
                     </div>
-                    {d.link
-                      ? <a href={d.link} target="_blank" rel="noopener noreferrer"
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-3)', color: 'var(--text-1)', borderRadius: 'var(--radius-sm)', fontFamily: 'Outfit,sans-serif', fontWeight: 700, fontSize: '0.78rem', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, transition: 'border-color 0.15s,color 0.15s' }}
-                          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent-border)'; e.currentTarget.style.color = 'var(--accent)'; }}
-                          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border-3)'; e.currentTarget.style.color = 'var(--text-1)'; }}
+                    {d.link && (
+                      <a href={d.link} target="_blank" rel="noopener noreferrer"
+                          style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '8px 14px', background: 'var(--accent)', color: '#fff', borderRadius: 'var(--radius-sm)', fontFamily: 'Outfit,sans-serif', fontWeight: 700, fontSize: '0.78rem', textDecoration: 'none', whiteSpace: 'nowrap', flexShrink: 0, transition: 'opacity 0.15s' }}
+                          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
+                          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
                         >Pay Now <ExternalLink size={11} /></a>
-                      : d.paymentHandle ? <CopyBtn text={d.paymentHandle} /> : null
-                    }
+                    )}
                   </div>
                 );
               })}
@@ -594,8 +591,10 @@ export default function PayPageClient() {
                         <div style={{ fontFamily: 'Outfit,sans-serif', fontWeight: 700, color: 'var(--text-1)', fontSize: '0.9rem' }}>{c.network}</div>
                       </div>
                       <div style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.5rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Wallet Address</div>
-                      <div style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.7rem', color: 'var(--text-1)', wordBreak: 'break-all', background: 'var(--bg-void)', border: '1px solid var(--border-1)', borderRadius: 'var(--radius-md)', padding: '10px 12px', marginBottom: '8px', lineHeight: 1.6 }}>{c.address}</div>
-                      <CopyBtn text={c.address} />
+                      <div style={{ background: 'var(--bg-void)', border: '1px solid var(--border-1)', borderRadius: 'var(--radius-md)', padding: '8px 10px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.7rem', color: 'var(--text-1)', wordBreak: 'break-all', lineHeight: 1.5, flex: 1, minWidth: 0 }}>{c.address}</span>
+                        <CopyIconBtn text={c.address} />
+                      </div>
                     </div>
                     {c.qrImageUrl && <div style={{ background: '#fff', padding: '8px', borderRadius: 'var(--radius-lg)', flexShrink: 0 }}><img src={c.qrImageUrl} alt="QR" style={{ width: 96, height: 96, display: 'block' }} /></div>}
                   </div>
