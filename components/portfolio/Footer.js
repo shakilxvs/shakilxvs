@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Github, Instagram, Linkedin, Twitter, Facebook, Sun, Moon } from 'lucide-react';
+import { Github, Instagram, Linkedin, Twitter, Facebook, Sun, Moon, LayoutTemplate } from 'lucide-react';
 import { getPortfolioDoc } from '@/lib/firestore';
 
 const DEFAULT_LINKS = [
@@ -125,14 +125,18 @@ export default function Footer() {
 
         <div style={{ height:'1px', background:'var(--border-1)', marginBottom:'24px' }}/>
 
-        {/* Bottom bar: copyright · portal link · theme toggle */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'16px', flexWrap:'wrap' }}>
-          <p style={{ fontFamily:'Space Mono, monospace', fontSize:'0.65rem', color:'var(--text-3)', letterSpacing:'0.05em', whiteSpace:'nowrap', minWidth:0 }}>
+        {/* Bottom bar: copyright · portal icon · theme toggle */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px' }}>
+          <p style={{ fontFamily:'Space Mono, monospace', fontSize:'0.65rem', color:'var(--text-3)', letterSpacing:'0.05em', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', minWidth:0, flex:1 }}>
             © {year} {copyrightName}. All rights reserved.
           </p>
-          <div style={{ display:'flex', alignItems:'center', gap:'12px', flexShrink:0, marginLeft:'auto' }}>
-            <Link href="/portal" style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', opacity:0.5 }}>
-              portal
+          <div style={{ display:'flex', alignItems:'center', gap:'10px', flexShrink:0 }}>
+            <Link href="/portal" aria-label="Client Portal" title="Client Portal"
+              style={{ display:'flex', alignItems:'center', justifyContent:'center', width:30, height:30, borderRadius:'var(--radius-md)', border:'1px solid var(--border-2)', color:'var(--text-3)', background:'var(--bg-elevated)', textDecoration:'none', opacity:0.6, transition:'all 0.15s' }}
+              onMouseEnter={e=>{ e.currentTarget.style.borderColor='var(--accent-border)'; e.currentTarget.style.color='var(--accent)'; e.currentTarget.style.opacity='1'; }}
+              onMouseLeave={e=>{ e.currentTarget.style.borderColor='var(--border-2)'; e.currentTarget.style.color='var(--text-3)'; e.currentTarget.style.opacity='0.6'; }}
+            >
+              <LayoutTemplate size={13} strokeWidth={1.75}/>
             </Link>
 
             {/* Theme toggle button */}
