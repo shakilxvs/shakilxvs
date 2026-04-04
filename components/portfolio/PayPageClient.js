@@ -435,6 +435,7 @@ export default function PayPageClient() {
   const [texts,   setTexts]   = useState({});
   const [logos,   setLogos]   = useState(DEF);
   const [open,    setOpen]    = useState({ remittance: true, wire: false, wallets: false, global: false, crypto: false });
+  const [loading, setLoading] = useState(true);
   const toggle = (k) => setOpen(o => ({ ...o, [k]: !o[k] }));
 
   // FIX: trackPageView once here in main component, NOT inside LogoPill.
@@ -463,7 +464,8 @@ export default function PayPageClient() {
         globalLogos:     lg.globalLogos?.length     ? lg.globalLogos     : prev.globalLogos,
         cryptoLogos:     lg.cryptoLogos?.length     ? lg.cryptoLogos     : prev.cryptoLogos,
       }));
-    });
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, []);
 
   const tx = {
@@ -478,6 +480,46 @@ export default function PayPageClient() {
   };
 
   const hasAnyPlatform = PLATFORMS.some(p => { const d = getPD(links, p.key); return d.link || d.paymentHandle; });
+
+  // ── Skeleton accordion — matches the shape of real accordions ──
+  if (loading) {
+    return (
+      <>
+      <style>{`.logo-row-scroll::-webkit-scrollbar{display:none}`}</style>
+      <div style={{ minHeight: '100vh', paddingTop: '100px', paddingBottom: '80px', position: 'relative', zIndex: 1 }}>
+        <div style={{ position: 'absolute', top: '15%', left: '50%', transform: 'translateX(-50%)', width: '700px', height: '400px', background: 'radial-gradient(ellipse,rgba(35,77,194,0.07) 0%,transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
+        <div style={{ maxWidth: 780, margin: '0 auto', padding: '0 24px', position: 'relative', zIndex: 1 }}>
+          {/* Heading skeleton */}
+          <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+            <div className="skeleton" style={{ height: 14, width: 80, margin: '0 auto 12px', borderRadius: 4 }} />
+            <div className="skeleton" style={{ height: 52, width: 260, margin: '0 auto 12px', borderRadius: 6 }} />
+            <div className="skeleton" style={{ height: 12, width: 200, margin: '0 auto', borderRadius: 4 }} />
+          </div>
+          {/* Trust logos skeleton */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 28 }}>
+            {[56, 72, 56, 80, 72, 56, 64].map((w, i) => (
+              <div key={i} className="skeleton" style={{ height: 32, width: w, borderRadius: 7, flexShrink: 0 }} />
+            ))}
+          </div>
+          {/* Accordion skeletons — 5 collapsed-looking bars */}
+          {[1, 2, 3, 4, 5].map(i => (
+            <div key={i} style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-2)', borderRadius: 'var(--radius-xl)', marginBottom: 10, padding: '18px 22px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
+                <div className="skeleton" style={{ height: 20, width: `${[160, 140, 120, 150, 110][i-1]}px`, borderRadius: 4 }} />
+                <div style={{ display: 'flex', gap: 6 }}>
+                  {[40, 56, 48, 40].map((w, j) => (
+                    <div key={j} className="skeleton" style={{ height: 22, width: w, borderRadius: 6, flexShrink: 0 }} />
+                  ))}
+                </div>
+              </div>
+              <div className="skeleton" style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, marginLeft: 12 }} />
+            </div>
+          ))}
+        </div>
+      </div>
+      </>
+    );
+  }
 
   return (
     <>
