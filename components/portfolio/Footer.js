@@ -126,11 +126,11 @@ export default function Footer() {
         <div style={{ height:'1px', background:'var(--border-1)', marginBottom:'24px' }}/>
 
         {/* Bottom bar: copyright · portal link · theme toggle */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px' }}>
-          <p style={{ fontFamily:'Space Mono, monospace', fontSize:'0.65rem', color:'var(--text-3)', letterSpacing:'0.05em' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'16px', flexWrap:'wrap' }}>
+          <p style={{ fontFamily:'Space Mono, monospace', fontSize:'0.65rem', color:'var(--text-3)', letterSpacing:'0.05em', whiteSpace:'nowrap', minWidth:0 }}>
             © {year} {copyrightName}. All rights reserved.
           </p>
-          <div style={{ display:'flex', alignItems:'center', gap:'12px', flexShrink:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'12px', flexShrink:0, marginLeft:'auto' }}>
             <Link href="/portal" style={{ fontFamily:'Space Mono, monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', opacity:0.5 }}>
               portal
             </Link>
