@@ -22,18 +22,28 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [navItems, setNavItems] = useState(DEFAULT_NAV);
-  const [logo,     setLogo]     = useState(undefined); // undefined=loading, null=default, object=custom
+  const [logo,     setLogo]     = useState(undefined);
+  const [isLight,  setIsLight]  = useState(false);
   const lastY = useRef(0);
 
+  // Watch for theme changes from the Footer toggle
   useEffect(() => {
-    // Read synchronously from server-injected config (eliminates flash of default content)
+    const check = () =>
+      setIsLight(document.documentElement.getAttribute('data-theme') === 'light');
+    check();
+    const observer = new MutationObserver(check);
+    observer.observe(document.documentElement, {
+      attributes: true, attributeFilter: ['data-theme'],
+    });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     const cfg = typeof window !== 'undefined' ? window.__SITE_CONFIG__ : null;
     if (cfg) {
       if (cfg.navItems?.length) setNavItems(cfg.navItems);
-      // null means no custom logo — use default. undefined means not loaded yet.
       setLogo(cfg.logo ?? null);
     } else {
-      // Fallback: fetch from Firestore (admin panel, portal, etc.)
       getPortfolioDoc('siteSettings').then(s => {
         if (s?.navItems?.length) setNavItems(s.navItems);
         setLogo(s?.logo ?? null);
@@ -41,7 +51,6 @@ export default function Navbar() {
     }
   }, []);
 
-  // Close mobile menu on route change
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
   useEffect(() => {
@@ -60,7 +69,6 @@ export default function Navbar() {
   const visibleNav = navItems.filter(n => n.visible !== false);
 
   const LogoEl = () => {
-    // undefined = still loading from server config — render invisible placeholder to hold space
     if (logo === undefined)
       return <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.85rem', color:'transparent', letterSpacing:'0.05em', userSelect:'none' }}>{'<shakil />'}</span>;
     if (logo?.type === 'image' && logo?.imageUrl)
@@ -70,14 +78,19 @@ export default function Navbar() {
     return <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.85rem', color:'var(--accent)', letterSpacing:'0.05em' }}>{'<shakil />'}</span>;
   };
 
+  // Glass values — theme-aware
+  const navBg     = scrolled
+    ? (isLight ? 'rgba(240,242,248,0.88)' : 'rgba(8,8,8,0.72)')
+    : 'transparent';
+  const navBorder = scrolled
+    ? (isLight ? '1px solid rgba(35,77,194,0.18)' : '1px solid rgba(255,255,255,0.10)')
+    : '1px solid transparent';
+  const dropBg    = isLight ? 'rgba(244,246,252,0.97)' : 'rgba(8,8,8,0.97)';
+  const dropBorder = isLight ? '1px solid rgba(35,77,194,0.18)' : '1px solid rgba(255,255,255,0.10)';
+  const dropLink   = isLight ? 'rgba(35,77,194,0.08)'  : 'rgba(255,255,255,0.05)';
+
   return (
     <>
-      {/*
-        KEY FIX for desktop glitch:
-        Outer div is ALWAYS position:fixed full-width — never changes dimensions.
-        We use `padding` to create the pill inset effect.
-        This avoids any layout reflow that caused the flash/jump.
-      */}
       <div style={{
         position: 'fixed', top:0, left:0, right:0, zIndex:1000,
         padding: scrolled ? '10px 20px' : '0',
@@ -86,13 +99,12 @@ export default function Navbar() {
         pointerEvents: visible ? 'auto' : 'none',
       }}>
         <nav style={{
-          background:           scrolled ? 'rgba(8,8,8,0.72)' : 'transparent',
+          background:           navBg,
           backdropFilter:       scrolled ? 'blur(40px) saturate(220%)' : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(40px) saturate(220%)' : 'none',
-          border:               scrolled ? '1px solid rgba(255,255,255,0.10)' : '1px solid transparent',
+          border:               navBorder,
           borderRadius:         scrolled ? '14px' : '0',
-          boxShadow:            scrolled ? '0 8px 40px rgba(0,0,0,0.55)' : 'none',
-          /* maxWidth constrains the pill on desktop — no flash because outer div is fixed */
+          boxShadow:            scrolled ? (isLight ? '0 8px 40px rgba(35,77,194,0.12)' : '0 8px 40px rgba(0,0,0,0.55)') : 'none',
           maxWidth:             scrolled ? '1080px' : '100%',
           margin:               scrolled ? '0 auto' : '0',
           transition: 'background 0.28s ease, border 0.28s ease, border-radius 0.28s ease, box-shadow 0.28s ease',
@@ -143,9 +155,10 @@ export default function Navbar() {
         {/* Mobile dropdown */}
         {menuOpen && (
           <div style={{
-            background:'rgba(8,8,8,0.97)', backdropFilter:'blur(24px)',
+            background: dropBg,
+            backdropFilter:'blur(24px)',
             borderRadius: '14px',
-            border: '1px solid rgba(255,255,255,0.10)',
+            border: dropBorder,
             marginTop: '8px',
             maxWidth: scrolled ? '1080px' : 'calc(100% - 24px)',
             margin: scrolled ? '8px auto 0' : '8px 12px 0',
@@ -154,7 +167,7 @@ export default function Navbar() {
             {visibleNav.map(({ href, label }) => (
               <Link key={href} href={href} onClick={() => setMenuOpen(false)} style={{
                 display:'block', padding:'13px 0',
-                borderBottom:'1px solid rgba(255,255,255,0.05)',
+                borderBottom:`1px solid ${dropLink}`,
                 fontFamily:'Outfit,sans-serif', fontSize:'1rem', fontWeight:500,
                 color: pathname === href ? 'var(--accent)' : 'var(--text-1)', textDecoration:'none',
               }}>{label}</Link>
