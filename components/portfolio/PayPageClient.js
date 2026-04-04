@@ -90,6 +90,7 @@ function LogoRow({ logos = [], size = 'section' }) {
   );
 }
 
+// ── CopyBtn — used in wallet + crypto + platform sections (icon + text) ──
 function CopyBtn({ text }) {
   const [copied, setCopied] = useState(false);
   const handle = async () => {
@@ -114,52 +115,103 @@ function CopyBtn({ text }) {
   );
 }
 
-/* ── Section label inside a bank card ────────────────────── */
-/* ── Section label inside a bank card ──────────────── */
+// ── CopyIconBtn — icon only, compact square, used inside FieldBox ──
+function CopyIconBtn({ text }) {
+  const [copied, setCopied] = useState(false);
+  const handle = async () => {
+    await copyToClipboard(text);
+    setCopied(true);
+    toast.success('Copied!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      onClick={handle}
+      title={copied ? 'Copied!' : 'Copy'}
+      style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        width: 28, height: 28, flexShrink: 0,
+        background: copied ? 'var(--accent-muted)' : 'var(--bg-elevated)',
+        border: `1px solid ${copied ? 'var(--accent-border)' : 'var(--border-2)'}`,
+        borderRadius: '6px', cursor: 'pointer', padding: 0,
+        color: copied ? 'var(--accent)' : 'var(--text-3)',
+        transition: 'all 0.15s',
+      }}
+    >
+      {copied ? <Check size={12} /> : <Copy size={12} />}
+    </button>
+  );
+}
+
+// ── SectionLabel — "Bank Info" / "Receiver's Info" heading ──
 function SectionLabel({ label }) {
   return (
-    <div style={{
-      padding: '8px 16px',
-      background: 'var(--bg-overlay)',
-      borderBottom: '1px solid var(--border-1)',
-    }}>
+    <div style={{ marginBottom: '10px' }}>
       <span style={{
-        fontFamily: 'Space Mono,monospace', fontSize: '0.58rem',
+        fontFamily: 'Space Mono,monospace', fontSize: '0.6rem',
         color: 'var(--accent)', textTransform: 'uppercase',
-        letterSpacing: '0.15em', fontWeight: 600,
+        letterSpacing: '0.18em', fontWeight: 600,
       }}>{label}</span>
     </div>
   );
 }
 
-// ── FieldBox — each field is its own distinct box ───────────
-// full=true  → spans full row width (long values: IBAN, address)
-// full=false → flex share, pairs with neighbour boxes
-// Returns null when value is empty — no blank boxes ever shown
+// ── FieldBox ─────────────────────────────────────────────────
+// Layout per field:
+//
+//   LABEL TEXT          ← small, above the box, left-aligned
+//   ┌───────────────────────────────┐
+//   │ Value text here          [□]  │  ← bordered box: value + icon only
+//   └───────────────────────────────┘
+//
+// Width: content-driven via flex:0 0 auto. Short fields naturally share a row.
+// Long fields use full=true → flex:1 0 100% to claim the full row.
+// Returns null when value is empty — zero blank boxes, zero empty gaps.
 function FieldBox({ label, value, full }) {
   if (!value) return null;
   return (
     <div style={{
-      flex: full ? '1 1 100%' : '1 1 180px',
-      background: 'var(--bg-surface)',
-      border: '1px solid var(--border-2)',
-      borderRadius: 'var(--radius-md)',
-      padding: '11px 14px',
-      minWidth: 0,
-      boxSizing: 'border-box',
+      flex: full ? '1 0 100%' : '0 0 auto',
+      minWidth: full ? 0 : 120,
+      maxWidth: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '4px',
     }}>
+      {/* Label: above the box, aligned with the value text start (12px in) */}
       <div style={{
-        fontFamily: 'Space Mono,monospace', fontSize: '0.5rem',
-        color: 'var(--accent)', textTransform: 'uppercase',
-        letterSpacing: '0.12em', marginBottom: '6px',
+        fontFamily: 'Space Mono,monospace',
+        fontSize: '0.47rem',
+        color: 'var(--text-3)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.12em',
+        lineHeight: 1,
+        paddingLeft: '12px',
       }}>{label}</div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+
+      {/* Value box: only value text + copy icon. No label inside. */}
+      <div style={{
+        background: 'var(--bg-elevated)',
+        border: '1px solid var(--border-2)',
+        borderRadius: 'var(--radius-md)',
+        padding: '9px 8px 9px 12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        minWidth: 0,
+        whiteSpace: full ? 'normal' : 'nowrap',
+      }}>
         <span style={{
-          fontFamily: 'Outfit,sans-serif', fontWeight: 600,
-          color: 'var(--text-1)', fontSize: '0.875rem',
-          wordBreak: 'break-all', lineHeight: 1.4, flex: 1, minWidth: 0,
+          fontFamily: 'Outfit,sans-serif',
+          fontWeight: 600,
+          color: 'var(--text-1)',
+          fontSize: '0.875rem',
+          wordBreak: full ? 'break-all' : 'normal',
+          lineHeight: 1.4,
+          flex: full ? 1 : 'none',
+          minWidth: 0,
         }}>{value}</span>
-        <CopyBtn text={value} />
+        <CopyIconBtn text={value} />
       </div>
     </div>
   );
@@ -196,70 +248,67 @@ function BankDetails({ bank }) {
     );
   }
 
-  const cardStyle = {
-    background: 'var(--bg-elevated)', border: '1px solid var(--border-1)',
-    borderRadius: 'var(--radius-lg)', overflow: 'hidden', marginBottom: '12px',
-  };
-
-  const bankCustom    = (bank.customFields        || []).filter(f => f.label && f.value);
+  const bankCustom     = (bank.customFields        || []).filter(f => f.label && f.value);
   const receiverCustom = (bank.receiverCustomFields || []).filter(f => f.label && f.value);
+
+  const fieldGrid = {
+    display: 'flex', flexWrap: 'wrap',
+    gap: '10px', margin: '10px 0 18px',
+    alignItems: 'flex-start',
+  };
 
   return (
     <>
-      {/* ── BANK INFO (first) ────────────────────────────────────── */}
+      {/* ── BANK INFO (first) ──────────────────────── */}
       {hasBank && (
-        <div style={cardStyle}>
+        <div>
           <SectionLabel label="Bank Info" />
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '12px' }}>
-            {/* Account identity — most important, at the top */}
-            <FieldBox label="Bank Name"       value={bank.bankName}       full />
-            <FieldBox label="Account Number"  value={bank.accountNumber}  />
-            <FieldBox label="Account Type"    value={bank.accountType}    />
-            <FieldBox label="IBAN"            value={bank.iban}           full />
-            {/* Routing & transfer codes */}
-            <FieldBox label="Branch Name"     value={bank.branchName}     />
-            <FieldBox label="Routing Number"  value={bank.routingNumber}  />
-            <FieldBox label="SWIFT / BIC"     value={bank.swiftCode}      />
-            <FieldBox label="Currency"        value={bank.currency}       />
-            {/* Branch address — below the identifiers */}
-            <FieldBox label="Branch Address"  value={bank.branchAddress}  full />
-            <FieldBox label="City"            value={bank.bankCity}       />
-            <FieldBox label="District"        value={bank.bankDistrict}   />
-            <FieldBox label="State / Province" value={bank.bankState}     />
-            <FieldBox label="Postal / ZIP"    value={bank.bankPostalCode} />
-            <FieldBox label="Country"         value={bank.bankCountry}    full />
-            {/* Custom bank fields */}
+          <div style={fieldGrid}>
+            <FieldBox label="Bank Name"        value={bank.bankName}       full />
+            <FieldBox label="Account Number"   value={bank.accountNumber}  />
+            <FieldBox label="Account Type"     value={bank.accountType}    />
+            <FieldBox label="IBAN"             value={bank.iban}           full />
+            <FieldBox label="Branch Name"      value={bank.branchName}     />
+            <FieldBox label="Routing Number"   value={bank.routingNumber}  />
+            <FieldBox label="SWIFT / BIC"      value={bank.swiftCode}      />
+            <FieldBox label="Currency"         value={bank.currency}       />
+            <FieldBox label="Branch Address"   value={bank.branchAddress}  full />
+            <FieldBox label="City"             value={bank.bankCity}       />
+            <FieldBox label="District"         value={bank.bankDistrict}   />
+            <FieldBox label="State / Province" value={bank.bankState}      />
+            <FieldBox label="Postal / ZIP"     value={bank.bankPostalCode} />
+            <FieldBox label="Country"          value={bank.bankCountry}    full />
             {bankCustom.map((field, i) => (
               <FieldBox key={'bc-' + i} label={field.label} value={field.value} />
             ))}
           </div>
-          {/* Notes */}
           {bank.notes && (
-            <div style={{ padding: '10px 14px', background: 'rgba(35,77,194,0.06)', borderTop: '1px solid var(--accent-border)', margin: '0 0 4px' }}>
-              <div style={{ fontFamily: 'Outfit,sans-serif', fontSize: '0.8rem', color: 'var(--text-2)' }}>{bank.notes}</div>
+            <div style={{ padding: '10px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-2)', borderRadius: 'var(--radius-md)', marginBottom: '18px' }}>
+              <div style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.47rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '4px' }}>Notes</div>
+              <div style={{ fontFamily: 'Outfit,sans-serif', fontSize: '0.82rem', color: 'var(--text-2)' }}>{bank.notes}</div>
             </div>
           )}
         </div>
       )}
 
-      {/* ── RECEIVER’S INFO (second) ────────────────────────────── */}
+      {/* ── RECEIVER'S INFO (second) ───────────────── */}
       {hasReceiver && (
-        <div style={cardStyle}>
+        <div>
           <SectionLabel label="Receiver's Info" />
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '12px' }}>
-            <FieldBox label="Receiver's Full Name" value={bank.accountName}         full />
-            <FieldBox label="Email"               value={bank.receiverEmail}         />
-            <FieldBox label="Phone"               value={bank.receiverPhone}         />
-            <FieldBox label="Date of Birth"       value={bank.receiverDob}           />
-            <FieldBox label="Nationality"         value={bank.receiverNationality}   />
-            <FieldBox label="ID Type"             value={bank.receiverIdType}        />
-            <FieldBox label="ID Number"           value={bank.receiverIdNumber}      />
-            <FieldBox label="Street Address"      value={bank.address}    full />
-            <FieldBox label="City"                value={bank.city}               />
-            <FieldBox label="District"            value={bank.district}           />
-            <FieldBox label="State / Province"    value={bank.state}              />
-            <FieldBox label="Postal / ZIP"        value={bank.postalCode}         />
-            <FieldBox label="Country"             value={bank.country}    full />
+          <div style={fieldGrid}>
+            <FieldBox label="Receiver's Full Name" value={bank.accountName}       full />
+            <FieldBox label="Email"                value={bank.receiverEmail}       />
+            <FieldBox label="Phone"                value={bank.receiverPhone}       />
+            <FieldBox label="Date of Birth"        value={bank.receiverDob}         />
+            <FieldBox label="Nationality"          value={bank.receiverNationality} />
+            <FieldBox label="ID Type"              value={bank.receiverIdType}      />
+            <FieldBox label="ID Number"            value={bank.receiverIdNumber}    />
+            <FieldBox label="Street Address"       value={bank.address}    full />
+            <FieldBox label="City"                 value={bank.city}               />
+            <FieldBox label="District"             value={bank.district}           />
+            <FieldBox label="State / Province"     value={bank.state}              />
+            <FieldBox label="Postal / ZIP"         value={bank.postalCode}         />
+            <FieldBox label="Country"              value={bank.country}    full />
             {receiverCustom.map((field, i) => (
               <FieldBox key={'rc-' + i} label={field.label} value={field.value} />
             ))}
@@ -269,6 +318,7 @@ function BankDetails({ bank }) {
     </>
   );
 }
+
 
 /* ── Accordion ────────────────────────────────────────────── */
 function Accordion({ title, teaserLogos = [], isOpen, onToggle, children }) {
