@@ -157,28 +157,27 @@ function SectionLabel({ label }) {
 }
 
 // ── FieldBox ─────────────────────────────────────────────────
-// Layout per field:
-//
-//   LABEL TEXT          ← small, above the box, left-aligned
-//   ┌───────────────────────────────┐
-//   │ Value text here          [□]  │  ← bordered box: value + icon only
-//   └───────────────────────────────┘
-//
-// Width: content-driven via flex:0 0 auto. Short fields naturally share a row.
-// Long fields use full=true → flex:1 0 100% to claim the full row.
-// Returns null when value is empty — zero blank boxes, zero empty gaps.
+// LABEL          ← above box, flush with box left border, small font
+// ┌───────────────────────────────────┐
+// │ value text here             [□]   │
+// └───────────────────────────────────┘
+// • flex: 1 1 auto  → boxes grow to fill the row — no blank trailing space
+// • full=true       → always claims the full row (Bank Name, IBAN, address…)
+// • value: flex:1   → always left-aligned, pushes icon to far right
+// • padding uniform → equal space on all 4 sides, compact height
 function FieldBox({ label, value, full }) {
   if (!value) return null;
+  const pad = 9; // px — same on all sides so height = width feel balanced
   return (
     <div style={{
-      flex: full ? '1 0 100%' : '0 0 auto',
+      flex: full ? '1 1 100%' : '1 1 auto',
       minWidth: full ? 0 : 120,
       maxWidth: '100%',
       display: 'flex',
       flexDirection: 'column',
       gap: '4px',
     }}>
-      {/* Label: above the box, aligned with the value text start (12px in) */}
+      {/* Label: aligned with box border edge (no left indent) */}
       <div style={{
         fontFamily: 'Space Mono,monospace',
         fontSize: '0.47rem',
@@ -186,29 +185,28 @@ function FieldBox({ label, value, full }) {
         textTransform: 'uppercase',
         letterSpacing: '0.12em',
         lineHeight: 1,
-        paddingLeft: '12px',
+        paddingLeft: 0,
       }}>{label}</div>
 
-      {/* Value box: only value text + copy icon. No label inside. */}
+      {/* Value box: value text left, copy icon right, equal padding all sides */}
       <div style={{
         background: 'var(--bg-elevated)',
         border: '1px solid var(--border-2)',
         borderRadius: 'var(--radius-md)',
-        padding: '9px 8px 9px 12px',
+        padding: pad,
         display: 'flex',
         alignItems: 'center',
-        gap: '8px',
+        gap: 8,
         minWidth: 0,
-        whiteSpace: full ? 'normal' : 'nowrap',
       }}>
         <span style={{
           fontFamily: 'Outfit,sans-serif',
           fontWeight: 600,
           color: 'var(--text-1)',
           fontSize: '0.875rem',
-          wordBreak: full ? 'break-all' : 'normal',
+          wordBreak: 'break-all',
           lineHeight: 1.4,
-          flex: full ? 1 : 'none',
+          flex: 1,       // always pushes icon to far right
           minWidth: 0,
         }}>{value}</span>
         <CopyIconBtn text={value} />
@@ -282,12 +280,6 @@ function BankDetails({ bank }) {
               <FieldBox key={'bc-' + i} label={field.label} value={field.value} />
             ))}
           </div>
-          {bank.notes && (
-            <div style={{ padding: '10px 14px', background: 'var(--bg-elevated)', border: '1px solid var(--border-2)', borderRadius: 'var(--radius-md)', marginBottom: '18px' }}>
-              <div style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.47rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '4px' }}>Notes</div>
-              <div style={{ fontFamily: 'Outfit,sans-serif', fontSize: '0.82rem', color: 'var(--text-2)' }}>{bank.notes}</div>
-            </div>
-          )}
         </div>
       )}
 
@@ -312,6 +304,16 @@ function BankDetails({ bank }) {
             {receiverCustom.map((field, i) => (
               <FieldBox key={'rc-' + i} label={field.label} value={field.value} />
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── NOTES — after both sections ────────────── */}
+      {bank.notes && (
+        <div style={{ marginTop: '4px' }}>
+          <div style={{ fontFamily: 'Space Mono,monospace', fontSize: '0.47rem', color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '4px' }}>Notes</div>
+          <div style={{ padding: '9px', background: 'var(--bg-elevated)', border: '1px solid var(--border-2)', borderRadius: 'var(--radius-md)' }}>
+            <div style={{ fontFamily: 'Outfit,sans-serif', fontSize: '0.82rem', color: 'var(--text-2)', lineHeight: 1.6 }}>{bank.notes}</div>
           </div>
         </div>
       )}
