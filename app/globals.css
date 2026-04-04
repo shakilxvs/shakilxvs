@@ -328,3 +328,9 @@ textarea.input { resize: vertical; min-height: 100px; }
 [data-theme="light"] .portal-sidebar-wrap {
   background: var(--bg-surface);
 }
+
+/* Pay page icon backgrounds — light navy tint in light mode */
+[data-theme="light"] .pay-icon-bg {
+  background: rgba(35, 77, 194, 0.08) !important;
+  border-color: rgba(35, 77, 194, 0.18) !important;
+}
