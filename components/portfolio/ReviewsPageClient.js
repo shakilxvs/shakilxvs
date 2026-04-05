@@ -5,6 +5,7 @@ import { getAverageRating, getRatingDistribution, formatMonthYear, getVideoType,
 import { Star, ChevronLeft, ChevronRight, Send, Check, Play, Pause } from 'lucide-react';
 import { VerifiedBadge } from '@/components/portfolio/ReviewsTeaser';
 import emailjs from 'emailjs-com';
+
 function Stars({ rating, size = 14 }) {
   return (
     <div style={{ display:'flex', gap:'2px' }}>
@@ -14,6 +15,7 @@ function Stars({ rating, size = 14 }) {
     </div>
   );
 }
+
 function Avatar({ name, imageUrl, size = 40 }) {
   const letter = name?.[0]?.toUpperCase() || '?';
   const colors = ['#234DC2','#7c3aed','#f59e0b','#10b981','#ef4444','#ec4899'];
@@ -27,6 +29,7 @@ function Avatar({ name, imageUrl, size = 40 }) {
     </div>
   );
 }
+
 /* VideoCard — custom play/pause only, no default controls, single video at a time */
 function VideoCard({ review }) {
   const videoType = getVideoType(review.videoUrl);
@@ -35,7 +38,6 @@ function VideoCard({ review }) {
   const videoRef  = useRef(null);
   const [playing,  setPlaying]  = useState(false);
   const [hovered,  setHovered]  = useState(false);
-
   const togglePlay = () => {
     const vid = videoRef.current;
     if (!vid) return;
@@ -49,7 +51,6 @@ function VideoCard({ review }) {
       vid.pause();
     }
   };
-
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
@@ -65,7 +66,6 @@ function VideoCard({ review }) {
       vid.removeEventListener('ended', onEnded);
     };
   }, []);
-
   return (
     <div style={{ flexShrink:0, width:200, display:'flex', flexDirection:'column', gap:'12px' }}>
       <div
@@ -115,7 +115,7 @@ function VideoCard({ review }) {
               preload="metadata"
               style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover', objectPosition:'top' }}
             />
-            {/* Custom play/pause overlay — shown always when paused, shown on hover when playing */}
+            {/* Custom play/pause overlay */}
             <div style={{
               position:'absolute', inset:0,
               display:'flex', alignItems:'center', justifyContent:'center',
@@ -160,6 +160,7 @@ function VideoCard({ review }) {
     </div>
   );
 }
+
 function ReviewCard({ review }) {
   const [expanded, setExpanded] = useState(false);
   const text   = review.text || '';
@@ -190,6 +191,7 @@ function ReviewCard({ review }) {
     </div>
   );
 }
+
 /* Full validation */
 function validate(form) {
   const errors = {};
@@ -203,7 +205,9 @@ function validate(form) {
   }
   return errors;
 }
+
 const ERR_STYLE = { fontFamily:'Outfit,sans-serif', fontSize:'0.75rem', color:'var(--fire)', marginTop:'4px', display:'block' };
+
 function SubmitForm() {
   const [form, setForm]       = useState({ name:'', email:'', service:'', rating:0, text:'', videoUrl:'' });
   const [errors, setErrors]   = useState({});
@@ -211,11 +215,13 @@ function SubmitForm() {
   const [submitting, setSub]  = useState(false);
   const [success, setSuccess] = useState(false);
   const set = (k,v) => setForm(f=>({...f,[k]:v}));
+
   const handleSubmit = async () => {
     setTouched(true);
     const errs = validate(form);
     setErrors(errs);
     if (Object.keys(errs).length) return;
+
     setSub(true);
     try {
       const res = await fetch('/api/reviews', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(form) });
@@ -235,8 +241,10 @@ function SubmitForm() {
       }
     } catch {} finally { setSub(false); }
   };
+
   const fi = { width:'100%', padding:'10px 14px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.9rem', outline:'none', boxSizing:'border-box' };
   const lb = { fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:'6px', display:'block' };
+
   if (success) return (
     <div style={{ textAlign:'center', padding:'60px 24px', background:'var(--bg-surface)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-xl)' }}>
       <div style={{ width:64, height:64, borderRadius:'50%', background:'var(--accent-muted)', border:'2px solid var(--accent-border)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px' }}>
@@ -246,7 +254,9 @@ function SubmitForm() {
       <p style={{ fontFamily:'Outfit,sans-serif', color:'var(--text-2)', fontSize:'0.9rem' }}>Thank you! Your review will appear after verification.</p>
     </div>
   );
+
   const disabled = submitting || !form.name || !form.email || !form.rating || !form.text;
+
   return (
     <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'40px' }}>
       <div className="section-label" style={{ marginBottom:'8px' }}>Share Your Experience</div>
@@ -295,18 +305,35 @@ function SubmitForm() {
     </div>
   );
 }
+
 export default function ReviewsPageClient() {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const swiperRef = useRef(null);
+
   useEffect(() => {
     trackPageView('reviews');
-    getApprovedReviews().then(data=>{ setReviews(data); setLoading(false); });
+    getApprovedReviews().then(data=>{
+      const sorted = [...data].sort((a, b) => {
+        const ts = r => {
+          const raw = r.approvedAt || r.submittedAt;
+          if (!raw) return 0;
+          if (raw && typeof raw.toDate === 'function') return raw.toDate().getTime();
+          return new Date(raw).getTime();
+        };
+        return ts(b) - ts(a);
+      });
+      setReviews(sorted);
+      setLoading(false);
+    });
   }, []);
+
   const avg    = getAverageRating(reviews);
   const dist   = getRatingDistribution(reviews);
   const videos = reviews.filter(r=>r.videoUrl);
+
   const scroll = (dir) => { if (swiperRef.current) swiperRef.current.scrollBy({ left:dir*230, behavior:'smooth' }); };
+
   return (
     <div style={{ minHeight:'100vh', paddingTop:'100px', paddingBottom:'80px', position:'relative', zIndex:1 }}>
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px' }}>
@@ -314,6 +341,7 @@ export default function ReviewsPageClient() {
           <div className="section-label" style={{ marginBottom:'12px' }}>Testimonials</div>
           <h1 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(3rem,6vw,5rem)', color:'var(--text-1)', letterSpacing:'0.02em', lineHeight:1 }}>Client Reviews</h1>
         </div>
+
         {!loading && reviews.length > 0 && (
           <div style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:'40px', alignItems:'center', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'32px 40px', marginBottom:'60px' }} className="stats-bar-grid">
             <div style={{ textAlign:'center' }}>
@@ -342,6 +370,7 @@ export default function ReviewsPageClient() {
             </div>
           </div>
         )}
+
         {videos.length > 0 && (
           <div style={{ marginBottom:'80px' }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'20px' }}>
@@ -356,6 +385,11 @@ export default function ReviewsPageClient() {
             </div>
           </div>
         )}
+
+        <SubmitForm/>
+
+        <div style={{ height:'60px' }}/>
+
         {loading ? (
           <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px' }} className="reviews-grid">
             {Array.from({length:6}).map((_,i)=><div key={i} style={{ height:200, borderRadius:'var(--radius-lg)' }} className="skeleton"/>)}
@@ -363,11 +397,10 @@ export default function ReviewsPageClient() {
         ) : reviews.length === 0 ? (
           <div style={{ textAlign:'center', padding:'80px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-xl)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif' }}>No reviews yet.</div>
         ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px', marginBottom:'80px' }} className="reviews-grid">
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px' }} className="reviews-grid">
             {reviews.map(r=><ReviewCard key={r.id} review={r}/>)}
           </div>
         )}
-        <SubmitForm/>
       </div>
       <style>{`
         @media(max-width:1024px){.reviews-grid{grid-template-columns:repeat(2,1fr)!important;}.stats-bar-grid{grid-template-columns:1fr!important;}}
