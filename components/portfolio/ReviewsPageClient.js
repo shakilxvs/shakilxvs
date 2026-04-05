@@ -342,63 +342,130 @@ export default function ReviewsPageClient() {
           <h1 style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'clamp(3rem,6vw,5rem)', color:'var(--text-1)', letterSpacing:'0.02em', lineHeight:1 }}>Client Reviews</h1>
         </div>
 
-        {!loading && reviews.length > 0 && (
-          <div style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:'40px', alignItems:'center', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'32px 40px', marginBottom:'60px' }} className="stats-bar-grid">
-            <div style={{ textAlign:'center' }}>
-              <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'5rem', color:'var(--accent)', lineHeight:1 }}>{avg.toFixed(1)}</div>
-              <div style={{ display:'flex', justifyContent:'center', marginTop:'6px' }}><Stars rating={Math.round(avg)} size={18}/></div>
-              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', marginTop:'8px', letterSpacing:'0.1em' }}>{reviews.length} REVIEWS</div>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
-              {[5,4,3,2,1].map(n=>{
-                const count=dist[n]||0; const pct=reviews.length?(count/reviews.length)*100:0;
-                return (
-                  <div key={n} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                    <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.65rem', color:'var(--text-3)', width:'12px', textAlign:'right' }}>{n}</div>
-                    <Star size={11} fill="#f5c518" color="#f5c518"/>
-                    <div style={{ flex:1, height:6, background:'var(--border-2)', borderRadius:3, overflow:'hidden' }}>
-                      <div style={{ height:'100%', width:`${pct}%`, background:'var(--accent)', borderRadius:3 }}/>
-                    </div>
-                    <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', width:'24px' }}>{count}</div>
-                  </div>
-                );
-              })}
-              <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'4px' }}>
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-                <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)' }}>Verified reviews confirmed by Shakil after working with each client</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {videos.length > 0 && (
-          <div style={{ marginBottom:'80px' }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'20px' }}>
-              <div className="section-label">Video Reviews</div>
-              <div style={{ display:'flex', gap:'8px' }}>
-                <button onClick={()=>scroll(-1)} style={{ width:36, height:36, borderRadius:'var(--radius-md)', border:'1px solid var(--border-2)', background:'var(--bg-surface)', color:'var(--text-2)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}><ChevronLeft size={16}/></button>
-                <button onClick={()=>scroll(1)}  style={{ width:36, height:36, borderRadius:'var(--radius-md)', border:'1px solid var(--border-2)', background:'var(--bg-surface)', color:'var(--text-2)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}><ChevronRight size={16}/></button>
-              </div>
-            </div>
-            <div ref={swiperRef} style={{ display:'flex', gap:'16px', overflowX:'auto', scrollSnapType:'x mandatory', paddingBottom:'8px', scrollbarWidth:'none' }} className="scrollbar-hide">
-              {videos.map(r=><VideoCard key={r.id} review={r}/>)}
-            </div>
-          </div>
-        )}
-
-        <SubmitForm/>
-
-        <div style={{ height:'60px' }}/>
-
         {loading ? (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px' }} className="reviews-grid">
-            {Array.from({length:6}).map((_,i)=><div key={i} style={{ height:200, borderRadius:'var(--radius-lg)' }} className="skeleton"/>)}
+          /* ── Skeleton — shown until Firestore resolves ── */
+          <div>
+            {/* Stats bar skeleton */}
+            <div style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:'40px', alignItems:'center', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'32px 40px', marginBottom:'60px' }} className="stats-bar-grid">
+              <div style={{ textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', gap:'10px' }}>
+                <div className="skeleton" style={{ width:80, height:72, borderRadius:8 }}/>
+                <div className="skeleton" style={{ width:100, height:16, borderRadius:4 }}/>
+                <div className="skeleton" style={{ width:72, height:10, borderRadius:3 }}/>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
+                {[100,85,40,20,10].map((w,i)=>(
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                    <div className="skeleton" style={{ width:12, height:10, borderRadius:2 }}/>
+                    <div className="skeleton" style={{ width:11, height:11, borderRadius:2 }}/>
+                    <div className="skeleton" style={{ flex:1, height:6, borderRadius:3 }}/>
+                    <div className="skeleton" style={{ width:20, height:10, borderRadius:2 }}/>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Video row skeleton */}
+            <div style={{ marginBottom:'80px' }}>
+              <div className="skeleton" style={{ height:11, width:100, borderRadius:3, marginBottom:20 }}/>
+              <div style={{ display:'flex', gap:'16px', overflow:'hidden' }}>
+                {[0,1,2,3].map(i=>(
+                  <div key={i} style={{ flexShrink:0, width:200, display:'flex', flexDirection:'column', gap:'12px' }}>
+                    <div className="skeleton" style={{ width:200, aspectRatio:'9/16', borderRadius:'var(--radius-lg)' }}/>
+                    <div className="skeleton" style={{ height:13, width:120, borderRadius:4 }}/>
+                    <div className="skeleton" style={{ height:10, width:80, borderRadius:3 }}/>
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Form skeleton */}
+            <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'40px' }}>
+              <div className="skeleton" style={{ height:10, width:140, borderRadius:3, marginBottom:10 }}/>
+              <div className="skeleton" style={{ height:30, width:200, borderRadius:6, marginBottom:32 }}/>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginBottom:'16px' }} className="review-form-grid">
+                {[0,1].map(i=>(
+                  <div key={i} style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
+                    <div className="skeleton" style={{ height:9, width:80, borderRadius:2 }}/>
+                    <div className="skeleton" style={{ height:42, borderRadius:'var(--radius-md)' }}/>
+                  </div>
+                ))}
+                <div style={{ gridColumn:'1/-1', display:'flex', flexDirection:'column', gap:'6px' }}>
+                  <div className="skeleton" style={{ height:9, width:90, borderRadius:2 }}/>
+                  <div className="skeleton" style={{ height:42, borderRadius:'var(--radius-md)' }}/>
+                </div>
+              </div>
+              <div className="skeleton" style={{ height:9, width:50, borderRadius:2, marginBottom:8 }}/>
+              <div style={{ display:'flex', gap:'8px', marginBottom:16 }}>
+                {[0,1,2,3,4].map(i=><div key={i} className="skeleton" style={{ width:36, height:36, borderRadius:4 }}/>)}
+              </div>
+              <div className="skeleton" style={{ height:9, width:90, borderRadius:2, marginBottom:8 }}/>
+              <div className="skeleton" style={{ height:120, borderRadius:'var(--radius-md)', marginBottom:16 }}/>
+              <div className="skeleton" style={{ height:9, width:140, borderRadius:2, marginBottom:8 }}/>
+              <div className="skeleton" style={{ height:42, borderRadius:'var(--radius-md)', marginBottom:24 }}/>
+              <div className="skeleton" style={{ height:44, width:160, borderRadius:'var(--radius-md)' }}/>
+            </div>
+            <div style={{ height:'60px' }}/>
+            {/* Cards skeleton */}
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px' }} className="reviews-grid">
+              {Array.from({length:6}).map((_,i)=><div key={i} style={{ height:200, borderRadius:'var(--radius-lg)' }} className="skeleton"/>)}
+            </div>
           </div>
-        ) : reviews.length === 0 ? (
-          <div style={{ textAlign:'center', padding:'80px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-xl)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif' }}>No reviews yet.</div>
         ) : (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px' }} className="reviews-grid">
-            {reviews.map(r=><ReviewCard key={r.id} review={r}/>)}
+          /* ── Real content — shown after data loads ── */
+          <div>
+            {reviews.length > 0 && (
+              <div style={{ display:'grid', gridTemplateColumns:'auto 1fr', gap:'40px', alignItems:'center', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-xl)', padding:'32px 40px', marginBottom:'60px' }} className="stats-bar-grid">
+                <div style={{ textAlign:'center' }}>
+                  <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'5rem', color:'var(--accent)', lineHeight:1 }}>{avg.toFixed(1)}</div>
+                  <div style={{ display:'flex', justifyContent:'center', marginTop:'6px' }}><Stars rating={Math.round(avg)} size={18}/></div>
+                  <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', marginTop:'8px', letterSpacing:'0.1em' }}>{reviews.length} REVIEWS</div>
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:'8px' }}>
+                  {[5,4,3,2,1].map(n=>{
+                    const count=dist[n]||0; const pct=reviews.length?(count/reviews.length)*100:0;
+                    return (
+                      <div key={n} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
+                        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.65rem', color:'var(--text-3)', width:'12px', textAlign:'right' }}>{n}</div>
+                        <Star size={11} fill="#f5c518" color="#f5c518"/>
+                        <div style={{ flex:1, height:6, background:'var(--border-2)', borderRadius:3, overflow:'hidden' }}>
+                          <div style={{ height:'100%', width:`${pct}%`, background:'var(--accent)', borderRadius:3 }}/>
+                        </div>
+                        <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', width:'24px' }}>{count}</div>
+                      </div>
+                    );
+                  })}
+                  <div style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'4px' }}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                    <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)' }}>Verified reviews confirmed by Shakil after working with each client</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {videos.length > 0 && (
+              <div style={{ marginBottom:'80px' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'20px' }}>
+                  <div className="section-label">Video Reviews</div>
+                  <div style={{ display:'flex', gap:'8px' }}>
+                    <button onClick={()=>scroll(-1)} style={{ width:36, height:36, borderRadius:'var(--radius-md)', border:'1px solid var(--border-2)', background:'var(--bg-surface)', color:'var(--text-2)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}><ChevronLeft size={16}/></button>
+                    <button onClick={()=>scroll(1)}  style={{ width:36, height:36, borderRadius:'var(--radius-md)', border:'1px solid var(--border-2)', background:'var(--bg-surface)', color:'var(--text-2)', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}><ChevronRight size={16}/></button>
+                  </div>
+                </div>
+                <div ref={swiperRef} style={{ display:'flex', gap:'16px', overflowX:'auto', scrollSnapType:'x mandatory', paddingBottom:'8px', scrollbarWidth:'none' }} className="scrollbar-hide">
+                  {videos.map(r=><VideoCard key={r.id} review={r}/>)}
+                </div>
+              </div>
+            )}
+
+            <SubmitForm/>
+
+            <div style={{ height:'60px' }}/>
+
+            {reviews.length === 0 ? (
+              <div style={{ textAlign:'center', padding:'80px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-xl)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif' }}>No reviews yet.</div>
+            ) : (
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'16px' }} className="reviews-grid">
+                {reviews.map(r=><ReviewCard key={r.id} review={r}/>)}
+              </div>
+            )}
           </div>
         )}
       </div>
