@@ -2,6 +2,7 @@
 import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Clock, Star, ChevronRight } from 'lucide-react';
+
 const DEFAULT = {
   layout: '1',
   name: 'Shakil',
@@ -18,6 +19,7 @@ const DEFAULT = {
   l3Role:'Shopify Developer & Digital Marketer',
   l3AvailText:'Available for new projects',
 };
+
 function useTypewriter(phrases) {
   const [text,     setText]     = useState('');
   const [idx,      setIdx]      = useState(0);
@@ -38,6 +40,7 @@ function useTypewriter(phrases) {
   }, [text, deleting, paused, idx, phrases]);
   return text;
 }
+
 function CountUp({ target, suffix = '+', duration = 2200 }) {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
@@ -60,6 +63,7 @@ function CountUp({ target, suffix = '+', duration = 2200 }) {
   }, [target, duration]);
   return <span ref={ref}>{count.toLocaleString()}{suffix}</span>;
 }
+
 function BadgeDot({ badge }) {
   if (!badge?.show) return null;
   return (
@@ -69,8 +73,9 @@ function BadgeDot({ badge }) {
     </div>
   );
 }
+
 /* ── Layout 1: Classic ───────────────────────────────────────── */
-function Layout1({ h, badge, hasDailyPosts }) {
+function Layout1({ h, badge }) {
   const tagline  = useTypewriter(h.taglines?.length ? h.taglines : DEFAULT.taglines);
   const hasPhoto = !!h.profileImageUrl;
   const stats    = [
@@ -79,16 +84,6 @@ function Layout1({ h, badge, hasDailyPosts }) {
     { v:h.stat3Value, s:'',  l:h.stat3Label },
     { v:h.stat4Value, s:'+', l:h.stat4Label },
   ];
-  // The profile photo circle — clickable to /daily only when posts exist
-  const PhotoCircle = () => (
-    <div style={{ width:'260px', height:'260px', borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(35,77,194,0.4)', background:'var(--bg-elevated)', position:'relative', boxShadow:'0 0 60px rgba(35,77,194,0.25), 0 0 120px rgba(35,77,194,0.1)', transition:'box-shadow 0.25s ease' }}>
-      {hasPhoto
-        ? <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', transition:'transform 0.3s ease' }}/>
-        : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Bebas Neue,sans-serif', fontSize:'6rem', color:'var(--accent)', opacity:0.5 }}>{h.name?.[0]||'S'}</div>
-      }
-      <div style={{ position:'absolute', inset:0, borderRadius:'50%', background:'radial-gradient(circle at center, transparent 55%, rgba(9,12,20,0.6) 80%, rgba(9,12,20,0.95) 100%)', pointerEvents:'none' }}/>
-    </div>
-  );
   return (
     <section style={{ minHeight:'100vh', display:'flex', alignItems:'center', paddingTop:'80px', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'absolute', top:'10%', left:'-8%', width:'500px', height:'500px', background:'rgba(35,77,194,0.08)', borderRadius:'50%', filter:'blur(100px)', pointerEvents:'none' }}/>
@@ -125,19 +120,13 @@ function Layout1({ h, badge, hasDailyPosts }) {
           <div style={{ position:'absolute', width:'340px', height:'340px', borderRadius:'50%', border:'1.5px dashed rgba(35,77,194,0.25)', animation:'spin 18s linear infinite', zIndex:0 }}/>
           <div style={{ position:'absolute', width:'300px', height:'300px', borderRadius:'50%', border:'1px dashed rgba(35,77,194,0.12)', animation:'spin 12s linear infinite reverse', zIndex:0 }}/>
           <div style={{ position:'absolute', width:'280px', height:'280px', borderRadius:'50%', background:'radial-gradient(circle, rgba(35,77,194,0.3) 0%, rgba(35,77,194,0.1) 50%, transparent 75%)', filter:'blur(20px)', zIndex:0 }}/>
-          {/* Profile photo — clickable only when daily posts exist */}
-          {hasDailyPosts
-            ? (
-              <Link href="/daily" aria-label="View Daily Life" title="Daily Life" className="hero-photo-link-l1" style={{ display:'block', textDecoration:'none', borderRadius:'50%', position:'relative', zIndex:1 }}>
-                <PhotoCircle/>
-              </Link>
-            )
-            : (
-              <div style={{ position:'relative', zIndex:1 }}>
-                <PhotoCircle/>
-              </div>
-            )
-          }
+          <div style={{ width:'260px', height:'260px', borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(35,77,194,0.4)', background:'var(--bg-elevated)', position:'relative', zIndex:1, boxShadow:'0 0 60px rgba(35,77,194,0.25), 0 0 120px rgba(35,77,194,0.1)' }}>
+            {hasPhoto
+              ? <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}/>
+              : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Bebas Neue,sans-serif', fontSize:'6rem', color:'var(--accent)', opacity:0.5 }}>{h.name?.[0]||'S'}</div>
+            }
+            <div style={{ position:'absolute', inset:0, borderRadius:'50%', background:'radial-gradient(circle at center, transparent 55%, rgba(9,12,20,0.6) 80%, rgba(9,12,20,0.95) 100%)', pointerEvents:'none' }}/>
+          </div>
           <div style={{ position:'absolute', bottom:'10px', right:'-10px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'12px 16px', display:'flex', alignItems:'center', gap:'10px', boxShadow:'0 8px 24px rgba(0,0,0,0.5)', zIndex:2 }}>
             <div style={{ width:36, height:36, borderRadius:'var(--radius-md)', background:'var(--accent-muted)', border:'1px solid var(--accent-border)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--accent)', flexShrink:0 }}><Clock size={16} strokeWidth={1.75}/></div>
             <div>
@@ -158,14 +147,13 @@ function Layout1({ h, badge, hasDailyPosts }) {
           .hero-l1-grid > div:last-child { order: -1; }
           .hero-l1-stats { grid-template-columns: repeat(2,1fr) !important; gap: 16px !important; }
         }
-        .hero-photo-link-l1:hover > div { box-shadow: 0 0 0 3px var(--accent), 0 0 80px rgba(35,77,194,0.55) !important; }
-        .hero-photo-link-l1:hover img   { transform: scale(1.04); }
         @keyframes hero-badge-pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,204,102,0.4);} 50%{opacity:.7;box-shadow:0 0 0 4px rgba(0,204,102,0);} }
       `}</style>
     </section>
   );
 }
-/* ── Layout 2: Agency Bold — no photo, no link ───────────────── */
+
+/* ── Layout 2: Agency Bold ───────────────────────────────────── */
 function Layout2({ h, badge }) {
   const subheadline = h.taglines?.[0] || DEFAULT.taglines[0];
   const stats = [
@@ -217,8 +205,9 @@ function Layout2({ h, badge }) {
     </section>
   );
 }
+
 /* ── Layout 3: Minimal Card ──────────────────────────────────── */
-function Layout3({ h, badge, hasDailyPosts }) {
+function Layout3({ h, badge }) {
   const hasPhoto  = !!h.profileImageUrl;
   const role      = h.l3Role      || DEFAULT.l3Role;
   const availText = h.l3AvailText || DEFAULT.l3AvailText;
@@ -228,20 +217,6 @@ function Layout3({ h, badge, hasDailyPosts }) {
     { v:h.stat3Value, s:'',  l:h.stat3Label },
     { v:h.stat4Value, s:'+', l:h.stat4Label },
   ];
-  // Portrait photo content (shared between linked and non-linked versions)
-  const PhotoContent = () => (
-    <div style={{ position:'relative', borderRadius:'var(--radius-xl)', overflow:'hidden', aspectRatio:'3/4', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', boxShadow:'0 24px 60px rgba(0,0,0,0.45)', transition:'box-shadow 0.25s ease' }}>
-      {hasPhoto
-        ? <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block', transition:'transform 0.3s ease' }}/>
-        : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Bebas Neue,sans-serif', fontSize:'8rem', color:'var(--accent)', opacity:0.25 }}>{h.name?.[0]||'S'}</div>
-      }
-      <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'45%', background:'linear-gradient(to top, rgba(5,7,15,0.85), transparent)', pointerEvents:'none' }}/>
-      <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px', background:'rgba(5,7,15,0.82)', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)', border:'1px solid rgba(35,77,194,0.28)', borderRadius:'var(--radius-md)', padding:'10px 14px', display:'flex', alignItems:'center', gap:'9px' }}>
-        <div style={{ width:8, height:8, borderRadius:'50%', background:'#00cc66', flexShrink:0, animation:'hero-badge-pulse 2s ease-in-out infinite' }}/>
-        <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'rgba(255,255,255,0.85)', letterSpacing:'0.06em', textTransform:'uppercase' }}>{availText}</span>
-      </div>
-    </div>
-  );
   return (
     <section style={{ minHeight:'100vh', display:'flex', alignItems:'center', paddingTop:'80px', paddingBottom:'60px', position:'relative', overflow:'hidden' }}>
       <div style={{ position:'absolute', top:'20%', right:'-5%', width:'450px', height:'450px', background:'rgba(35,77,194,0.07)', borderRadius:'50%', filter:'blur(100px)', pointerEvents:'none' }}/>
@@ -249,18 +224,17 @@ function Layout3({ h, badge, hasDailyPosts }) {
         {/* LEFT — Portrait photo */}
         <div style={{ position:'relative' }}>
           <div style={{ position:'absolute', inset:'-10px', borderRadius:'calc(var(--radius-xl) + 4px)', background:'rgba(35,77,194,0.05)', border:'1px solid rgba(35,77,194,0.1)', pointerEvents:'none' }}/>
-          {hasDailyPosts
-            ? (
-              <Link href="/daily" aria-label="View Daily Life" title="Daily Life" className="hero-photo-link-l3" style={{ display:'block', textDecoration:'none', borderRadius:'var(--radius-xl)', position:'relative', zIndex:1 }}>
-                <PhotoContent/>
-              </Link>
-            )
-            : (
-              <div style={{ position:'relative', zIndex:1 }}>
-                <PhotoContent/>
-              </div>
-            )
-          }
+          <div style={{ position:'relative', borderRadius:'var(--radius-xl)', overflow:'hidden', aspectRatio:'3/4', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', boxShadow:'0 24px 60px rgba(0,0,0,0.45)' }}>
+            {hasPhoto
+              ? <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }}/>
+              : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Bebas Neue,sans-serif', fontSize:'8rem', color:'var(--accent)', opacity:0.25 }}>{h.name?.[0]||'S'}</div>
+            }
+            <div style={{ position:'absolute', bottom:0, left:0, right:0, height:'45%', background:'linear-gradient(to top, rgba(5,7,15,0.85), transparent)', pointerEvents:'none' }}/>
+            <div style={{ position:'absolute', bottom:'16px', left:'16px', right:'16px', background:'rgba(5,7,15,0.82)', backdropFilter:'blur(12px)', WebkitBackdropFilter:'blur(12px)', border:'1px solid rgba(35,77,194,0.28)', borderRadius:'var(--radius-md)', padding:'10px 14px', display:'flex', alignItems:'center', gap:'9px' }}>
+              <div style={{ width:8, height:8, borderRadius:'50%', background:'#00cc66', flexShrink:0, animation:'hero-badge-pulse 2s ease-in-out infinite' }}/>
+              <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'rgba(255,255,255,0.85)', letterSpacing:'0.06em', textTransform:'uppercase' }}>{availText}</span>
+            </div>
+          </div>
         </div>
         {/* RIGHT — Content */}
         <div style={{ display:'flex', flexDirection:'column', gap:'22px' }}>
@@ -301,18 +275,17 @@ function Layout3({ h, badge, hasDailyPosts }) {
           .hero-l3-grid { grid-template-columns: 1fr !important; gap: 48px !important; }
           .hero-l3-grid > div:first-child { max-width: 340px; margin: 0 auto; }
         }
-        .hero-photo-link-l3:hover > div { box-shadow: 0 0 0 3px var(--accent), 0 24px 80px rgba(0,0,0,0.65) !important; }
-        .hero-photo-link-l3:hover img   { transform: scale(1.02); }
         @keyframes hero-badge-pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,204,102,0.4);} 50%{opacity:.7;box-shadow:0 0 0 4px rgba(0,204,102,0);} }
       `}</style>
     </section>
   );
 }
+
 /* ── Main export ─────────────────────────────────────────────── */
-export default function Hero({ data, badge, hasDailyPosts }) {
+export default function Hero({ data, badge }) {
   const h      = { ...DEFAULT, ...data };
   const layout = String(h.layout || '1');
   if (layout === '2') return <Layout2 h={h} badge={badge}/>;
-  if (layout === '3') return <Layout3 h={h} badge={badge} hasDailyPosts={hasDailyPosts}/>;
-  return <Layout1 h={h} badge={badge} hasDailyPosts={hasDailyPosts}/>;
+  if (layout === '3') return <Layout3 h={h} badge={badge}/>;
+  return <Layout1 h={h} badge={badge}/>;
 }
