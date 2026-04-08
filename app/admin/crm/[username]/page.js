@@ -18,13 +18,10 @@ import {
   Briefcase, CreditCard, MessageSquare, X, Upload, Download,
   Clock, FileText, Send, Eye, EyeOff, Mail, CheckCircle, TrendingUp,
 } from 'lucide-react';
-
-/* ─── Shared styles ─────────────────────────────────── */
 const FI = { width:'100%', padding:'9px 12px', background:'var(--bg-void)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', outline:'none', boxSizing:'border-box' };
 const LB = { fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--text-3)', textTransform:'uppercase', letterSpacing:'0.12em', marginBottom:'4px', display:'block' };
 const foc = e => e.target.style.borderColor = 'var(--accent-border)';
 const blr = e => e.target.style.borderColor = 'var(--border-2)';
-
 const STATUS_COLORS = {
   'Planning':    { bg:'rgba(245,197,24,0.12)',  color:'#f5c518', border:'rgba(245,197,24,0.3)'  },
   'In Progress': { bg:'rgba(35,77,194,0.12)',   color:'#5c8dff', border:'rgba(35,77,194,0.3)'  },
@@ -45,15 +42,10 @@ function StatusBadge({ status }) {
     </span>
   );
 }
-
 async function hashPassword(pw) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(pw));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
-
-/* ══════════════════════════════════════════════════════
-   PROJECTS PANEL
-══════════════════════════════════════════════════════ */
 function ProjectsPanel({ client, emailNotify }) {
   const [projects, setProjects] = useState([]);
   const [loading,  setLoading]  = useState(true);
@@ -61,11 +53,9 @@ function ProjectsPanel({ client, emailNotify }) {
   const [newP,     setNewP]     = useState({ title:'', description:'', status:'Planning', deadline:'', budget:'' });
   const [saving,   setSaving]   = useState(false);
   const [open,     setOpen]     = useState(null);
-
   useEffect(() => {
     getClientProjects(client.id).then(p => { setProjects(p); setLoading(false); });
   }, [client.id]);
-
   const handleAdd = async () => {
     if (!newP.title.trim()) { toast.error('Project title required'); return; }
     setSaving(true);
@@ -78,25 +68,22 @@ function ProjectsPanel({ client, emailNotify }) {
     } catch { toast.error('Failed'); }
     finally { setSaving(false); }
   };
-
   const handleUpdate = async (id, data) => {
     try {
-      await updatePortalProject(id, data);
       const prevProject = projects.find(p=>p.id===id);
+      await updatePortalProject(id, data);
       setProjects(p => p.map(x => x.id===id ? {...x,...data} : x));
       toast.success('Saved');
-      // Email client when project marked Completed (if notify enabled)
       if (data.status === 'Completed' && prevProject?.status !== 'Completed' && emailNotify && client?.email) {
         sendStatusEmail({
           toEmail: client.email,
           toName:  client.name,
           subject: `Project completed: ${data.title || prevProject?.title}`,
-          message: `Your project "${data.title || prevProject?.title}" has been marked as completed!\n\nThank you for working with us. Log in to your portal to download any final files or invoices: https://shakilxvs.com/portal`,
+          message: `Your project "${data.title || prevProject?.title}" has been marked as completed!\n\nLog in to your portal: https://shakilxvs.com/portal`,
         });
       }
     } catch { toast.error('Failed'); }
   };
-
   const handleDelete = async (id) => {
     if (!confirm('Delete this project?')) return;
     try {
@@ -105,9 +92,7 @@ function ProjectsPanel({ client, emailNotify }) {
       toast.success('Deleted');
     } catch { toast.error('Failed'); }
   };
-
-  if (loading) return <div style={{ padding:'20px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>Loading projects…</div>;
-
+  if (loading) return <div style={{ padding:'20px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>Loading projects\u2026</div>;
   return (
     <div>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'14px' }}>
@@ -118,7 +103,6 @@ function ProjectsPanel({ client, emailNotify }) {
           <Plus size={13}/> Add Project
         </button>
       </div>
-
       {adding && (
         <div style={{ background:'var(--bg-void)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-lg)', padding:'16px', marginBottom:'14px' }}>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
@@ -134,19 +118,17 @@ function ProjectsPanel({ client, emailNotify }) {
           </div>
           <div style={{ display:'flex', gap:'8px' }}>
             <button onClick={handleAdd} disabled={saving} style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'8px 18px', background:saving?'var(--bg-elevated)':'var(--accent)', color:saving?'var(--text-3)':'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.82rem', cursor:saving?'not-allowed':'pointer' }}>
-              <Save size={12}/>{saving?'Saving…':'Save Project'}
+              <Save size={12}/>{saving?'Saving\u2026':'Save Project'}
             </button>
             <button onClick={()=>setAdding(false)} style={{ padding:'8px 14px', background:'none', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', cursor:'pointer' }}>Cancel</button>
           </div>
         </div>
       )}
-
       {projects.length === 0 && !adding && (
         <div style={{ textAlign:'center', padding:'40px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-lg)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>
           No projects yet. Click "Add Project" to create one.
         </div>
       )}
-
       {projects.map(project => (
         <ProjectRow key={project.id} project={project} open={open===project.id}
           onToggle={()=>setOpen(open===project.id?null:project.id)}
@@ -160,7 +142,6 @@ function ProjectsPanel({ client, emailNotify }) {
     </div>
   );
 }
-
 function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, client, projects }) {
   const [local,        setLocal]        = useState({ ...project });
   const [dirty,        setDirty]        = useState(false);
@@ -172,7 +153,6 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [addingTask,   setAddingTask]   = useState(false);
   const fileRef = useRef(null);
-
   useEffect(() => {
     if (open && tasks.length === 0) {
       setLoadingTasks(true);
@@ -181,15 +161,12 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
       });
     }
   }, [open, project.id]);
-
   const set = (k,v) => { setLocal(l=>({...l,[k]:v})); setDirty(true); };
-
   const handleSave = async () => {
     setSaving(true);
     try { await onUpdate(local); setDirty(false); }
     finally { setSaving(false); }
   };
-
   const handleAddTask = async (title) => {
     if (!title?.trim()) return;
     try {
@@ -197,12 +174,10 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
       setTasks(t => [...t, { id, projectId: project.id, clientId: project.clientId, title: title.trim(), status:'Todo', assignedTo:'admin' }]);
     } catch { toast.error('Failed'); }
   };
-
   const handleTaskStatus = async (taskId, status) => {
     try {
       await updateTask(taskId, { status });
       setTasks(t => t.map(x => x.id===taskId ? {...x,status} : x));
-      // Email client when task is marked Done (if email notify enabled)
       if (status === 'Done' && emailNotify && client?.email) {
         const taskObj = tasks.find(t=>t.id===taskId);
         if (taskObj) {
@@ -210,20 +185,18 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
             toEmail: client.email,
             toName:  client.name,
             subject: `Task completed: ${taskObj.title}`,
-            message: `Good news! The task "${taskObj.title}" on your project has been completed.\n\nLog in to your portal to see the latest progress: https://shakilxvs.com/portal`,
+            message: `The task "${taskObj.title}" has been completed.\n\nLog in to your portal: https://shakilxvs.com/portal`,
           });
         }
       }
     } catch { toast.error('Failed'); }
   };
-
   const handleDeleteTask = async (taskId) => {
     try {
       await deleteTask(taskId);
       setTasks(t => t.filter(x => x.id!==taskId));
     } catch { toast.error('Failed'); }
   };
-
   const handleUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -236,7 +209,6 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
     } catch { toast.error('Upload failed'); }
     finally { setUploading(false); e.target.value = ''; }
   };
-
   const handleDeleteFile = async (fileId) => {
     try {
       await deletePortalFile(fileId);
@@ -244,9 +216,7 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
       toast.success('Deleted');
     } catch { toast.error('Failed'); }
   };
-
   const progress = tasks.length > 0 ? Math.round((tasks.filter(t=>t.status==='Done').length/tasks.length)*100) : 0;
-
   return (
     <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', marginBottom:'10px' }}>
       <div onClick={onToggle} style={{ display:'flex', alignItems:'center', gap:'10px', padding:'12px 16px', cursor:'pointer', flexWrap:'wrap' }}>
@@ -261,7 +231,6 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
         <button onClick={e=>{e.stopPropagation();onDelete();}} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', padding:'4px', flexShrink:0 }}><Trash2 size={13}/></button>
         <div style={{ color:'var(--text-3)', flexShrink:0 }}>{open?<ChevronUp size={15}/>:<ChevronDown size={15}/>}</div>
       </div>
-
       {open && (
         <div style={{ padding:'0 16px 20px', borderTop:'1px solid var(--border-1)' }}>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginTop:'14px', marginBottom:'14px' }}>
@@ -278,10 +247,9 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
           </div>
           {dirty && (
             <button onClick={handleSave} disabled={saving} style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'7px 16px', background:saving?'var(--bg-elevated)':'var(--accent)', color:saving?'var(--text-3)':'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.8rem', cursor:'pointer', marginBottom:'16px' }}>
-              <Save size={12}/>{saving?'Saving…':'Save Changes'}
+              <Save size={12}/>{saving?'Saving\u2026':'Save Changes'}
             </button>
           )}
-
           {tasks.length > 0 && (
             <div style={{ marginBottom:'16px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'5px' }}>
@@ -293,7 +261,6 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
               </div>
             </div>
           )}
-
           <div style={{ marginBottom:'16px' }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'8px' }}>
               <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.12em' }}>Tasks ({tasks.length})</span>
@@ -304,7 +271,7 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
             {addingTask && (
               <div style={{ display:'flex', gap:'8px', marginBottom:'8px', marginTop:'8px' }}>
                 <input style={{ flex:1, padding:'7px 10px', background:'var(--bg-void)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-md)', color:'var(--text-1)', fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', outline:'none' }}
-                  value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)} placeholder="Task title…" autoFocus
+                  value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)} placeholder="Task title\u2026" autoFocus
                   onKeyDown={e=>{ if(e.key==='Enter'){ handleAddTask(newTaskTitle); setNewTaskTitle(''); setAddingTask(false); } if(e.key==='Escape'){ setAddingTask(false); setNewTaskTitle(''); } }}/>
                 <button onClick={()=>{ handleAddTask(newTaskTitle); setNewTaskTitle(''); setAddingTask(false); }}
                   style={{ padding:'7px 12px', background:'var(--accent)', color:'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.78rem', cursor:'pointer' }}>Add</button>
@@ -312,7 +279,7 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
                   style={{ padding:'7px 10px', background:'none', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.78rem', cursor:'pointer' }}>Cancel</button>
               </div>
             )}
-            {loadingTasks && <div style={{ color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.8rem' }}>Loading…</div>}
+            {loadingTasks && <div style={{ color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.8rem' }}>Loading\u2026</div>}
             {!loadingTasks && tasks.length === 0 && <div style={{ color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.8rem' }}>No tasks yet.</div>}
             <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
               {tasks.map(task => (
@@ -328,12 +295,11 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
               ))}
             </div>
           </div>
-
           <div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'8px' }}>
               <span style={{ fontFamily:'Space Mono,monospace', fontSize:'0.58rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.12em' }}>Files ({files.length})</span>
               <button onClick={()=>fileRef.current?.click()} disabled={uploading} style={{ display:'inline-flex', alignItems:'center', gap:'4px', padding:'5px 10px', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-sm)', color:'var(--text-2)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem', cursor:'pointer' }}>
-                {uploading?<Clock size={11}/>:<Upload size={11}/>} {uploading?'Uploading…':'Upload File'}
+                {uploading?<Clock size={11}/>:<Upload size={11}/>} {uploading?'Uploading\u2026':'Upload File'}
               </button>
               <input ref={fileRef} type="file" style={{ display:'none' }} onChange={handleUpload}/>
             </div>
@@ -355,21 +321,15 @@ function ProjectRow({ project, open, onToggle, onUpdate, onDelete, emailNotify, 
     </div>
   );
 }
-
-/* ══════════════════════════════════════════════════════
-   INVOICES PANEL
-══════════════════════════════════════════════════════ */
 function InvoicesPanel({ client }) {
   const [invoices, setInvoices] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [adding,   setAdding]   = useState(false);
   const [saving,   setSaving]   = useState(false);
   const [newInv,   setNewInv]   = useState({ number:'', amount:'', currency:'USD', dueDate:'', status:'Unpaid', description:'', payUrl:'/pay' });
-
   useEffect(() => {
     getClientInvoices(client.id).then(i => { setInvoices(i); setLoading(false); });
   }, [client.id]);
-
   const handleAdd = async () => {
     if (!newInv.amount) { toast.error('Amount required'); return; }
     setSaving(true);
@@ -382,7 +342,6 @@ function InvoicesPanel({ client }) {
     } catch { toast.error('Failed'); }
     finally { setSaving(false); }
   };
-
   const handleStatusChange = async (id, status) => {
     try {
       await updateInvoice(id, { status });
@@ -390,7 +349,6 @@ function InvoicesPanel({ client }) {
       toast.success('Updated');
     } catch { toast.error('Failed'); }
   };
-
   const handleDelete = async (id) => {
     if (!confirm('Delete this invoice?')) return;
     try {
@@ -399,9 +357,7 @@ function InvoicesPanel({ client }) {
       toast.success('Deleted');
     } catch { toast.error('Failed'); }
   };
-
-  if (loading) return <div style={{ padding:'20px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>Loading invoices…</div>;
-
+  if (loading) return <div style={{ padding:'20px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>Loading invoices\u2026</div>;
   return (
     <div>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'14px' }}>
@@ -410,7 +366,6 @@ function InvoicesPanel({ client }) {
           <Plus size={13}/> Add Invoice
         </button>
       </div>
-
       {adding && (
         <div style={{ background:'var(--bg-void)', border:'1px solid var(--accent-border)', borderRadius:'var(--radius-lg)', padding:'16px', marginBottom:'14px' }}>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
@@ -432,22 +387,20 @@ function InvoicesPanel({ client }) {
           </div>
           <div style={{ display:'flex', gap:'8px' }}>
             <button onClick={handleAdd} disabled={saving} style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'8px 18px', background:saving?'var(--bg-elevated)':'var(--accent)', color:saving?'var(--text-3)':'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.82rem', cursor:'pointer' }}>
-              <Save size={12}/>{saving?'Saving…':'Save Invoice'}
+              <Save size={12}/>{saving?'Saving\u2026':'Save Invoice'}
             </button>
             <button onClick={()=>setAdding(false)} style={{ padding:'8px 14px', background:'none', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', cursor:'pointer' }}>Cancel</button>
           </div>
         </div>
       )}
-
       {invoices.length === 0 && !adding && (
         <div style={{ textAlign:'center', padding:'40px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-lg)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>No invoices yet.</div>
       )}
-
       {invoices.map(inv => (
         <div key={inv.id} style={{ display:'flex', alignItems:'center', gap:'12px', padding:'12px 16px', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', marginBottom:'8px', flexWrap:'wrap' }}>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.875rem', color:'var(--text-1)' }}>
-              {inv.number ? `#${inv.number} — ` : ''}{inv.currency} {inv.amount}
+              {inv.number ? `#${inv.number} \u2014 ` : ''}{inv.currency} {inv.amount}
             </div>
             {inv.description && <div style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.78rem', color:'var(--text-3)', marginTop:'2px' }}>{inv.description}</div>}
             {inv.dueDate && <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'2px' }}>Due: {inv.dueDate}</div>}
@@ -463,33 +416,37 @@ function InvoicesPanel({ client }) {
     </div>
   );
 }
-
-/* ══════════════════════════════════════════════════════
-   MESSAGES PANEL
-══════════════════════════════════════════════════════ */
 function MessagesPanel({ client }) {
   const [messages, setMessages] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [text,     setText]     = useState('');
   const [sending,  setSending]  = useState(false);
-
   useEffect(() => {
     getPortalMessages(client.id).then(m => { setMessages(m); setLoading(false); });
   }, [client.id]);
-
   const handleSend = async () => {
     if (!text.trim()) return;
     setSending(true);
     try {
       const id = await sendPortalMessage({ clientId: client.id, text: text.trim(), from:'admin' });
       setMessages(m => [...m, { id, clientId: client.id, text: text.trim(), from:'admin', sentAt: new Date() }]);
+      // ── FIX: email the client when admin sends a message ──────────────────────
+      // Fire-and-forget (not awaited). Requires EmailJS template TO field = {{to_email}}.
+      // If emails still arrive at your own inbox, go to emailjs.com > Templates >
+      // set the TO field to {{to_email}} instead of your hardcoded email address.
+      if (client?.email) {
+        sendStatusEmail({
+          toEmail: client.email,
+          toName:  client.name,
+          subject: 'New message from Shakil',
+          message: text.trim() + '\n\nReply at: https://shakilxvs.com/portal/messages',
+        });
+      }
       setText('');
     } catch { toast.error('Failed'); }
     finally { setSending(false); }
   };
-
-  if (loading) return <div style={{ padding:'20px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>Loading messages…</div>;
-
+  if (loading) return <div style={{ padding:'20px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>Loading messages\u2026</div>;
   return (
     <div>
       <div style={{ maxHeight:400, overflowY:'auto', display:'flex', flexDirection:'column', gap:'8px', marginBottom:'14px', paddingRight:'4px' }}>
@@ -502,34 +459,28 @@ function MessagesPanel({ client }) {
               {msg.text}
             </div>
             <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.52rem', color:'var(--text-3)', marginTop:'3px', paddingLeft:'4px', paddingRight:'4px' }}>
-              {msg.from==='admin'?'You':'Client'} · {msg.sentAt?.toDate ? msg.sentAt.toDate().toLocaleDateString() : 'just now'}
+              {msg.from==='admin'?'You':'Client'} \u00b7 {msg.sentAt?.toDate ? msg.sentAt.toDate().toLocaleDateString() : 'just now'}
             </div>
           </div>
         ))}
       </div>
       <div style={{ display:'flex', gap:'8px' }}>
-        <input style={{ ...FI, flex:1 }} value={text} onChange={e=>setText(e.target.value)} placeholder="Write a message to client…" onFocus={foc} onBlur={blr}
+        <input style={{ ...FI, flex:1 }} value={text} onChange={e=>setText(e.target.value)} placeholder="Write a message to client\u2026" onFocus={foc} onBlur={blr}
           onKeyDown={e=>{ if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}/>
         <button onClick={handleSend} disabled={sending||!text.trim()} style={{ display:'inline-flex', alignItems:'center', gap:'5px', padding:'9px 16px', background:sending||!text.trim()?'var(--bg-elevated)':'var(--accent)', color:sending||!text.trim()?'var(--text-3)':'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.82rem', cursor:sending?'not-allowed':'pointer', flexShrink:0 }}>
-          <Send size={13}/>{sending?'…':'Send'}
+          <Send size={13}/>{sending?'\u2026':'Send'}
         </button>
       </div>
     </div>
   );
 }
-
-/* ══════════════════════════════════════════════════════
-   EDIT CLIENT PANEL
-══════════════════════════════════════════════════════ */
 function EditClientPanel({ client, onSave }) {
   const [local,  setLocal]  = useState({ ...client });
   const [showPw, setShowPw] = useState(false);
   const [newPw,  setNewPw]  = useState('');
   const [saving, setSaving] = useState(false);
-
   const set     = (k,v) => setLocal(l=>({...l,[k]:v}));
   const setPerms= (k,v) => setLocal(l=>({...l,permissions:{...(l.permissions||{}),[k]:v}}));
-
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -544,7 +495,6 @@ function EditClientPanel({ client, onSave }) {
     } catch { toast.error('Failed'); }
     finally { setSaving(false); }
   };
-
   return (
     <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'24px', marginBottom:'24px' }}>
       <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'1.1rem', color:'var(--text-1)', letterSpacing:'0.05em', marginBottom:'18px' }}>Client Details</div>
@@ -561,7 +511,7 @@ function EditClientPanel({ client, onSave }) {
         <div><label style={LB}>Country</label><input style={FI} value={local.country||''} onChange={e=>set('country',e.target.value)} onFocus={foc} onBlur={blr}/></div>
         <div style={{ gridColumn:'1/-1' }}>
           <label style={LB}>
-            New Password {client.passwordPlain && <span style={{ color:'var(--text-3)', textTransform:'none', letterSpacing:0 }}>— current: <span style={{ color:'var(--accent)' }}>{showPw?client.passwordPlain:'••••••••'}</span></span>}
+            New Password {client.passwordPlain && <span style={{ color:'var(--text-3)', textTransform:'none', letterSpacing:0 }}>\u2014 current: <span style={{ color:'var(--accent)' }}>{showPw?client.passwordPlain:'\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022'}</span></span>}
             <button onClick={()=>setShowPw(x=>!x)} style={{ background:'none', border:'none', color:'var(--text-3)', cursor:'pointer', marginLeft:'6px', padding:0, verticalAlign:'middle' }}>
               {showPw?<EyeOff size={11}/>:<Eye size={11}/>}
             </button>
@@ -588,18 +538,15 @@ function EditClientPanel({ client, onSave }) {
       <label style={{ display:'flex', alignItems:'center', gap:'8px', marginBottom:'16px', cursor:'pointer' }}>
         <input type="checkbox" checked={!!(local.emailNotify)} onChange={e=>set('emailNotify',e.target.checked)} style={{ accentColor:'var(--accent)', width:14, height:14 }}/>
         <span style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.875rem', color:'var(--text-1)' }}>
-          Email Notifications — notify client when tasks or project status change
+          Email Notifications \u2014 notify client when tasks or project status change
         </span>
       </label>
       <button onClick={handleSave} disabled={saving} style={{ display:'inline-flex', alignItems:'center', gap:'6px', padding:'9px 20px', background:saving?'var(--bg-elevated)':'var(--accent)', color:saving?'var(--text-3)':'#fff', border:'none', borderRadius:'var(--radius-md)', fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.875rem', cursor:saving?'not-allowed':'pointer' }}>
-        <Save size={13}/>{saving?'Saving…':'Save Changes'}
+        <Save size={13}/>{saving?'Saving\u2026':'Save Changes'}
       </button>
     </div>
   );
 }
-
-
-/* ─── Email notification helper ────────────────────────── */
 async function sendStatusEmail({ toEmail, toName, subject, message }) {
   try {
     await emailjs.send(
@@ -621,19 +568,13 @@ async function sendStatusEmail({ toEmail, toName, subject, message }) {
     return false;
   }
 }
-
-/* ══════════════════════════════════════════════════════
-   TIMELINE PANEL
-══════════════════════════════════════════════════════ */
 function TimelinePanel({ client }) {
   const [projects, setProjects] = useState([]);
   const [tasks,    setTasks]    = useState({});
   const [loading,  setLoading]  = useState(true);
-
   useEffect(() => {
     getClientProjects(client.id).then(async projs => {
       setProjects(projs);
-      // Load tasks for each project
       const taskMap = {};
       await Promise.all(projs.map(async p => {
         const t = await getProjectTasks(p.id);
@@ -643,15 +584,12 @@ function TimelinePanel({ client }) {
       setLoading(false);
     });
   }, [client.id]);
-
-  if (loading) return <div style={{ padding:'20px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>Loading timeline…</div>;
-
+  if (loading) return <div style={{ padding:'20px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>Loading timeline\u2026</div>;
   if (projects.length === 0) return (
     <div style={{ textAlign:'center', padding:'40px', border:'1px dashed var(--border-2)', borderRadius:'var(--radius-lg)', color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.875rem' }}>
       No projects yet. Add a project to see the timeline.
     </div>
   );
-
   const STATUS_COLOR = {
     'Planning':    '#f5c518',
     'In Progress': '#5c8dff',
@@ -659,7 +597,6 @@ function TimelinePanel({ client }) {
     'Completed':   '#34d399',
     'Cancelled':   '#ff6b35',
   };
-
   return (
     <div>
       {projects.map(project => {
@@ -667,34 +604,28 @@ function TimelinePanel({ client }) {
         const done = projectTasks.filter(t=>t.status==='Done').length;
         const progress = projectTasks.length > 0 ? Math.round((done/projectTasks.length)*100) : 0;
         const color = STATUS_COLOR[project.status] || 'var(--accent)';
-
         return (
           <div key={project.id} style={{ marginBottom:'24px', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', overflow:'hidden' }}>
-            {/* Project header bar */}
             <div style={{ padding:'14px 18px', borderBottom:'1px solid var(--border-1)', display:'flex', alignItems:'center', gap:'12px', background:'var(--bg-elevated)', flexWrap:'wrap' }}>
               <div style={{ width:10, height:10, borderRadius:'50%', background:color, flexShrink:0 }}/>
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.9rem', color:'var(--text-1)' }}>{project.title}</div>
                 <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'2px' }}>
-                  {project.status}{project.deadline?` · Due ${project.deadline}`:''}
-                  {project.budget?` · $${project.budget}`:''}
+                  {project.status}{project.deadline?` \u00b7 Due ${project.deadline}`:''}
+                  {project.budget?` \u00b7 $${project.budget}`:''}
                 </div>
               </div>
               {projectTasks.length > 0 && (
                 <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color, flexShrink:0 }}>
-                  {done}/{projectTasks.length} tasks · {progress}%
+                  {done}/{projectTasks.length} tasks \u00b7 {progress}%
                 </div>
               )}
             </div>
-
-            {/* Progress bar */}
             {projectTasks.length > 0 && (
               <div style={{ height:4, background:'var(--border-2)' }}>
                 <div style={{ height:'100%', width:`${progress}%`, background:color, transition:'width 0.8s ease' }}/>
               </div>
             )}
-
-            {/* Task list */}
             <div style={{ padding:'12px 18px' }}>
               {projectTasks.length === 0 && (
                 <div style={{ color:'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.82rem', padding:'8px 0' }}>No tasks yet.</div>
@@ -702,7 +633,6 @@ function TimelinePanel({ client }) {
               <div style={{ display:'flex', flexDirection:'column', gap:'6px' }}>
                 {projectTasks.map((task, i) => (
                   <div key={task.id} style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                    {/* Timeline dot + line */}
                     <div style={{ display:'flex', flexDirection:'column', alignItems:'center', flexShrink:0, width:16 }}>
                       <div style={{ width:10, height:10, borderRadius:'50%', background: task.status==='Done'?'#34d399':task.status==='In Progress'?'#5c8dff':'var(--border-3)', border:`2px solid ${task.status==='Done'?'#34d399':task.status==='In Progress'?'#5c8dff':'var(--border-3)'}`, flexShrink:0 }}/>
                       {i < projectTasks.length-1 && <div style={{ width:2, flex:1, minHeight:12, background:'var(--border-2)', marginTop:'2px' }}/>}
@@ -725,17 +655,12 @@ function TimelinePanel({ client }) {
     </div>
   );
 }
-
-/* ══════════════════════════════════════════════════════
-   MAIN — CLIENT PAGE
-══════════════════════════════════════════════════════ */
 export default function AdminClientPage() {
   const { username } = useParams();
   const router = useRouter();
   const [client,  setClient]  = useState(null);
   const [loading, setLoading] = useState(true);
   const [tab,     setTab]     = useState('projects');
-
   useEffect(() => {
     if (!username) return;
     getClientByUsername(username).then(c => {
@@ -751,12 +676,10 @@ export default function AdminClientPage() {
       router.replace('/admin/crm');
     });
   }, [username, router]);
-
   const handleSave = async (data) => {
     await updateClient(client.id, data);
     setClient(c => ({ ...c, ...data }));
   };
-
   const TABS = [
     { id:'projects',  label:'Projects',  Icon:Briefcase     },
     { id:'invoices',  label:'Invoices',  Icon:CreditCard    },
@@ -764,7 +687,6 @@ export default function AdminClientPage() {
     { id:'timeline',  label:'Timeline',  Icon:TrendingUp    },
     { id:'edit',      label:'Edit',      Icon:Save          },
   ];
-
   if (loading) {
     return (
       <div style={{ maxWidth:900 }}>
@@ -775,19 +697,15 @@ export default function AdminClientPage() {
       </div>
     );
   }
-
   if (!client) return null;
-
   return (
     <div style={{ maxWidth:900 }}>
-      {/* Back + client header */}
       <div style={{ marginBottom:'24px' }}>
         <Link href="/admin/crm" style={{ display:'inline-flex', alignItems:'center', gap:'5px', fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', textDecoration:'none', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:'14px', transition:'color 0.15s' }}
           onMouseEnter={e=>e.currentTarget.style.color='var(--accent)'}
           onMouseLeave={e=>e.currentTarget.style.color='var(--text-3)'}>
           <ChevronLeft size={13}/> All Clients
         </Link>
-
         <div style={{ display:'flex', alignItems:'center', gap:'14px', flexWrap:'wrap' }}>
           <div style={{ width:48, height:48, borderRadius:'50%', background:'var(--accent-muted)', border:'2px solid var(--accent-border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
             <span style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'1.4rem', color:'var(--accent)' }}>{(client.name||'?')[0].toUpperCase()}</span>
@@ -796,8 +714,8 @@ export default function AdminClientPage() {
             <div style={{ fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'1.2rem', color:'var(--text-1)' }}>{client.name}</div>
             <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--text-3)', marginTop:'2px' }}>
               @{client.username}
-              {client.company && ` · ${client.company}`}
-              {client.email && ` · ${client.email}`}
+              {client.company && ` \u00b7 ${client.company}`}
+              {client.email && ` \u00b7 ${client.email}`}
             </div>
           </div>
           {client.active === false && (
@@ -805,8 +723,6 @@ export default function AdminClientPage() {
           )}
         </div>
       </div>
-
-      {/* Tab bar */}
       <div style={{ display:'flex', borderBottom:'1px solid var(--border-1)', marginBottom:'20px' }}>
         {TABS.map(({ id, label, Icon }) => (
           <button key={id} onClick={()=>setTab(id)} style={{ display:'flex', alignItems:'center', gap:'6px', padding:'10px 20px', background:'none', border:'none', borderBottom: tab===id?'2px solid var(--accent)':'2px solid transparent', color: tab===id?'var(--accent)':'var(--text-3)', fontFamily:'Outfit,sans-serif', fontSize:'0.85rem', fontWeight: tab===id?700:400, cursor:'pointer', transition:'all 0.15s', marginBottom:'-1px' }}>
@@ -814,8 +730,6 @@ export default function AdminClientPage() {
           </button>
         ))}
       </div>
-
-      {/* Tab content */}
       {tab === 'projects' && <ProjectsPanel client={client} emailNotify={client.emailNotify}/>}
       {tab === 'invoices' && <InvoicesPanel client={client}/>}
       {tab === 'messages' && <MessagesPanel client={client}/>}
