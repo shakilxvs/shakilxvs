@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutTemplate, Briefcase, CreditCard, MessageSquare, User, LogOut, Menu, X, Sun, Moon } from 'lucide-react';
+
 const PORTAL_NAV = [
   { href:'/portal',          label:'Dashboard', Icon:LayoutTemplate },
   { href:'/portal/projects', label:'Projects',  Icon:Briefcase      },
@@ -10,6 +11,7 @@ const PORTAL_NAV = [
   { href:'/portal/messages', label:'Messages',  Icon:MessageSquare  },
   { href:'/portal/account',  label:'Account',   Icon:User           },
 ];
+
 export default function PortalLayout({ children }) {
   const router   = useRouter();
   const pathname = usePathname();
@@ -17,6 +19,7 @@ export default function PortalLayout({ children }) {
   const [loading,    setLoading]    = useState(true);
   const [sidebarOpen,setSidebarOpen]= useState(false);
   const [theme,      setTheme]      = useState('dark');
+
   const toggleTheme = () => {
     const next = theme === 'dark' ? 'light' : 'dark';
     setTheme(next);
@@ -24,12 +27,14 @@ export default function PortalLayout({ children }) {
     const wrap = document.querySelector('.portal-theme-wrap');
     if (wrap) wrap.setAttribute('data-theme', next === 'light' ? 'light' : '');
   };
+
   useEffect(() => {
     const savedTheme = localStorage.getItem('portal_theme') || 'dark';
     setTheme(savedTheme);
     const wrap = document.querySelector('.portal-theme-wrap');
     if (wrap && savedTheme === 'light') wrap.setAttribute('data-theme', 'light');
   }, []);
+
   useEffect(() => {
     if (pathname === '/portal/login') { setLoading(false); return; }
     try {
@@ -37,6 +42,7 @@ export default function PortalLayout({ children }) {
       if (!raw) { router.replace('/portal/login'); return; }
       const session = JSON.parse(raw);
       if (!session?.clientId || !session?.name) { router.replace('/portal/login'); return; }
+      // Check if session has not expired (30 days)
       if (session.expiresAt && Date.now() > session.expiresAt) {
         localStorage.removeItem('portal_session');
         router.replace('/portal/login');
@@ -47,17 +53,16 @@ export default function PortalLayout({ children }) {
       router.replace('/portal/login');
     }
     setLoading(false);
-    // FIX: [pathname] only — not [pathname, router].
-    // router from useRouter() can change reference on navigation in Next.js App Router.
-    // When both pathname and router change simultaneously (on nav), this effect fired twice.
-    // On the second fire there was a brief window where client was null, causing the layout
-    // to flash its loading fallback, which appeared as a redirect to Dashboard.
-  }, [pathname]);
+  }, [pathname, router]);
+
   const handleLogout = () => {
     localStorage.removeItem('portal_session');
     router.replace('/portal/login');
   };
+
+  // Login page renders without layout
   if (pathname === '/portal/login') return <>{children}</>;
+
   if (loading || !client) {
     return (
       <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg-void)' }}>
@@ -65,20 +70,28 @@ export default function PortalLayout({ children }) {
       </div>
     );
   }
+
   const initial = (client.name||'?')[0].toUpperCase();
+
   return (
     <div className="portal-theme-wrap" data-theme={theme === 'light' ? 'light' : ''} style={{ minHeight:'100vh', background:'var(--bg-void)', display:'flex' }}>
+      {/* Sidebar overlay on mobile */}
       {sidebarOpen && (
         <div onClick={()=>setSidebarOpen(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.7)', zIndex:99 }}/>
       )}
+
+      {/* Sidebar */}
       <aside className={`portal-sidebar${sidebarOpen ? ' open' : ''}`} style={{
         width:230, minHeight:'100vh', background:'var(--bg-base)', borderRight:'1px solid var(--border-1)',
         display:'flex', flexDirection:'column', position:'fixed', top:0, left:0, bottom:0, zIndex:100, overflowY:'auto',
       }}>
+        {/* Logo */}
         <div style={{ padding:'22px 18px 14px', borderBottom:'1px solid var(--border-1)' }}>
           <Link href="/" style={{ fontFamily:'Space Mono,monospace', fontSize:'0.8rem', color:'var(--accent)', letterSpacing:'0.05em', textDecoration:'none' }}>{'<shakil />'}</Link>
           <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'4px', letterSpacing:'0.1em' }}>CLIENT PORTAL</div>
         </div>
+
+        {/* Nav */}
         <nav style={{ flex:1, padding:'12px' }}>
           {PORTAL_NAV.map(({ href, label, Icon }) => {
             const active = pathname === href || (href !== '/portal' && pathname.startsWith(href));
@@ -97,6 +110,8 @@ export default function PortalLayout({ children }) {
             );
           })}
         </nav>
+
+        {/* Footer */}
         <div style={{ padding:'14px 12px', borderTop:'1px solid var(--border-1)' }}>
           <div style={{ display:'flex', alignItems:'center', gap:'10px', padding:'8px 12px', marginBottom:'6px' }}>
             <div style={{ width:30, height:30, borderRadius:'50%', background:'var(--accent-muted)', border:'1px solid var(--accent-border)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
@@ -116,13 +131,16 @@ export default function PortalLayout({ children }) {
           </button>
         </div>
       </aside>
+
+      {/* Main */}
       <div style={{ marginLeft:230, flex:1, minHeight:'100vh', display:'flex', flexDirection:'column' }} className="portal-main">
+        {/* Top header (mobile) */}
         <header style={{ height:56, borderBottom:'1px solid var(--border-1)', display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 20px', background:'var(--bg-base)', position:'sticky', top:0, zIndex:50 }}>
           <button onClick={()=>setSidebarOpen(o=>!o)} className="portal-menu-btn" style={{ background:'none', border:'none', color:'var(--text-2)', cursor:'pointer', padding:'4px', display:'none' }}>
             {sidebarOpen ? <X size={18}/> : <Menu size={18}/>}
           </button>
           <div style={{ fontFamily:'Bebas Neue,sans-serif', fontSize:'1.2rem', color:'var(--text-1)', letterSpacing:'0.05em' }}>
-            {PORTAL_NAV.find(n=>n.href===pathname||(pathname.startsWith(n.href)&&n.href!=='/portal'))?.label||'Dashboard'}
+            {PORTAL_NAV.find(n=>n.href===pathname||( pathname.startsWith(n.href) && n.href!=='/portal'))?.label || 'Dashboard'}
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:'8px' }}>
             <div style={{ width:28, height:28, borderRadius:'50%', background:'var(--accent-muted)', border:'1px solid var(--accent-border)', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -130,10 +148,12 @@ export default function PortalLayout({ children }) {
             </div>
           </div>
         </header>
+
         <main style={{ flex:1, padding:'28px 24px' }} className="portal-content">
           {children}
         </main>
       </div>
+
       <style>{`
         @media (max-width: 768px) {
           .portal-sidebar { transform: translateX(-100%); transition: transform 0.2s ease; }
