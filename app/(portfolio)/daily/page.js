@@ -1,31 +1,33 @@
-import { getPublishedDailyPosts } from '@/lib/firestore';
+import { getPublishedDailyPosts, getPortfolioDoc } from '@/lib/firestore';
 import DailyFeed from '@/components/portfolio/DailyFeed';
 
 export const dynamic = 'force-dynamic';
 
 export async function generateMetadata() {
+  const hero = await getPortfolioDoc('hero').catch(() => null);
+  const name = hero?.name || 'Shakil Ahmed';
   return {
-    title: 'Daily — Shakil Ahmed | Moments & Life',
-    description: 'Daily life updates, thoughts, and behind-the-scenes moments from Shakil Ahmed — web developer and digital marketer.',
+    title: `Daily — ${name} | Moments & Life`,
+    description: `Daily life updates, thoughts, and behind-the-scenes moments from ${name} — web developer and digital marketer.`,
     alternates: { canonical: 'https://shakilxvs.com/daily' },
     openGraph: {
-      title: 'Daily — Shakil Ahmed',
+      title: `Daily — ${name}`,
       description: 'Moments, thoughts and behind the scenes.',
       url: 'https://shakilxvs.com/daily',
       type: 'profile',
+      ...(hero?.profileImageUrl ? { images: [{ url: hero.profileImageUrl }] } : {}),
     },
     twitter: {
       card: 'summary_large_image',
-      title: 'Daily — Shakil Ahmed',
+      title: `Daily — ${name}`,
       description: 'Moments, thoughts and behind the scenes.',
       creator: '@shakilxvs',
     },
   };
 }
 
-// Serialize a Firestore Timestamp (or plain Date / ISO string) → ISO string
-// Next.js App Router throws if non-serializable values are passed
-// from a server component to a client component prop.
+// Serialize any Firestore Timestamp → ISO string so Next.js can pass it
+// as a prop from server component to client component without throwing.
 function toISO(val) {
   if (!val) return null;
   if (typeof val.toDate === 'function') return val.toDate().toISOString();
@@ -36,9 +38,12 @@ function toISO(val) {
 }
 
 export default async function DailyPage() {
-  const raw = await getPublishedDailyPosts().catch(() => []);
+  const [raw, heroDoc] = await Promise.all([
+    getPublishedDailyPosts().catch(() => []),
+    getPortfolioDoc('hero').catch(() => null),
+  ]);
 
-  // Serialize every Timestamp field before passing to client component
+  // Serialize Timestamp fields — Next.js cannot pass Firestore objects to client
   const posts = raw.map(p => ({
     ...p,
     createdAt:   toISO(p.createdAt),
@@ -46,16 +51,22 @@ export default async function DailyPage() {
     updatedAt:   toISO(p.updatedAt),
   }));
 
-  // ProfilePage schema — signals to Google this is a personal feed
+  // Profile data — only plain strings, safe to pass directly
+  const profile = {
+    name:            heroDoc?.name            || 'Shakil',
+    profileImageUrl: heroDoc?.profileImageUrl || '',
+  };
+
+  // ProfilePage schema — signals to AI crawlers this is a personal content feed
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'ProfilePage',
-    name: 'Shakil Ahmed — Daily',
+    name: `${profile.name} — Daily`,
     url: 'https://shakilxvs.com/daily',
-    description: 'Daily life updates, moments and behind-the-scenes from Shakil Ahmed.',
+    description: `Daily life updates, moments and behind-the-scenes from ${profile.name}.`,
     mainEntity: {
       '@type': 'Person',
-      name: 'Shakil Ahmed',
+      name: profile.name,
       url: 'https://shakilxvs.com',
       sameAs: [
         'https://instagram.com/shakilxvs',
@@ -71,7 +82,7 @@ export default async function DailyPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
-      <DailyFeed posts={posts} />
+      <DailyFeed posts={posts} profile={profile}/>
     </>
   );
 }
