@@ -1,41 +1,45 @@
 export default function DailyLoading() {
-  // Varied heights simulate real photo/video/text card mix
-  const cards = [
-    { h: 280 }, { h: 150 }, { h: 220 },
-    { h: 130 }, { h: 340 }, { h: 200 },
-    { h: 190 }, { h: 160 }, { h: 300 },
-  ];
-
+  const cards = [280, 160, 230, 140, 320, 200, 175, 145, 290];
   return (
-    <div style={{ minHeight: '100vh', paddingTop: '100px', paddingBottom: '80px', position: 'relative', zIndex: 1 }}>
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: '0 24px' }}>
-
-        {/* Header skeleton */}
-        <div style={{ marginBottom: '48px' }}>
-          <div className="skeleton" style={{ height: 10, width: 60, borderRadius: 3, marginBottom: 22 }} />
-          <div className="skeleton" style={{ height: 11, width: 96, borderRadius: 3, marginBottom: 14 }} />
-          <div className="skeleton" style={{ height: 72, width: 240, borderRadius: 6, marginBottom: 16 }} />
-          <div className="skeleton" style={{ height: 14, width: 360, borderRadius: 4, marginBottom: 8 }} />
-          <div className="skeleton" style={{ height: 14, width: 260, borderRadius: 4, marginBottom: 12 }} />
-          <div className="skeleton" style={{ height: 10, width: 60, borderRadius: 3 }} />
+    <>
+      {/* Profile hero skeleton */}
+      <div style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:64, paddingTop:128, position:'relative' }}>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:22, padding:'52px 44px', background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:32, maxWidth:480, width:'90%' }}>
+          <div className="skeleton" style={{ height:24, width:120, borderRadius:100 }}/>
+          <div className="skeleton" style={{ width:148, height:148, borderRadius:'50%', flexShrink:0 }}/>
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:10 }}>
+            <div className="skeleton" style={{ height:52, width:220, borderRadius:6 }}/>
+            <div className="skeleton" style={{ height:14, width:280, borderRadius:4 }}/>
+            <div className="skeleton" style={{ height:14, width:200, borderRadius:4 }}/>
+          </div>
+          <div style={{ display:'flex', gap:8 }}>
+            {[80,90,88].map((w,i) => <div key={i} className="skeleton" style={{ height:26, width:w, borderRadius:100 }}/>)}
+          </div>
         </div>
+      </div>
 
-        {/* Masonry skeleton — varied heights */}
-        <div className="daily-masonry">
-          {cards.map((card, i) => (
-            <div key={i} className="daily-card">
-              <div className="skeleton" style={{ width: '100%', height: card.h, borderRadius: 'var(--radius-lg)' }} />
-            </div>
-          ))}
+      {/* Feed skeleton */}
+      <div style={{ paddingBottom:80 }}>
+        <div style={{ maxWidth:1100, margin:'0 auto', padding:'0 24px' }}>
+          <div style={{ paddingTop:64, paddingBottom:32 }}>
+            <div className="skeleton" style={{ height:48, width:120, borderRadius:6 }}/>
+          </div>
+          <div className="daily-masonry">
+            {cards.map((h,i) => (
+              <div key={i} className="daily-card">
+                <div className="skeleton" style={{ width:'100%', height:h, borderRadius:16 }}/>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       <style>{`
         .daily-masonry { columns: 3; column-gap: 16px; }
-        .daily-card { break-inside: avoid; margin-bottom: 16px; }
+        .daily-card    { break-inside: avoid; margin-bottom: 16px; }
         @media (max-width: 900px) { .daily-masonry { columns: 2; } }
         @media (max-width: 480px) { .daily-masonry { columns: 1; } }
       `}</style>
-    </div>
+    </>
   );
 }
