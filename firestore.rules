@@ -80,6 +80,12 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    // Blog posts: public read, admin write
+    match /blog_posts/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
     match /{document=**} { allow read, write: if isAdmin(); }
   }
 }
