@@ -8,20 +8,22 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'bg-void':     '#050505',
-        'bg-base':     '#080808',
-        'bg-surface':  '#0f0f0f',
-        'bg-elevated': '#141414',
-        'bg-overlay':  '#1c1c1c',
+        // These MUST stay in sync with the CSS variables in app/globals.css.
+        // If you change a CSS var there, change it here too.
+        'bg-void':     '#05070f',
+        'bg-base':     '#05070f',
+        'bg-surface':  '#0b0e1a',
+        'bg-elevated': '#10152a',
+        'bg-overlay':  '#161d35',
         accent:        '#234DC2',
         fire:          '#ff4500',
         gold:          '#f5c518',
-        'text-1':      '#ffffff',
-        'text-2':      '#8a8a8a',
-        'text-3':      '#444444',
-        'border-1':    '#161616',
-        'border-2':    '#202020',
-        'border-3':    '#2a2a2a',
+        'text-1':      '#e8eaf6',
+        'text-2':      '#7986b0',
+        'text-3':      '#3d4a72',
+        'border-1':    '#0e1225',
+        'border-2':    '#182040',
+        'border-3':    '#243060',
       },
       fontFamily: {
         bebas:  ['Bebas Neue', 'sans-serif'],
