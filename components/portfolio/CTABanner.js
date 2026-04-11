@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 
 export default function CTABanner() {
   return (
-    <section style={{ padding:'100px 0', position:'relative', zIndex:1, overflow:'hidden' }}>
+    <section className="section-pad" style={{ position:'relative', zIndex:1, overflow:'hidden' }}>
       <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'600px', height:'300px', background:'rgba(35,77,194,0.07)', borderRadius:'50%', filter:'blur(100px)', pointerEvents:'none' }}/>
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', textAlign:'center', position:'relative' }}>
         <div className="section-label" style={{ marginBottom:'16px', justifyContent:'center', display:'flex' }}>Let&apos;s Work Together</div>
