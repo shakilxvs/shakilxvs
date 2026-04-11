@@ -34,7 +34,7 @@ const nextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https: http:",
               "media-src 'self' https://res.cloudinary.com blob:",
-              "frame-src 'self' https://accounts.google.com https://shakilxvs-portfolio.firebaseapp.com https://www.youtube.com https://youtube.com https://player.vimeo.com https://vimeo.com",
+              "frame-src 'self' https://accounts.google.com https://shakilxvs-portfolio.firebaseapp.com https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://player.vimeo.com https://vimeo.com",
               "connect-src 'self' https://accounts.google.com https://apis.google.com https://oauth2.googleapis.com https://firestore.googleapis.com https://firebase.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://api.cloudinary.com https://api.emailjs.com https://www.googletagmanager.com https://www.google-analytics.com wss:",
             ].join('; ')
           }
