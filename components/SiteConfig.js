@@ -1,31 +1,25 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Script from 'next/script';
-import { useState } from 'react';
 import { getPortfolioDoc } from '@/lib/firestore';
 
-/* Reads accent color + tracking IDs from Firestore CLIENT-SIDE after hydration.
-   This is safe because it runs in the browser where Firebase auth works correctly. */
+/* Reads tracking IDs from Firestore CLIENT-SIDE after hydration.
+   Accent color is already injected server-side in app/layout.js (see the
+   `accentStyle` block) — re-injecting it here would cause a redundant
+   Firestore read on every page view. */
 
 export default function SiteConfig() {
   const [tracking, setTracking] = useState(null);
-  const [accentColor, setAccentColor] = useState(null);
 
   useEffect(() => {
     getPortfolioDoc('siteSettings').then(s => {
       if (!s) return;
-      if (s.accentColor) setAccentColor(s.accentColor);
       if (s.tracking) setTracking(s.tracking);
     }).catch(() => {});
   }, []);
 
   return (
     <>
-      {/* Dynamic accent color — injected after hydration */}
-      {accentColor && (
-        <style>{`:root { --accent: ${accentColor}; --accent-glow: ${accentColor}2e; --accent-border: ${accentColor}59; --accent-muted: ${accentColor}1a; }`}</style>
-      )}
-
       {/* Google Analytics */}
       {tracking?.gaId && (
         <>
