@@ -22,7 +22,7 @@ export default function FeaturedProjects({ projects = [] }) {
   };
 
   return (
-    <section style={{ padding: '100px 0', position: 'relative', zIndex: 1 }}>
+    <section className="section-pad" style={{ position: 'relative', zIndex: 1 }}>
       <div style={{ maxWidth: 1280, margin: '0 auto', padding: '0 24px' }}>
         <div style={{
           display: 'flex', alignItems: 'flex-end',
