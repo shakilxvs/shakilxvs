@@ -86,7 +86,7 @@ export default async function RootLayout({ children }) {
   const siteConfigJson = siteConfig ? JSON.stringify(siteConfig) : 'null';
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -94,6 +94,8 @@ export default async function RootLayout({ children }) {
         <link href={googleFontsUrl} rel="stylesheet" />
         {fullStyleBlock && <style dangerouslySetInnerHTML={{ __html: fullStyleBlock }}/>}
         <script dangerouslySetInnerHTML={{ __html: `window.__SITE_CONFIG__=${siteConfigJson};` }}/>
+        {/* Prevent theme FOUC — set data-theme before first paint based on saved preference */}
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('site_theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();` }}/>
 
         {/* ── Site Verification Meta Tags (server-side — crawlers need these in static HTML) ── */}
         {tracking.pinterestDomainVerify && (
