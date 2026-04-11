@@ -102,7 +102,7 @@ export default function ReviewsTeaser({ reviews = [] }) {
   };
 
   return (
-    <section style={{ padding:'100px 0', position:'relative', zIndex:1, background:'var(--bg-base)' }}>
+    <section className="section-pad" style={{ position:'relative', zIndex:1, background:'var(--bg-base)' }}>
       <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'700px', height:'400px', background:'radial-gradient(ellipse, rgba(35,77,194,0.06) 0%, transparent 70%)', pointerEvents:'none', zIndex:0 }} />
 
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', position:'relative', zIndex:1 }}>
