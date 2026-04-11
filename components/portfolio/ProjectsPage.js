@@ -25,7 +25,9 @@ export default function ProjectsPageClient() {
   const [loading,  setLoading]  = useState(true);
   const [active,   setActive]   = useState('All');
   const [activeDot, setActiveDot] = useState(0);
+  const [activeDotDesktop, setActiveDotDesktop] = useState(0);
   const scrollRef = useRef(null);
+  const scrollRefDesktop = useRef(null);
 
   useEffect(() => {
     getProjects().then(data => {
@@ -42,13 +44,22 @@ export default function ProjectsPageClient() {
   const showEmpty         = !loading && regularFiltered.length === 0 && featuredProjects.length === 0;
   const showEmptyCategory = !loading && regularFiltered.length === 0 && active !== 'All';
 
+  // Mobile scroller — card width is ~78vw + 12px gap
   const handleScroll = () => {
     if (!scrollRef.current) return;
     const el = scrollRef.current;
-    // Card width is 85vw with 12px gap
     const cardW = (window.innerWidth * 0.78) + 12;
     const idx = Math.round(el.scrollLeft / cardW);
     setActiveDot(Math.max(0, Math.min(idx, featuredProjects.length - 1)));
+  };
+
+  // Desktop scroller — read actual rendered card width from the first child
+  const handleScrollDesktop = () => {
+    const el = scrollRefDesktop.current;
+    if (!el || !el.firstElementChild) return;
+    const cardW = el.firstElementChild.offsetWidth + 20; // 20px = gap
+    const idx = Math.round(el.scrollLeft / cardW);
+    setActiveDotDesktop(Math.max(0, Math.min(idx, featuredProjects.length - 1)));
   };
 
   return (
@@ -72,9 +83,46 @@ export default function ProjectsPageClient() {
               Featured
             </div>
 
-            {/* Desktop: 2-col grid — always shown on desktop, hidden on mobile */}
-            <div className="feat-proj-desktop" style={{ display:'grid', gridTemplateColumns: featuredProjects.length >= 2 ? '1fr 1fr' : '1fr', gap:'20px' }}>
-              {featuredProjects.map(p => <ProjectCard key={p.id} project={p}/>)}
+            {/* Desktop: horizontal scroller — keeps original card width (~50% of container)
+                so 2 cards visible + 3rd peeks. Single line, swipeable. Dots only when 3+. */}
+            <div className="feat-proj-desktop">
+              <div
+                ref={scrollRefDesktop}
+                onScroll={handleScrollDesktop}
+                style={{
+                  display: 'flex',
+                  gap: '20px',
+                  overflowX: 'auto',
+                  scrollSnapType: 'x mandatory',
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'none',
+                  paddingBottom: '4px',
+                }}
+                className="feat-proj-desktop-scroller"
+              >
+                {featuredProjects.map(p => (
+                  <div
+                    key={p.id}
+                    className="feat-proj-desktop-card"
+                    style={{
+                      flexShrink: 0,
+                      scrollSnapAlign: 'start',
+                      /* Same width as the old 2-col grid card: 50% of container minus half the gap */
+                      width: 'calc(50% - 10px)',
+                    }}
+                  >
+                    <ProjectCard project={p}/>
+                  </div>
+                ))}
+              </div>
+              {/* Pagination dots — only show when more than 2 (i.e. when scroll is actually needed) */}
+              {featuredProjects.length > 2 && (
+                <div style={{ display:'flex', justifyContent:'center', gap:'8px', marginTop:'18px' }}>
+                  {featuredProjects.map((_, i) => (
+                    <div key={i} style={{ width: i===activeDotDesktop ? 18 : 6, height:6, borderRadius:3, background: i===activeDotDesktop ? 'var(--accent)' : 'var(--border-2)', transition:'all 0.25s ease' }}/>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Mobile: 1 featured — full width card, no scroll */}
@@ -161,7 +209,6 @@ export default function ProjectsPageClient() {
       <style>{`
         @media (max-width: 1024px) {
           .projects-grid      { grid-template-columns: repeat(2,1fr) !important; }
-          .feat-proj-desktop  { grid-template-columns: 1fr 1fr !important; }
         }
         @media (max-width: 640px) {
           .projects-grid            { grid-template-columns: 1fr !important; }
@@ -169,6 +216,7 @@ export default function ProjectsPageClient() {
           .feat-proj-mobile-single  { display: block !important; }
           .feat-proj-mobile-multi   { display: block !important; }
         }
+        .feat-proj-desktop-scroller::-webkit-scrollbar { display: none; }
         .feat-proj-mobile-multi > div:first-child::-webkit-scrollbar { display: none; }
       `}</style>
     </div>
