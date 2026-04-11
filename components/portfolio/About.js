@@ -57,7 +57,7 @@ export default function About({ data }) {
   ];
 
   return (
-    <section style={{ padding:'100px 0', position:'relative', zIndex:1 }}>
+    <section className="section-pad" style={{ position:'relative', zIndex:1 }}>
       <div style={{ position:'absolute', bottom:'0', left:'-10%', width:'500px', height:'400px', background:'radial-gradient(ellipse, rgba(35,77,194,0.07) 0%, transparent 70%)', pointerEvents:'none', zIndex:0 }} />
 
       <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 24px', position:'relative', zIndex:1 }}>
