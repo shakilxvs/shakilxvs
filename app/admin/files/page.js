@@ -81,9 +81,9 @@ export default function AdminFilesPage() {
 
   const handleAdd = async () => {
     try {
-      const id = await addFile({...EMPTY, order:0});
-      const newItem = {...EMPTY, id, order:0};
-      setFiles(s => [newItem, ...s]);
+      const id = await addFile({...EMPTY, order: files.length});
+      const newItem = {...EMPTY, id, order: files.length};
+      setFiles(s => [...s, newItem]);
       toast.success('Added!');
     } catch { toast.error('Failed'); }
   };
