@@ -100,6 +100,22 @@ body::after {
   color: var(--accent);
 }
 
+/* ─── Section vertical padding ─────────────────────────────
+   Used by homepage sections (About, Skills, FeaturedProjects,
+   ReviewsTeaser, CTABanner). Replaces the old inline 100px-each-side
+   padding which produced ~200px gaps between sections — way too much,
+   especially on mobile. Now: 80px desktop / 64px tablet / 56px mobile. */
+.section-pad {
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+@media (max-width: 1024px) {
+  .section-pad { padding-top: 64px; padding-bottom: 64px; }
+}
+@media (max-width: 640px) {
+  .section-pad { padding-top: 56px; padding-bottom: 56px; }
+}
+
 /* ─── Cards ──────────────────────────────────────────────── */
 .card {
   background: var(--bg-surface);
