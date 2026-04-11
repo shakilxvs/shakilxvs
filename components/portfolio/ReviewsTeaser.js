@@ -1,4 +1,5 @@
 'use client';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Star } from 'lucide-react';
 
@@ -86,7 +87,19 @@ function MiniCard({ review }) {
 export default function ReviewsTeaser({ reviews = [] }) {
   // Only show verified reviews in homepage teaser
   const top = reviews.filter(r => r.verified === true).slice(0, 3);
+  const [activeDot, setActiveDot] = useState(0);
+  const scrollRef = useRef(null);
+
   if (top.length === 0) return null;
+
+  // Mobile peek-carousel — same pattern as ProjectsPage.js (~78vw + 12px gap)
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    const cardW = (window.innerWidth * 0.78) + 12;
+    const idx = Math.round(el.scrollLeft / cardW);
+    setActiveDot(Math.max(0, Math.min(idx, top.length - 1)));
+  };
 
   return (
     <section style={{ padding:'100px 0', position:'relative', zIndex:1, background:'var(--bg-base)' }}>
@@ -103,14 +116,57 @@ export default function ReviewsTeaser({ reviews = [] }) {
           </Link>
         </div>
 
+        {/* Desktop: 3-col grid (unchanged behaviour) */}
         <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'20px' }} className="reviews-teaser-grid">
           {top.map(r => <MiniCard key={r.id} review={r} />)}
         </div>
+
+        {/* Mobile: 1 review — full width, no scroll */}
+        {top.length === 1 && (
+          <div className="reviews-teaser-mobile-single" style={{ display:'none' }}>
+            <MiniCard review={top[0]}/>
+          </div>
+        )}
+
+        {/* Mobile: 2+ reviews — peek carousel + dots */}
+        {top.length >= 2 && (
+          <div className="reviews-teaser-mobile-multi" style={{ display:'none' }}>
+            <div
+              ref={scrollRef}
+              onScroll={handleScroll}
+              className="reviews-teaser-mobile-scroller"
+              style={{
+                display:'flex',
+                overflowX:'auto',
+                gap:'12px',
+                scrollSnapType:'x mandatory',
+                WebkitOverflowScrolling:'touch',
+                scrollbarWidth:'none',
+              }}
+            >
+              {top.map(r => (
+                <div key={r.id} style={{ width:'78vw', flexShrink:0, scrollSnapAlign:'start' }}>
+                  <MiniCard review={r}/>
+                </div>
+              ))}
+            </div>
+            <div style={{ display:'flex', justifyContent:'center', gap:'8px', marginTop:'14px' }}>
+              {top.map((_, i) => (
+                <div key={i} style={{ width: i===activeDot ? 18 : 6, height:6, borderRadius:3, background: i===activeDot ? 'var(--accent)' : 'var(--border-2)', transition:'all 0.25s ease' }}/>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       <style>{`
         @media (max-width:1024px) { .reviews-teaser-grid { grid-template-columns: repeat(2,1fr) !important; } }
-        @media (max-width:640px)  { .reviews-teaser-grid { grid-template-columns: 1fr !important; } }
+        @media (max-width:640px)  {
+          .reviews-teaser-grid          { display: none !important; }
+          .reviews-teaser-mobile-single { display: block !important; }
+          .reviews-teaser-mobile-multi  { display: block !important; }
+        }
+        .reviews-teaser-mobile-scroller::-webkit-scrollbar { display: none; }
       `}</style>
     </section>
   );
