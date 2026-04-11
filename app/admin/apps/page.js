@@ -88,9 +88,9 @@ export default function AdminAppsPage() {
 
   const handleAdd = async () => {
     try {
-      const id = await addApp({...EMPTY, order:0});
-      const newItem = {...EMPTY, id, order:0};
-      setApps(s => [newItem, ...s]);
+      const id = await addApp({...EMPTY, order: apps.length});
+      const newItem = {...EMPTY, id, order: apps.length};
+      setApps(s => [...s, newItem]);
       toast.success('Added!');
     } catch { toast.error('Failed'); }
   };
