@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   getAllBlogPosts, addBlogPost, updateBlogPost, deleteBlogPost,
 } from '@/lib/firestore';
+import { serverTimestamp } from 'firebase/firestore';
 import { uploadToCloudinary } from '@/lib/utils';
 import toast from 'react-hot-toast';
 import {
@@ -205,7 +206,7 @@ function PostEditor({ post, onSave, onCancel }) {
         readTime,
         status: status || local.status,
         publishedAt: (status === 'published' && post?.status !== 'published')
-          ? new Date()
+          ? serverTimestamp()
           : post?.publishedAt || null,
       });
     } catch { toast.error('Save failed'); }
@@ -370,7 +371,7 @@ export default function AdminBlogPage() {
 
   const handleToggleStatus = async (post) => {
     const next = post.status === 'published' ? 'draft' : 'published';
-    await updateBlogPost(post.id, { status: next, ...(next==='published'?{publishedAt:new Date()}:{}) });
+    await updateBlogPost(post.id, { status: next, ...(next==='published'?{publishedAt:serverTimestamp()}:{}) });
     setPosts(p => p.map(x => x.id === post.id ? { ...x, status:next } : x));
     toast.success(next === 'published' ? 'Published!' : 'Moved to draft');
   };
