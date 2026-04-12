@@ -1,6 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compress: true,
+  experimental: {
+    // Required for firebase-admin to work in API routes on Vercel.
+    // Without this, the bundler tries to bundle the Node-only modules
+    // and the route silently throws "Cannot find module" at runtime.
+    serverComponentsExternalPackages: ['firebase-admin'],
+  },
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'res.cloudinary.com',             pathname: '/**' },
@@ -28,7 +34,6 @@ const nextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              // accounts.google.com MUST be in script-src — Firebase Auth loads a script from there for the popup
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com https://apis.google.com https://www.emailjs.com https://www.googletagmanager.com https://www.google-analytics.com https://s.pinimg.com https://analytics.tiktok.com https://connect.facebook.net",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com",
               "font-src 'self' https://fonts.gstatic.com",
