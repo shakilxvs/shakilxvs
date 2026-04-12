@@ -2,17 +2,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // ─── Admin check ─────────────────────────────────────────
+    // Accepts EITHER a Firebase Auth user with the `admin: true`
+    // custom claim (the secure way), OR the legacy hardcoded
+    // email as a temporary fallback during cutover.
+    //
+    // After verifying the custom claim works for ~24 hours,
+    // delete the second line (the email check) — your email
+    // will then be gone from this file entirely.
     function isAdmin() {
-      return request.auth != null
-        && request.auth.token.email == "shakilxvs@gmail.com";
+      return request.auth != null && (
+        request.auth.token.admin == true
+        || request.auth.token.email == "shakilxvs@gmail.com"
+      );
     }
 
-    // Check if request has a valid portal session token for a specific client
-    function isPortalClient(clientId) {
-      return request.auth == null &&
-        request.resource != null;
-    }
-
+    // ─── Public-read collections (intentionally world-readable) ─
     match /portfolio/{doc}         { allow read: if true; allow write: if isAdmin(); }
     match /skills/{doc}            { allow read: if true; allow write: if isAdmin(); }
     match /projects/{doc}          { allow read: if true; allow write: if isAdmin(); }
@@ -22,70 +27,40 @@ service cloud.firestore {
     match /payment_methods/{doc}   { allow read: if true; allow write: if isAdmin(); }
     match /payment_crypto/{doc}    { allow read: if true; allow write: if isAdmin(); }
     match /payment_gateways/{doc}  { allow read: if true; allow write: if isAdmin(); }
+    match /blog_posts/{doc}        { allow read: if true; allow write: if isAdmin(); }
 
+    // ─── Public form-submission collections ────────────────
+    // Anyone can create (form submission); only admin can read/manage.
     match /reviews_pending/{doc} {
       allow create: if true;
       allow read, update, delete: if isAdmin();
     }
-
-    match /reviews_rejected/{doc} {
-      allow read, write: if isAdmin();
-    }
-
     match /messages/{doc} {
       allow create: if true;
       allow read, update, delete: if isAdmin();
     }
 
+    // ─── Admin-only collections ────────────────────────────
+    match /reviews_rejected/{doc}  { allow read, write: if isAdmin(); }
     match /messages_archived/{doc} { allow read, write: if isAdmin(); }
 
-    match /rate_limits/{doc} { allow read, write: if true; }
+    // ─── Rate limits ───────────────────────────────────────
+    // LOCKED DOWN — was previously world-writable, which made it
+    // possible for any visitor to bypass the contact-form throttle.
+    match /rate_limits/{doc} { allow read, write: if isAdmin(); }
 
-    // CRM — Clients: admin full access, public can read (for login verification)
-    match /clients/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
+    // ─── Sensitive portal collections ──────────────────────
+    // ALL locked down to admin-only. Portal users access these
+    // exclusively through /api/portal/* routes which use the
+    // Admin SDK (bypasses these rules) and verify a signed JWT.
+    match /clients/{doc}          { allow read, write: if isAdmin(); }
+    match /portal_projects/{doc}  { allow read, write: if isAdmin(); }
+    match /portal_tasks/{doc}     { allow read, write: if isAdmin(); }
+    match /portal_invoices/{doc}  { allow read, write: if isAdmin(); }
+    match /portal_messages/{doc}  { allow read, write: if isAdmin(); }
+    match /portal_files/{doc}     { allow read, write: if isAdmin(); }
 
-    // Portal Projects: admin full access, public read (portal reads by clientId)
-    match /portal_projects/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Portal Tasks: admin full access, public read + create/update (clients can add/edit tasks if permitted)
-    match /portal_tasks/{doc} {
-      allow read: if true;
-      allow create, update: if true;
-      allow delete: if isAdmin();
-    }
-
-    // Portal Invoices: admin full access, public read
-    match /portal_invoices/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Portal Messages: admin full access, public read + create (clients send messages)
-    match /portal_messages/{doc} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if isAdmin();
-    }
-
-    // Portal Files: admin full access, public read + create (clients upload files if permitted)
-    match /portal_files/{doc} {
-      allow read: if true;
-      allow create: if true;
-      allow update, delete: if isAdmin();
-    }
-
-    // Blog posts: public read, admin write
-    match /blog_posts/{doc} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
+    // ─── Catch-all safety net ──────────────────────────────
     match /{document=**} { allow read, write: if isAdmin(); }
   }
 }
