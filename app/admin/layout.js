@@ -128,8 +128,33 @@ export default function AdminLayout({ children }) {
         return;
       }
 
-      const adminEmail = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'shakilxvs@gmail.com').toLowerCase();
-      if (u.email?.toLowerCase() === adminEmail) {
+      // ─── Owner check ──────────────────────────────────────────
+      // Accept EITHER:
+      //   (a) the custom claim `admin: true` on the Firebase ID token
+      //       (the new, secure way — set via scripts/set-admin-claim.js)
+      //   (b) the hardcoded admin email (LEGACY FALLBACK)
+      //
+      // The fallback exists so the cutover can't lock you out.
+      // After you have verified the custom claim works for ~24 hours,
+      // you can safely delete the email fallback by removing the
+      // `|| u.email?.toLowerCase() === LEGACY_ADMIN_EMAIL` part below.
+      // ───────────────────────────────────────────────────────────
+      const LEGACY_ADMIN_EMAIL = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'shakilxvs@gmail.com').toLowerCase();
+
+      let isOwner = false;
+      try {
+        const tokenResult = await u.getIdTokenResult();
+        if (tokenResult?.claims?.admin === true) {
+          isOwner = true;
+        }
+      } catch {
+        // ignore — fall through to email check
+      }
+      if (!isOwner && u.email?.toLowerCase() === LEGACY_ADMIN_EMAIL) {
+        isOwner = true;
+      }
+
+      if (isOwner) {
         setUserRole('owner');
         setLoading(false);
         return;
