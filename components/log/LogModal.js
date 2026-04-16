@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
 import { X, Link as LinkIcon, Check } from 'lucide-react';
 import { incrementLogPostViews } from '@/lib/firestore';
 
-// Convert Firestore-style { seconds, nanoseconds } / Date / ISO → formatted date
 function formatDate(ts) {
   if (!ts) return null;
   let date;
@@ -18,24 +18,19 @@ function formatDate(ts) {
   return date.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
 }
 
-export default function LogModal({ post, onClose }) {
+function ModalContent({ post, onClose }) {
   const [copied, setCopied] = useState(false);
 
-  // Fire-and-forget view increment when modal opens.
-  // Firestore rule restricts this write to +1 on `views` only,
-  // on published posts only — see firestore.rules.
   useEffect(() => {
     if (post?.id) incrementLogPostViews(post.id);
   }, [post?.id]);
 
-  // Escape to close
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  // Lock body scroll while modal is open
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -48,7 +43,6 @@ export default function LogModal({ post, onClose }) {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
       } else {
-        // Fallback for older browsers
         const ta = document.createElement('textarea');
         ta.value = url; document.body.appendChild(ta);
         ta.select(); document.execCommand('copy');
@@ -57,7 +51,6 @@ export default function LogModal({ post, onClose }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {
-      // Last-resort fallback: show URL via prompt
       window.prompt('Copy this link:', url);
     }
   };
@@ -75,74 +68,101 @@ export default function LogModal({ post, onClose }) {
       transition={{ duration: 0.25 }}
       onClick={onClose}
       style={{
-        position: 'fixed', inset: 0, zIndex: 200,
-        background: 'rgba(0,0,0,0.72)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'center',
-        overflowY: 'auto',
-        padding: '40px 20px',
+        position: 'fixed', inset: 0, zIndex: 10001,
+        background: 'rgba(0,0,0,0.88)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '0',
       }}
     >
+      {/* Close button — top-right, always above everything */}
+      <button
+        onClick={onClose}
+        aria-label="Close"
+        style={{
+          position: 'fixed', top: 16, right: 16, zIndex: 10002,
+          width: 40, height: 40, borderRadius: '50%',
+          background: 'rgba(255,255,255,0.1)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          color: '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer',
+          transition: 'background 0.2s',
+        }}
+        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; }}
+        onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; }}
+      >
+        <X size={18} strokeWidth={2}/>
+      </button>
+
+      {/* Scrollable center panel */}
       <motion.div
         role="dialog"
         aria-modal="true"
         onClick={e => e.stopPropagation()}
-        initial={{ opacity: 0, y: 24, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 10, scale: 0.98 }}
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.97 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
         style={{
           position: 'relative',
-          width: '100%', maxWidth: 720,
+          width: '100%',
+          maxWidth: 640,
+          maxHeight: '92vh',
+          overflowY: 'auto',
+          overflowX: 'hidden',
           background: '#141414',
           border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 20,
-          overflow: 'hidden',
+          borderRadius: 16,
           boxShadow: '0 40px 100px -20px rgba(0,0,0,0.7)',
           color: '#e8e8ea',
+          margin: '0 16px',
         }}
+        className="log-modal-scroll"
       >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          aria-label="Close"
-          style={{
-            position: 'absolute', top: 14, right: 14, zIndex: 2,
-            width: 34, height: 34, borderRadius: 10,
-            background: 'rgba(10,10,10,0.7)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            color: 'rgba(244,244,245,0.85)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-          }}
-        >
-          <X size={16} strokeWidth={1.75}/>
-        </button>
+        <style>{`
+          .log-modal-scroll::-webkit-scrollbar { width: 0; background: transparent; }
+          .log-modal-scroll { scrollbar-width: none; }
+        `}</style>
 
-        {/* ── Media / content by type ─────────────────────── */}
+        {/* ── Media by type ─────────────────────────────── */}
         {post.type === 'photo' && post.media_url && (
           <img
             src={post.media_url}
             alt={title || ''}
-            style={{ display:'block', width:'100%', height:'auto' }}
+            style={{
+              display: 'block',
+              width: '100%',
+              height: 'auto',
+              maxHeight: '70vh',
+              objectFit: 'contain',
+              background: '#000',
+            }}
           />
         )}
 
         {post.type === 'video' && post.media_url && (
-          <div style={{ width:'100%', aspectRatio:'16 / 9', background:'#000' }}>
+          <div style={{ width:'100%', background:'#000' }}>
             <video
               src={post.media_url}
               controls autoPlay playsInline
               poster={post.media_thumbnail || undefined}
-              style={{ width:'100%', height:'100%', objectFit:'contain', background:'#000' }}
+              style={{
+                display: 'block',
+                width: '100%',
+                maxHeight: '70vh',
+                objectFit: 'contain',
+                background: '#000',
+              }}
             />
           </div>
         )}
 
         {post.type === 'audio' && post.media_url && (
           <div style={{
-            padding: '36px 28px 24px',
+            padding: '36px 24px 24px',
             background: 'linear-gradient(135deg, rgba(184,115,51,0.14), rgba(20,20,20,0.4))',
           }}>
             <audio
@@ -153,15 +173,15 @@ export default function LogModal({ post, onClose }) {
           </div>
         )}
 
-        {/* ── Body ────────────────────────────────────────── */}
-        <div style={{ padding: '26px 28px 30px' }}>
+        {/* ── Body ────────────────────────────────────── */}
+        <div style={{ padding: '22px 24px 26px' }}>
           {title && (
             <h2 style={{
               fontFamily: "'Instrument Serif', Georgia, serif",
-              fontSize: 'clamp(1.8rem, 4vw, 2.4rem)',
-              lineHeight: 1.1,
+              fontSize: 'clamp(1.6rem, 4vw, 2.2rem)',
+              lineHeight: 1.15,
               letterSpacing: '-0.01em',
-              margin: '0 0 14px',
+              margin: '0 0 12px',
               color: '#f4f4f5',
               fontWeight: 400,
             }}>
@@ -172,19 +192,19 @@ export default function LogModal({ post, onClose }) {
           {desc && (
             <div style={{
               fontFamily: "'DM Sans', 'Outfit', sans-serif",
-              fontSize: '1rem',
+              fontSize: '0.95rem',
               lineHeight: 1.7,
               color: 'rgba(232,232,234,0.82)',
               whiteSpace: 'pre-wrap',
               wordBreak: 'break-word',
-              marginBottom: tags.length || date ? 22 : 0,
+              marginBottom: tags.length || date ? 20 : 0,
             }}>
               {desc}
             </div>
           )}
 
           {tags.length > 0 && (
-            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom: date ? 20 : 0 }}>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginBottom: date ? 18 : 0 }}>
               {tags.map(t => (
                 <span key={t} style={{
                   padding: '4px 10px',
@@ -194,7 +214,6 @@ export default function LogModal({ post, onClose }) {
                   fontFamily: "'DM Sans', 'Outfit', sans-serif",
                   fontSize: '0.72rem',
                   color: 'rgba(232,232,234,0.6)',
-                  letterSpacing: '-0.005em',
                 }}>
                   {t}
                 </span>
@@ -205,7 +224,7 @@ export default function LogModal({ post, onClose }) {
           {/* Footer row */}
           <div style={{
             display:'flex', alignItems:'center', justifyContent:'space-between',
-            gap:12, marginTop: 20, paddingTop: 18,
+            gap:12, paddingTop: 16,
             borderTop: '1px solid rgba(255,255,255,0.06)',
           }}>
             {date ? (
@@ -242,5 +261,22 @@ export default function LogModal({ post, onClose }) {
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+// ─── Portal wrapper ────────────────────────────────────────
+// Renders the modal at document.body level via createPortal.
+// This escapes the <main> stacking context (z-index: 1) so the
+// modal appears ABOVE the navbar (z-index: 1000) and scroll
+// progress bar (z-index: 9999).
+export default function LogModal({ post, onClose }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <ModalContent post={post} onClose={onClose}/>,
+    document.body
   );
 }
