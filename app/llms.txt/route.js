@@ -36,6 +36,7 @@ Shakil Ahmed is available for hire for:
 - Services & Pricing: https://shakilxvs.com/services
 - Client Reviews: https://shakilxvs.com/reviews
 - Blog / Resources: https://shakilxvs.com/blog
+- Daily Log / Feed: https://shakilxvs.com/log
 - Contact / Hire: https://shakilxvs.com/contact
 - Apps & Tools: https://shakilxvs.com/apps
 
