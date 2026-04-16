@@ -1,4 +1,4 @@
-import { getPublishedBlogPosts, getProjects } from '@/lib/firestore';
+import { getPublishedBlogPosts, getProjects, getPublishedLogPosts, getLogSettings } from '@/lib/firestore';
 
 export const dynamic = 'force-dynamic';
 
@@ -48,5 +48,31 @@ export default async function sitemap() {
     // Silently skip — static routes still returned
   }
 
-  return [...staticPages, ...projectEntries, ...blogEntries];
+  // Log feed + individual log posts
+  let logEntries = [];
+  try {
+    const logSettings = await getLogSettings();
+    if (logSettings?.page_enabled) {
+      logEntries.push({
+        url:             `${baseUrl}/log`,
+        lastModified:    new Date(),
+        changeFrequency: 'daily',
+        priority:        0.7,
+      });
+      const logPosts = await getPublishedLogPosts();
+      for (const p of logPosts) {
+        const date = p.post_date?.toDate?.() || p.created_at?.toDate?.() || new Date();
+        logEntries.push({
+          url:             `${baseUrl}/log/${p.id}`,
+          lastModified:    date,
+          changeFrequency: 'monthly',
+          priority:        0.5,
+        });
+      }
+    }
+  } catch {
+    // Silently skip
+  }
+
+  return [...staticPages, ...projectEntries, ...blogEntries, ...logEntries];
 }
