@@ -137,10 +137,12 @@ export default async function LogPage() {
       `}</style>
 
       <div className="log-content">
-        <header style={{ marginBottom: '56px' }}>
-          <h1 className="log-title">{title}</h1>
-          {subtitle && <p className="log-subtitle">{subtitle}</p>}
-        </header>
+        {posts.length > 0 && (
+          <header style={{ marginBottom: '56px' }}>
+            <h1 className="log-title">{title}</h1>
+            {subtitle && <p className="log-subtitle">{subtitle}</p>}
+          </header>
+        )}
 
         <LogFeed initialPosts={posts}/>
       </div>
