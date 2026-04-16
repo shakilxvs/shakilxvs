@@ -117,22 +117,26 @@ export default async function LogDeepLinkPage({ params }) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(plain)) }}
       />
 
-      {/* Immediate client redirect to the modal experience.
-          This runs during hydration — crawlers ignore it, real
-          users see this page for a blink then land on /log with
-          the modal auto-opened. The LogFeed component reads
-          ?open=[id], opens the modal, and rewrites the URL back
-          to /log/[id] so the browser tab still shows the pretty
-          URL for sharing/bookmarking. */}
+      {/* Redirect to modal experience. Crawlers ignore JS, real
+          users see a brief dark flash then land on /log with the
+          modal open. */}
       <script
         dangerouslySetInnerHTML={{
           __html: `(function(){try{if(typeof window!=='undefined'){window.location.replace('/log?open=${encodeURIComponent(plain.id)}');}}catch(e){}})();`,
         }}
       />
 
-      {/* Rendered content (visible briefly to users, permanently
-          to JS-less crawlers) */}
-      <article style={{ maxWidth: 720, margin: '0 auto' }}>
+      {/* Visible content: hidden by default for JS users (the redirect
+          fires immediately), visible for JS-disabled crawlers via
+          noscript-friendly rendering. The content sits behind a dark
+          overlay so even if the redirect takes 100ms, the user sees
+          a clean dark screen rather than a layout flash. */}
+      <style>{`
+        .log-dl-article { opacity: 0; animation: log-dl-fadein 0.8s ease 0.5s forwards; }
+        @keyframes log-dl-fadein { to { opacity: 1; } }
+      `}</style>
+
+      <article className="log-dl-article" style={{ maxWidth: 720, margin: '0 auto' }}>
         <a href="/log" style={{
           display: 'inline-block',
           fontFamily: "'DM Sans', 'Outfit', sans-serif",
