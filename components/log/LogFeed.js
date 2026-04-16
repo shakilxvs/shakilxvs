@@ -142,41 +142,43 @@ export default function LogFeed({ initialPosts = [] }) {
 
   return (
     <>
-      {/* ─── Filter pills ─────────────────────────────────── */}
-      <div style={{
-        display:'flex', flexWrap:'wrap', gap:'8px',
-        marginBottom: '36px',
-      }}>
-        {availableTypes.map(t => {
-          const active = activeType === t.id;
-          return (
-            <motion.button
-              key={t.id}
-              onClick={() => handleTypeChange(t.id)}
-              whileTap={{ scale: 0.96 }}
-              layout
-              style={{
-                position: 'relative',
-                padding: '9px 18px',
-                borderRadius: 999,
-                fontFamily: "'DM Sans', 'Outfit', sans-serif",
-                fontSize: '0.82rem',
-                fontWeight: active ? 600 : 500,
-                letterSpacing: '-0.01em',
-                color: active ? '#0a0a0a' : 'rgba(232,232,234,0.72)',
-                background: active ? '#f4f4f5' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${active ? '#f4f4f5' : 'rgba(255,255,255,0.08)'}`,
-                cursor: 'pointer',
-                transition: 'color 0.2s, background 0.2s, border-color 0.2s',
-                backdropFilter: 'blur(10px)',
-                boxShadow: active ? '0 8px 24px rgba(244,244,245,0.12)' : 'none',
-              }}
-            >
-              {t.label}
-            </motion.button>
-          );
-        })}
-      </div>
+      {/* ─── Filter pills (only when posts exist) ──────── */}
+      {initialPosts.length > 0 && (
+        <div style={{
+          display:'flex', flexWrap:'wrap', gap:'8px',
+          marginBottom: '36px',
+        }}>
+          {availableTypes.map(t => {
+            const active = activeType === t.id;
+            return (
+              <motion.button
+                key={t.id}
+                onClick={() => handleTypeChange(t.id)}
+                whileTap={{ scale: 0.96 }}
+                layout
+                style={{
+                  position: 'relative',
+                  padding: '9px 18px',
+                  borderRadius: 999,
+                  fontFamily: "'DM Sans', 'Outfit', sans-serif",
+                  fontSize: '0.82rem',
+                  fontWeight: active ? 600 : 500,
+                  letterSpacing: '-0.01em',
+                  color: active ? '#0a0a0a' : 'rgba(232,232,234,0.72)',
+                  background: active ? '#f4f4f5' : 'rgba(255,255,255,0.04)',
+                  border: `1px solid ${active ? '#f4f4f5' : 'rgba(255,255,255,0.08)'}`,
+                  cursor: 'pointer',
+                  transition: 'color 0.2s, background 0.2s, border-color 0.2s',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: active ? '0 8px 24px rgba(244,244,245,0.12)' : 'none',
+                }}
+              >
+                {t.label}
+              </motion.button>
+            );
+          })}
+        </div>
+      )}
 
       {/* ─── Masonry grid ─────────────────────────────────── */}
       {filtered.length === 0 ? (
