@@ -21,7 +21,7 @@ export const metadata = {
 
 // Curated safe font list — all available on Google Fonts
 const FONT_MAP = {
-  // Heading fonts
+  // Heading fonts (selectable in Settings)
   'Bebas Neue':    'Bebas+Neue',
   'Oswald':        'Oswald:wght@400;700',
   'Montserrat':    'Montserrat:wght@400;600;700;800',
@@ -30,7 +30,7 @@ const FONT_MAP = {
   'Roboto Condensed': 'Roboto+Condensed:wght@400;700',
   'Anton':         'Anton',
   'Barlow Condensed': 'Barlow+Condensed:wght@400;600;700',
-  // Body fonts
+  // Body fonts (selectable in Settings)
   'Outfit':        'Outfit:wght@300;400;500;600;700;800',
   'Inter':         'Inter:wght@300;400;500;600;700',
   'Poppins':       'Poppins:wght@300;400;500;600;700',
@@ -62,8 +62,11 @@ export default async function RootLayout({ children }) {
     }
   } catch {}
 
-  // Build Google Fonts URL — always load Space Mono + selected heading + selected body
-  const fontsToLoad = ['Space+Mono:wght@400;700'];
+  // Build Google Fonts URL — always load Space Mono + Instrument Serif (for /log)
+  // + selected heading + selected body. Instrument Serif is a fixed editorial
+  // serif used only on the /log feature; always preloaded so the feed never
+  // flashes a fallback on first paint.
+  const fontsToLoad = ['Space+Mono:wght@400;700', 'Instrument+Serif:ital@0;1'];
   const headingSlug = FONT_MAP[headingFont];
   const bodySlug    = FONT_MAP[bodyFont];
   if (headingSlug && !fontsToLoad.includes(headingSlug)) fontsToLoad.push(headingSlug);
