@@ -88,9 +88,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* 2-col: project status + messages */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px', marginBottom:'24px' }} className="dash-2">
+      <div style={{ display:'grid', gridTemplateColumns:'minmax(0,1fr) minmax(0,1fr)', gap:'20px', marginBottom:'24px' }} className="dash-2">
         {/* Projects by status */}
-        <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'20px 22px' }}>
+        <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'20px 22px', overflow:'hidden' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
             <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.15em' }}>Projects by Status</div>
             <Link href="/admin/crm" style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ArrowRight size={10}/></Link>
@@ -114,7 +114,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent messages */}
-        <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'20px 22px' }}>
+        <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'20px 22px', overflow:'hidden' }}>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'16px' }}>
             <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.15em' }}>Recent Messages</div>
             <Link href="/admin/messages" style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', textDecoration:'none', display:'flex', alignItems:'center', gap:'3px' }}>View all <ArrowRight size={10}/></Link>
