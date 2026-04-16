@@ -75,9 +75,10 @@ function BadgeDot({ badge }) {
 }
 
 /* ── Layout 1: Classic ───────────────────────────────────────── */
-function Layout1({ h, badge }) {
+function Layout1({ h, badge, logLinkEnabled }) {
   const tagline  = useTypewriter(h.taglines?.length ? h.taglines : DEFAULT.taglines);
   const hasPhoto = !!h.profileImageUrl;
+  const showLogLink = logLinkEnabled && hasPhoto;
   const stats    = [
     { v:h.stat1Value, s:'+', l:h.stat1Label },
     { v:h.stat2Value, s:'+', l:h.stat2Label },
@@ -120,8 +121,13 @@ function Layout1({ h, badge }) {
           <div style={{ position:'absolute', width:'340px', height:'340px', borderRadius:'50%', border:'1.5px dashed rgba(35,77,194,0.25)', animation:'spin 18s linear infinite', zIndex:0 }}/>
           <div style={{ position:'absolute', width:'300px', height:'300px', borderRadius:'50%', border:'1px dashed rgba(35,77,194,0.12)', animation:'spin 12s linear infinite reverse', zIndex:0 }}/>
           <div style={{ position:'absolute', width:'280px', height:'280px', borderRadius:'50%', background:'radial-gradient(circle, rgba(35,77,194,0.3) 0%, rgba(35,77,194,0.1) 50%, transparent 75%)', filter:'blur(20px)', zIndex:0 }}/>
-          <div style={{ width:'260px', height:'260px', borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(35,77,194,0.4)', background:'var(--bg-elevated)', position:'relative', zIndex:1, boxShadow:'0 0 60px rgba(35,77,194,0.25), 0 0 120px rgba(35,77,194,0.1)' }}>
-            {hasPhoto
+          <div style={{ width:'260px', height:'260px', borderRadius:'50%', overflow:'hidden', border:'2px solid rgba(35,77,194,0.4)', background:'var(--bg-elevated)', position:'relative', zIndex:1, boxShadow:'0 0 60px rgba(35,77,194,0.25), 0 0 120px rgba(35,77,194,0.1)' }}
+            className={showLogLink ? 'hero-log-ring' : undefined}>
+            {showLogLink ? (
+              <Link href="/log" style={{ display:'block', width:'100%', height:'100%' }}>
+                <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}/>
+              </Link>
+            ) : hasPhoto
               ? <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top' }}/>
               : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Bebas Neue,sans-serif', fontSize:'6rem', color:'var(--accent)', opacity:0.5 }}>{h.name?.[0]||'S'}</div>
             }
@@ -207,8 +213,9 @@ function Layout2({ h, badge }) {
 }
 
 /* ── Layout 3: Minimal Card ──────────────────────────────────── */
-function Layout3({ h, badge }) {
+function Layout3({ h, badge, logLinkEnabled }) {
   const hasPhoto  = !!h.profileImageUrl;
+  const showLogLink = logLinkEnabled && hasPhoto;
   const role      = h.l3Role      || DEFAULT.l3Role;
   const availText = h.l3AvailText || DEFAULT.l3AvailText;
   const stats = [
@@ -224,8 +231,13 @@ function Layout3({ h, badge }) {
         {/* LEFT — Portrait photo */}
         <div style={{ position:'relative' }}>
           <div style={{ position:'absolute', inset:'-10px', borderRadius:'calc(var(--radius-xl) + 4px)', background:'rgba(35,77,194,0.05)', border:'1px solid rgba(35,77,194,0.1)', pointerEvents:'none' }}/>
-          <div style={{ position:'relative', borderRadius:'var(--radius-xl)', overflow:'hidden', aspectRatio:'3/4', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', boxShadow:'0 24px 60px rgba(0,0,0,0.45)' }}>
-            {hasPhoto
+          <div style={{ position:'relative', borderRadius:'var(--radius-xl)', overflow:'hidden', aspectRatio:'3/4', background:'var(--bg-elevated)', border:'1px solid var(--border-2)', boxShadow:'0 24px 60px rgba(0,0,0,0.45)' }}
+            className={showLogLink ? 'hero-log-ring hero-log-ring-rect' : undefined}>
+            {showLogLink ? (
+              <Link href="/log" style={{ display:'block', width:'100%', height:'100%' }}>
+                <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }}/>
+              </Link>
+            ) : hasPhoto
               ? <img src={h.profileImageUrl} alt={h.name} fetchPriority="high" loading="eager" style={{ width:'100%', height:'100%', objectFit:'cover', objectPosition:'center top', display:'block' }}/>
               : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Bebas Neue,sans-serif', fontSize:'8rem', color:'var(--accent)', opacity:0.25 }}>{h.name?.[0]||'S'}</div>
             }
@@ -282,10 +294,10 @@ function Layout3({ h, badge }) {
 }
 
 /* ── Main export ─────────────────────────────────────────────── */
-export default function Hero({ data, badge }) {
+export default function Hero({ data, badge, logLinkEnabled }) {
   const h      = { ...DEFAULT, ...data };
   const layout = String(h.layout || '1');
   if (layout === '2') return <Layout2 h={h} badge={badge}/>;
-  if (layout === '3') return <Layout3 h={h} badge={badge}/>;
-  return <Layout1 h={h} badge={badge}/>;
+  if (layout === '3') return <Layout3 h={h} badge={badge} logLinkEnabled={logLinkEnabled}/>;
+  return <Layout1 h={h} badge={badge} logLinkEnabled={logLinkEnabled}/>;
 }
