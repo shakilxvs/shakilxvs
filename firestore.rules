@@ -4,12 +4,9 @@ service cloud.firestore {
 
     // ─── Admin check ─────────────────────────────────────────
     // Accepts EITHER a Firebase Auth user with the `admin: true`
-    // custom claim (the secure way), OR the legacy hardcoded
-    // email as a temporary fallback during cutover.
-    //
-    // After verifying the custom claim works for ~24 hours,
-    // delete the second line (the email check) — your email
-    // will then be gone from this file entirely.
+    // custom claim, OR the legacy hardcoded email as a fallback
+    // during cutover. Delete the email line once the custom claim
+    // is verified working.
     function isAdmin() {
       return request.auth != null && (
         request.auth.token.admin == true
@@ -29,8 +26,32 @@ service cloud.firestore {
     match /payment_gateways/{doc}  { allow read: if true; allow write: if isAdmin(); }
     match /blog_posts/{doc}        { allow read: if true; allow write: if isAdmin(); }
 
+    // ─── Log posts ───────────────────────────────────────────
+    // Public read is restricted to published posts only — an
+    // unpublished doc cannot be read by anyone but admin, even
+    // via a direct Firestore query from the browser.
+    //
+    // Public update is allowed ONLY for incrementing the `views`
+    // field by 1 on a published post. No other field can be
+    // mutated by a non-admin. This matches the dashboard's
+    // "fire-and-forget view counter" pattern without opening up
+    // the collection to unauthenticated writes of any other kind.
+    match /logPosts/{doc} {
+      allow read: if resource.data.published == true || isAdmin();
+
+      allow create, delete: if isAdmin();
+
+      allow update: if isAdmin()
+        || (
+          // Anonymous view-increment: only `views` field changes,
+          // by exactly +1, and only on published posts.
+          resource.data.published == true
+          && request.resource.data.diff(resource.data).affectedKeys() == ['views'].toSet()
+          && request.resource.data.views == resource.data.views + 1
+        );
+    }
+
     // ─── Public form-submission collections ────────────────
-    // Anyone can create (form submission); only admin can read/manage.
     match /reviews_pending/{doc} {
       allow create: if true;
       allow read, update, delete: if isAdmin();
@@ -45,14 +66,12 @@ service cloud.firestore {
     match /messages_archived/{doc} { allow read, write: if isAdmin(); }
 
     // ─── Rate limits ───────────────────────────────────────
-    // LOCKED DOWN — was previously world-writable, which made it
-    // possible for any visitor to bypass the contact-form throttle.
     match /rate_limits/{doc} { allow read, write: if isAdmin(); }
 
     // ─── Sensitive portal collections ──────────────────────
-    // ALL locked down to admin-only. Portal users access these
-    // exclusively through /api/portal/* routes which use the
-    // Admin SDK (bypasses these rules) and verify a signed JWT.
+    // Locked down to admin only. Portal users access these
+    // exclusively via /api/portal/* routes (Admin SDK bypasses
+    // these rules and verifies a signed JWT).
     match /clients/{doc}          { allow read, write: if isAdmin(); }
     match /portal_projects/{doc}  { allow read, write: if isAdmin(); }
     match /portal_tasks/{doc}     { allow read, write: if isAdmin(); }
