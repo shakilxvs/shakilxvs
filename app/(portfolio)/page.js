@@ -1,4 +1,4 @@
-import { getPortfolioDoc, getSkills, getFeaturedProjects, getApprovedReviews  } from '@/lib/firestore';
+import { getPortfolioDoc, getSkills, getFeaturedProjects, getApprovedReviews, getLogSettings, getPublishedLogPosts } from '@/lib/firestore';
 import Hero from '@/components/portfolio/Hero';
 import Marquee from '@/components/portfolio/Marquee';
 import About from '@/components/portfolio/About';
@@ -57,7 +57,7 @@ export async function generateMetadata() {
 }
 
 export default async function HomePage() {
-  const [hero, about, skills, featuredProjects, reviews, siteSettings, contact] = await Promise.all([
+  const [hero, about, skills, featuredProjects, reviews, siteSettings, contact, logSettings, logPosts] = await Promise.all([
     getPortfolioDoc('hero').catch(()=>null),
     getPortfolioDoc('about').catch(()=>null),
     getSkills().catch(()=>[]),
@@ -65,7 +65,12 @@ export default async function HomePage() {
     getApprovedReviews().catch(()=>[]),
     getPortfolioDoc('siteSettings').catch(()=>null),
     getPortfolioDoc('contact').catch(()=>null),
+    getLogSettings().catch(()=>null),
+    getPublishedLogPosts().catch(()=>[]),
   ]);
+
+  // Hero links to /log if the feature is enabled AND at least 1 published post exists
+  const logLinkEnabled = !!logSettings?.page_enabled && logPosts.length > 0;
 
   // sameAs — merge Firestore contact values with hardcoded fallbacks, deduplicated
   const sameAs = [...new Set([
@@ -245,7 +250,7 @@ export default async function HomePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}/>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(strategicFaqSchema) }}/>
       <TrackPage page="home" />
-      {show('hero')     && <Hero data={hero} badge={badge} />}
+      {show('hero')     && <Hero data={hero} badge={badge} logLinkEnabled={logLinkEnabled} />}
       {show('marquee')  && <Marquee />}
       {show('about')    && <About data={about} />}
       {show('skills')   && <Skills data={skills} />}
