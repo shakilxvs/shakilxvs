@@ -350,3 +350,37 @@ textarea.input { resize: vertical; min-height: 100px; }
   background: rgba(35, 77, 194, 0.08) !important;
   border-color: rgba(35, 77, 194, 0.18) !important;
 }
+
+/* ─── Hero → /log glow ring ───────────────────────────────────
+   Applied to the hero photo when the /log feature is enabled
+   and has ≥1 published post. Softly pulsing border glow in the
+   site's accent color, drawn via a pseudo-element ring that
+   scales/fades in a continuous loop. Uses will-change to promote
+   to GPU layer → 0 layout thrash. */
+.hero-log-ring {
+  cursor: pointer;
+  position: relative;
+}
+.hero-log-ring::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: inherit;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  animation: pulse-ring 2.4s ease-in-out infinite;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+/* Rectangular cards (Layout3) — ring needs its own border-radius */
+.hero-log-ring.hero-log-ring-rect::after {
+  border-radius: calc(var(--radius-xl) + 4px);
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1);    opacity: 0;   }
+  40%  { transform: scale(1.03); opacity: 0.6; }
+  100% { transform: scale(1.06); opacity: 0;   }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-log-ring::after { animation: none; }
+}
