@@ -568,10 +568,14 @@ function PostDrawer({ post, onClose, onSaved }) {
 
 // ─── Settings tab ──────────────────────────────────────────
 function SettingsTab() {
-  const [local, setLocal] = useState({ page_title: '', page_subtitle: '', page_enabled: false });
+  const [local, setLocal] = useState({ page_title: '', page_subtitle: '', page_enabled: false, hero_image_1: '', hero_image_2: '' });
   const [loading, setLoading] = useState(true);
   const [saving,  setSaving]  = useState(false);
   const [dirty,   setDirty]   = useState(false);
+  const [uploading1, setUploading1] = useState(false);
+  const [uploading2, setUploading2] = useState(false);
+  const file1Ref = useRef(null);
+  const file2Ref = useRef(null);
 
   useEffect(() => {
     getLogSettings().then(s => {
@@ -580,6 +584,8 @@ function SettingsTab() {
           page_title:    s.page_title    || '',
           page_subtitle: s.page_subtitle || '',
           page_enabled:  !!s.page_enabled,
+          hero_image_1:  s.hero_image_1  || '',
+          hero_image_2:  s.hero_image_2  || '',
         });
       }
       setLoading(false);
@@ -587,6 +593,18 @@ function SettingsTab() {
   }, []);
 
   const set = (k, v) => { setLocal(l => ({ ...l, [k]: v })); setDirty(true); };
+
+  const handleImageUpload = async (e, key, setUploading) => {
+    const file = e.target.files?.[0];
+    if (!file || !file.type?.startsWith('image/')) { toast.error('Select an image'); e.target.value = ''; return; }
+    setUploading(true);
+    try {
+      const url = await uploadToCloudinary(file, 'log/hero');
+      set(key, url);
+      toast.success('Uploaded');
+    } catch { toast.error('Upload failed'); }
+    finally { setUploading(false); e.target.value = ''; }
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -619,6 +637,72 @@ function SettingsTab() {
           <input style={FI} value={local.page_subtitle} onChange={e => set('page_subtitle', e.target.value)}
             onFocus={foc} onBlur={blr} placeholder="A quiet one-liner (optional)…"/>
         </div>
+
+        {/* Hero preview images */}
+        <div style={{ marginBottom:'18px' }}>
+          <label style={LB}>Hero Preview Images (displayed in page header)</label>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'10px' }}>
+            Two images shown tilted in the header next to the title. Pick your best photos.
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+            {/* Image 1 */}
+            <div style={{ background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', padding:'10px', textAlign:'center' }}>
+              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'8px' }}>IMAGE 1</div>
+              {local.hero_image_1 ? (
+                <div style={{ position:'relative', marginBottom:'8px' }}>
+                  <img src={local.hero_image_1} alt="" style={{ width:'100%', height:120, objectFit:'cover', borderRadius:'var(--radius-sm)' }}/>
+                  <button onClick={() => set('hero_image_1', '')} style={{
+                    position:'absolute', top:4, right:4, width:20, height:20, borderRadius:'50%',
+                    background:'rgba(0,0,0,0.6)', border:'none', color:'#fff', cursor:'pointer',
+                    display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem',
+                  }}>×</button>
+                </div>
+              ) : (
+                <div style={{ height:120, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-3)', fontSize:'0.8rem', fontFamily:'Outfit,sans-serif' }}>
+                  No image
+                </div>
+              )}
+              <button onClick={() => file1Ref.current?.click()} disabled={uploading1} style={{
+                padding:'6px 14px', background:'var(--accent)', color:'#fff', border:'none',
+                borderRadius:'var(--radius-sm)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem',
+                fontWeight:600, cursor: uploading1 ? 'not-allowed' : 'pointer', width:'100%',
+              }}>
+                {uploading1 ? 'Uploading…' : (local.hero_image_1 ? 'Replace' : 'Upload')}
+              </button>
+              <input ref={file1Ref} type="file" accept="image/*" style={{ display:'none' }}
+                onChange={e => handleImageUpload(e, 'hero_image_1', setUploading1)}/>
+            </div>
+
+            {/* Image 2 */}
+            <div style={{ background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', padding:'10px', textAlign:'center' }}>
+              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'8px' }}>IMAGE 2</div>
+              {local.hero_image_2 ? (
+                <div style={{ position:'relative', marginBottom:'8px' }}>
+                  <img src={local.hero_image_2} alt="" style={{ width:'100%', height:120, objectFit:'cover', borderRadius:'var(--radius-sm)' }}/>
+                  <button onClick={() => set('hero_image_2', '')} style={{
+                    position:'absolute', top:4, right:4, width:20, height:20, borderRadius:'50%',
+                    background:'rgba(0,0,0,0.6)', border:'none', color:'#fff', cursor:'pointer',
+                    display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem',
+                  }}>×</button>
+                </div>
+              ) : (
+                <div style={{ height:120, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-3)', fontSize:'0.8rem', fontFamily:'Outfit,sans-serif' }}>
+                  No image
+                </div>
+              )}
+              <button onClick={() => file2Ref.current?.click()} disabled={uploading2} style={{
+                padding:'6px 14px', background:'var(--accent)', color:'#fff', border:'none',
+                borderRadius:'var(--radius-sm)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem',
+                fontWeight:600, cursor: uploading2 ? 'not-allowed' : 'pointer', width:'100%',
+              }}>
+                {uploading2 ? 'Uploading…' : (local.hero_image_2 ? 'Replace' : 'Upload')}
+              </button>
+              <input ref={file2Ref} type="file" accept="image/*" style={{ display:'none' }}
+                onChange={e => handleImageUpload(e, 'hero_image_2', setUploading2)}/>
+            </div>
+          </div>
+        </div>
+
         <label style={{
           display:'flex', alignItems:'center', gap:'10px',
           padding:'12px 14px', background:'var(--bg-elevated)',
