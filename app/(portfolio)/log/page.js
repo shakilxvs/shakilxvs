@@ -55,6 +55,10 @@ export default async function LogPage() {
   const heroImg1   = settings.hero_image_1  || '';
   const heroImg2   = settings.hero_image_2  || '';
   const hasHeroImgs = !!(heroImg1 && heroImg2);
+  const btn1Text   = settings.btn1_text     || 'Blog';
+  const btn1Url    = settings.btn1_url      || '/blog';
+  const btn2Text   = settings.btn2_text     || 'Contact';
+  const btn2Url    = settings.btn2_url      || '/contact';
 
   return (
     <div className="log-page-root">
@@ -194,8 +198,12 @@ export default async function LogPage() {
               <div className="log-accent-line"/>
               {subtitle && <p className="log-subtitle">{subtitle}</p>}
               <div className="log-hero-btns">
-                <Link href="/blog" className="log-hero-btn log-hero-btn-primary">Blog</Link>
-                <Link href="/contact" className="log-hero-btn log-hero-btn-ghost">Contact</Link>
+                {btn1Text && btn1Url && (
+                  <Link href={btn1Url} className="log-hero-btn log-hero-btn-primary">{btn1Text}</Link>
+                )}
+                {btn2Text && btn2Url && (
+                  <Link href={btn2Url} className="log-hero-btn log-hero-btn-ghost">{btn2Text}</Link>
+                )}
               </div>
             </div>
             {hasHeroImgs && (
