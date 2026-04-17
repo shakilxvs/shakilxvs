@@ -22,13 +22,13 @@ export async function generateMetadata() {
     return { title: 'Not found', robots: { index: false, follow: false } };
   }
   const t = [settings.page_title, settings.page_title_accent].filter(Boolean).join(' ') || 'log';
-  const sub = settings.page_subtitle || 'A personal feed.';
+  const sub = settings.page_subtitle || '';
   return {
     title: `${t} — shakilxvs`,
-    description: sub,
+    description: sub || 'A personal feed.',
     alternates: { canonical: 'https://shakilxvs.com/log' },
-    openGraph: { title: `${t} — shakilxvs`, description: sub, url: 'https://shakilxvs.com/log', type: 'website' },
-    twitter: { card: 'summary_large_image', title: `${t} — shakilxvs`, description: sub },
+    openGraph: { title: `${t} — shakilxvs`, description: sub || 'A personal feed.', url: 'https://shakilxvs.com/log', type: 'website' },
+    twitter: { card: 'summary_large_image', title: `${t} — shakilxvs`, description: sub || 'A personal feed.' },
   };
 }
 
@@ -40,193 +40,159 @@ export default async function LogPage() {
 
   if (!settings?.page_enabled) redirect('/');
 
-  const posts       = rawPosts.map(serializePost);
-  const titleLine1  = settings.page_title        || '';
-  const titleLine2  = settings.page_title_accent  || '';
-  const subtitle    = settings.page_subtitle      || '';
-  const heroImg1    = settings.hero_image_1       || '';
-  const heroImg2    = settings.hero_image_2       || '';
-  const hasImages   = !!(heroImg1 || heroImg2);
-  const btn1Text    = settings.btn1_text          || '';
-  const btn1Url     = settings.btn1_url           || '/blog';
-  const btn2Text    = settings.btn2_text          || '';
-  const btn2Url     = settings.btn2_url           || '/contact';
-  const hasTitle    = !!(titleLine1 || titleLine2);
+  const posts      = rawPosts.map(serializePost);
+  const line1      = settings.page_title        || '';
+  const line2      = settings.page_title_accent  || '';
+  const subtitle   = settings.page_subtitle      || '';
+  const img1       = settings.hero_image_1       || '';
+  const img2       = settings.hero_image_2       || '';
+  const hasImgs    = !!(img1 || img2);
+  const btn1       = settings.btn1_text          || '';
+  const btn1Url    = settings.btn1_url           || '/blog';
+  const btn2       = settings.btn2_text          || '';
+  const btn2Url    = settings.btn2_url           || '/contact';
+  const hasTitle   = !!(line1 || line2);
 
   return (
-    <div className="log-root">
-      <div className="log-bg" aria-hidden="true">
-        <div className="log-blob log-blob-1"/>
-        <div className="log-blob log-blob-2"/>
-        <div className="log-grain"/>
+    <div className="lp">
+      <div className="lp-bg" aria-hidden="true">
+        <div className="lp-blob lp-b1"/>
+        <div className="lp-blob lp-b2"/>
       </div>
 
       <style>{`
         :root {
-          --log-bg: #0a0a0a;
-          --log-text: #f4f4f5;
-          --log-text-sub: rgba(232,232,234,0.50);
-          --log-card-bg: #141414;
-          --log-card-border: rgba(255,255,255,0.07);
-          --log-card-hover-border: rgba(255,255,255,0.14);
-          --log-pill-bg: rgba(255,255,255,0.04);
-          --log-pill-border: rgba(255,255,255,0.08);
-          --log-pill-text: rgba(232,232,234,0.72);
-          --log-pill-active-bg: #f4f4f5;
-          --log-pill-active-text: #0a0a0a;
-          --log-empty-text: rgba(232,232,234,0.35);
-          --log-badge-bg: rgba(10,10,10,0.55);
-          --log-grain-opacity: 0.025;
+          --log-bg:#0a0a0a; --log-text:#f4f4f5; --log-text-sub:rgba(232,232,234,0.50);
+          --log-card-bg:#141414; --log-card-border:rgba(255,255,255,0.07);
+          --log-card-hover-border:rgba(255,255,255,0.14);
+          --log-pill-bg:rgba(255,255,255,0.04); --log-pill-border:rgba(255,255,255,0.08);
+          --log-pill-text:rgba(232,232,234,0.72);
+          --log-pill-active-bg:#f4f4f5; --log-pill-active-text:#0a0a0a;
+          --log-empty-text:rgba(232,232,234,0.35);
+          --log-badge-bg:rgba(10,10,10,0.55);
         }
         [data-theme="light"] {
-          --log-bg: var(--bg-base, #f4f6fc);
-          --log-text: var(--text-1, #0d1117);
-          --log-text-sub: var(--text-3, #8896b3);
-          --log-card-bg: var(--bg-surface, #ffffff);
-          --log-card-border: rgba(0,0,0,0.06);
-          --log-card-hover-border: rgba(0,0,0,0.14);
-          --log-pill-bg: rgba(0,0,0,0.03);
-          --log-pill-border: rgba(0,0,0,0.08);
-          --log-pill-text: var(--text-2, #4a5568);
-          --log-pill-active-bg: var(--text-1, #0d1117);
-          --log-pill-active-text: #ffffff;
-          --log-empty-text: var(--text-3, #8896b3);
-          --log-badge-bg: rgba(255,255,255,0.75);
-          --log-grain-opacity: 0.012;
+          --log-bg:var(--bg-base,#f4f6fc); --log-text:var(--text-1,#0d1117);
+          --log-text-sub:var(--text-3,#8896b3);
+          --log-card-bg:var(--bg-surface,#fff); --log-card-border:rgba(0,0,0,0.06);
+          --log-card-hover-border:rgba(0,0,0,0.14);
+          --log-pill-bg:rgba(0,0,0,0.03); --log-pill-border:rgba(0,0,0,0.08);
+          --log-pill-text:var(--text-2,#4a5568);
+          --log-pill-active-bg:var(--text-1,#0d1117); --log-pill-active-text:#fff;
+          --log-empty-text:var(--text-3,#8896b3);
+          --log-badge-bg:rgba(255,255,255,0.75);
         }
 
-        .log-root {
-          position: relative; min-height: 100vh;
-          background: var(--log-bg); color: var(--log-text);
-          padding: 0 24px 120px; overflow-x: hidden;
-          transition: background 0.3s, color 0.3s;
+        /* ── Page ──────────────────────────────────────── */
+        .lp {
+          position:relative; min-height:100vh;
+          background:var(--log-bg); color:var(--log-text);
+          padding:80px 24px 120px;
+          overflow-x:hidden; transition:background .3s,color .3s;
         }
-        .log-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-        .log-blob { position: absolute; width: 500px; height: 500px; border-radius: 50%; filter: blur(140px); }
-        .log-blob-1 { background: rgba(35,77,194,0.08); top: -100px; left: -80px; }
-        .log-blob-2 { background: rgba(120,80,200,0.06); bottom: -120px; right: -100px; }
-        .log-grain { position: absolute; inset: 0; opacity: var(--log-grain-opacity); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); background-size: 200px 200px; }
-        .log-wrap { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; }
+        .lp-bg { position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
+        .lp-blob { position:absolute; width:500px; height:500px; border-radius:50%; filter:blur(140px); }
+        .lp-b1 { background:rgba(35,77,194,0.07); top:-100px; left:-80px; }
+        .lp-b2 { background:rgba(120,80,200,0.05); bottom:-120px; right:-100px; }
+        .lp-w { position:relative; z-index:1; max-width:1200px; margin:0 auto; }
 
-        /* ── HERO ─────────────────────────────────────── */
-        .log-hero {
-          display: flex; align-items: center;
-          gap: 48px; padding: 80px 0 64px;
+        /* ── Hero ──────────────────────────────────────── */
+        .lp-hero {
+          display:flex; align-items:center;
+          gap:48px; padding:0 0 56px;
         }
-        .log-hero-text { flex: 1; min-width: 0; }
+        .lp-hero-l { flex:1; min-width:0; }
 
-        /* Title — 2-line, line1 default color, line2 accent */
-        .log-hero-title {
-          font-family: 'Outfit', sans-serif;
-          font-weight: 800;
-          font-size: clamp(2.6rem, 5.5vw, 4.2rem);
-          line-height: 1.1; letter-spacing: -0.025em;
-          margin: 0 0 16px;
+        .lp-h1 {
+          font-family:'Outfit',sans-serif;
+          font-weight:800; line-height:1.08;
+          font-size:clamp(2.6rem,5.5vw,4.2rem);
+          letter-spacing:-0.025em; margin:0 0 16px;
+          color:var(--log-text);
         }
-        .log-hero-title-accent {
-          color: var(--accent, #234DC2);
-        }
+        .lp-h1-accent { color:var(--accent,#234DC2); }
 
-        /* Subtitle */
-        .log-hero-sub {
-          font-family: 'Outfit', sans-serif;
-          font-size: 1rem; font-weight: 400;
-          color: var(--log-text-sub);
-          line-height: 1.55; margin: 0 0 28px;
-          max-width: 380px;
+        .lp-sub {
+          font-family:'Outfit',sans-serif;
+          font-size:1.05rem; font-weight:400;
+          color:var(--log-text-sub);
+          line-height:1.55; margin:0 0 32px;
+          max-width:400px;
         }
 
-        /* CTA row */
-        .log-hero-cta-row { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-        .log-hero-cta {
-          display: inline-flex; align-items: center; justify-content: center;
-          padding: 14px 28px; border-radius: 999; border: none;
-          background: var(--accent, #234DC2); color: #fff;
-          font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 700;
-          text-decoration: none; transition: opacity 0.15s;
+        .lp-acts { display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+        .lp-cta {
+          display:inline-flex; align-items:center; justify-content:center;
+          padding:16px 36px; border-radius:999; border:none;
+          background:var(--accent,#234DC2); color:#fff;
+          font-family:'Outfit',sans-serif; font-size:1.05rem; font-weight:700;
+          text-decoration:none; transition:opacity .15s,transform .15s;
         }
-        .log-hero-cta:hover { opacity: 0.88; }
-        .log-hero-secondary {
-          font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 600;
-          color: var(--log-text); text-decoration: none;
-          transition: opacity 0.15s;
+        .lp-cta:hover { opacity:.88; transform:translateY(-1px); }
+        .lp-sec {
+          font-family:'Outfit',sans-serif; font-size:1.05rem; font-weight:600;
+          color:var(--log-text); text-decoration:none; transition:opacity .15s;
         }
-        .log-hero-secondary:hover { opacity: 0.65; }
+        .lp-sec:hover { opacity:.6; }
 
-        /* Images — two tilted overlapping cards */
-        .log-hero-imgs {
-          flex-shrink: 0; position: relative;
-          width: 360px; height: 340px;
+        /* ── Images ────────────────────────────────────── */
+        .lp-hero-r { flex-shrink:0; position:relative; width:380px; height:360px; }
+        .lp-img {
+          position:absolute; border-radius:20px; overflow:hidden;
+          border:5px solid rgba(255,255,255,0.92);
+          box-shadow:0 14px 44px rgba(0,0,0,0.22);
+          transition:transform .35s cubic-bezier(.22,1,.36,1);
         }
-        .log-hero-img {
-          position: absolute; border-radius: 18px; overflow: hidden;
-          border: 5px solid rgba(255,255,255,0.92);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.2);
-          transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
-        }
-        .log-hero-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
-        .log-hero-img-1 {
-          width: 230px; height: 290px;
-          top: 0; left: 0;
-          transform: rotate(-5deg); z-index: 1;
-        }
-        .log-hero-img-2 {
-          width: 200px; height: 260px;
-          top: 36px; left: 150px;
-          transform: rotate(4deg); z-index: 2;
-        }
-        .log-hero-img-1:hover { transform: rotate(-2deg) scale(1.02); }
-        .log-hero-img-2:hover { transform: rotate(1deg) scale(1.02); }
-        [data-theme="light"] .log-hero-img {
-          border-color: rgba(255,255,255,0.96);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.08);
-        }
+        .lp-img img { display:block; width:100%; height:100%; object-fit:cover; }
+        .lp-i1 { width:240px; height:300px; top:0; left:0; transform:rotate(-5deg); z-index:1; }
+        .lp-i2 { width:210px; height:270px; top:40px; left:150px; transform:rotate(4deg); z-index:2; }
+        .lp-i1:hover { transform:rotate(-2deg) scale(1.02); }
+        .lp-i2:hover { transform:rotate(1deg) scale(1.02); }
+        [data-theme="light"] .lp-img { border-color:rgba(255,255,255,.96); box-shadow:0 14px 44px rgba(0,0,0,.08); }
 
-        /* ── MOBILE ───────────────────────────────────── */
-        @media (max-width: 768px) {
-          .log-root { padding: 0 16px 80px; }
-          .log-hero {
-            flex-direction: column; gap: 0;
-            padding: 12px 0 32px; text-align: center;
+        /* ── Mobile ────────────────────────────────────── */
+        @media (max-width:768px) {
+          .lp { padding:70px 16px 80px; }
+          .lp-hero {
+            flex-direction:column; gap:28px;
+            padding:0 0 32px; text-align:center;
           }
-          /* Images first, text second */
-          .log-hero-imgs {
-            order: -1;
-            width: 200px; height: 170px;
-            margin: 0 auto 24px;
+          .lp-hero-r {
+            order:-1; width:200px; height:165px;
+            margin:0 auto;
           }
-          .log-hero-img-1 { width: 120px; height: 150px; left: 0; top: 0; }
-          .log-hero-img-2 { width: 110px; height: 138px; left: 78px; top: 16px; }
-          .log-hero-text { text-align: center; }
-          .log-hero-title { font-size: clamp(2rem, 8vw, 2.8rem); margin-bottom: 12px; }
-          .log-hero-sub { margin: 0 auto 20px; }
-          .log-hero-cta-row { justify-content: center; }
-          .log-hero-cta { padding: 12px 24px; font-size: 0.9rem; }
+          .lp-i1 { width:115px; height:145px; left:0; top:0; }
+          .lp-i2 { width:105px; height:132px; left:78px; top:18px; }
+          .lp-hero-l { text-align:center; }
+          .lp-h1 { font-size:clamp(1.8rem,8vw,2.6rem); margin-bottom:10px; }
+          .lp-sub { margin:0 auto 20px; font-size:.95rem; }
+          .lp-acts { justify-content:center; gap:18px; }
+          .lp-cta { padding:14px 28px; font-size:.95rem; }
+          .lp-sec { font-size:.95rem; }
         }
 
-        @media (prefers-reduced-motion: reduce) { .log-blob { animation: none; } }
+        @media (prefers-reduced-motion:reduce) { .lp-blob { display:none; } }
       `}</style>
 
-      <div className="log-wrap">
+      <div className="lp-w">
         {posts.length > 0 && hasTitle && (
-          <div className="log-hero">
-            <div className="log-hero-text">
-              <h1 className="log-hero-title">
-                {titleLine1 && <>{titleLine1}<br/></>}
-                {titleLine2 && <span className="log-hero-title-accent">{titleLine2}</span>}
+          <div className="lp-hero">
+            <div className="lp-hero-l">
+              <h1 className="lp-h1">
+                {line1}{line2 && <><br/><span className="lp-h1-accent">{line2}</span></>}
               </h1>
-              {subtitle && <p className="log-hero-sub">{subtitle}</p>}
-              {(btn1Text || btn2Text) && (
-                <div className="log-hero-cta-row">
-                  {btn1Text && <Link href={btn1Url} className="log-hero-cta">{btn1Text}</Link>}
-                  {btn2Text && <Link href={btn2Url} className="log-hero-secondary">{btn2Text}</Link>}
+              {subtitle && <p className="lp-sub">{subtitle}</p>}
+              {(btn1 || btn2) && (
+                <div className="lp-acts">
+                  {btn1 && <Link href={btn1Url} className="lp-cta">{btn1}</Link>}
+                  {btn2 && <Link href={btn2Url} className="lp-sec">{btn2}</Link>}
                 </div>
               )}
             </div>
-            {hasImages && (
-              <div className="log-hero-imgs">
-                {heroImg1 && <div className="log-hero-img log-hero-img-1"><img src={heroImg1} alt=""/></div>}
-                {heroImg2 && <div className="log-hero-img log-hero-img-2"><img src={heroImg2} alt=""/></div>}
+            {hasImgs && (
+              <div className="lp-hero-r">
+                {img1 && <div className="lp-img lp-i1"><img src={img1} alt=""/></div>}
+                {img2 && <div className="lp-img lp-i2"><img src={img2} alt=""/></div>}
               </div>
             )}
           </div>
