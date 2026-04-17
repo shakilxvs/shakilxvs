@@ -571,7 +571,7 @@ function PostDrawer({ post, onClose, onSaved }) {
 // ─── Settings tab ──────────────────────────────────────────
 function SettingsTab() {
   const [local, setLocal] = useState({
-    page_title: '', page_subtitle: '', page_enabled: false,
+    page_title: '', page_title_accent: '', page_subtitle: '', page_enabled: false,
     hero_image_1: '', hero_image_2: '',
     btn1_text: 'Blog', btn1_url: '/blog',
     btn2_text: 'Contact', btn2_url: '/contact',
@@ -588,15 +588,16 @@ function SettingsTab() {
     getLogSettings().then(s => {
       if (s) {
         setLocal({
-          page_title:    s.page_title    || '',
-          page_subtitle: s.page_subtitle || '',
-          page_enabled:  !!s.page_enabled,
-          hero_image_1:  s.hero_image_1  || '',
-          hero_image_2:  s.hero_image_2  || '',
-          btn1_text:     s.btn1_text     || 'Blog',
-          btn1_url:      s.btn1_url      || '/blog',
-          btn2_text:     s.btn2_text     || 'Contact',
-          btn2_url:      s.btn2_url      || '/contact',
+          page_title:        s.page_title        || '',
+          page_title_accent: s.page_title_accent || '',
+          page_subtitle:     s.page_subtitle     || '',
+          page_enabled:      !!s.page_enabled,
+          hero_image_1:      s.hero_image_1      || '',
+          hero_image_2:      s.hero_image_2      || '',
+          btn1_text:         s.btn1_text         || 'Blog',
+          btn1_url:          s.btn1_url          || '/blog',
+          btn2_text:         s.btn2_text         || 'Contact',
+          btn2_url:          s.btn2_url          || '/contact',
         });
       }
       setLoading(false);
@@ -636,11 +637,18 @@ function SettingsTab() {
     <div style={{ maxWidth:620 }}>
       <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'22px' }}>
 
-        {/* Title */}
+        {/* Title line 1 */}
         <div style={{ marginBottom:'16px' }}>
-          <label style={LB}>Page Title</label>
-          <input style={FI} value={local.page_title} onChange={e => set('page_title', e.target.value)} onFocus={foc} onBlur={blr} placeholder="log / lately / fragments..."/>
-          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'5px' }}>Displayed as the main heading on /log.</div>
+          <label style={LB}>Title Line 1</label>
+          <input style={FI} value={local.page_title} onChange={e => set('page_title', e.target.value)} onFocus={foc} onBlur={blr} placeholder="Find ideas for..."/>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'5px' }}>First line of the heading. Shows in default text color.</div>
+        </div>
+
+        {/* Title line 2 (accent color) */}
+        <div style={{ marginBottom:'16px' }}>
+          <label style={LB}>Title Line 2 (Accent Color)</label>
+          <input style={FI} value={local.page_title_accent} onChange={e => set('page_title_accent', e.target.value)} onFocus={foc} onBlur={blr} placeholder="daily moments"/>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'5px' }}>Second line in accent color. Leave empty for single-line title.</div>
         </div>
 
         {/* Subtitle */}
