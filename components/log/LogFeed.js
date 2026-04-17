@@ -164,13 +164,13 @@ export default function LogFeed({ initialPosts = [] }) {
                   fontSize: '0.82rem',
                   fontWeight: active ? 600 : 500,
                   letterSpacing: '-0.01em',
-                  color: active ? '#0a0a0a' : 'rgba(232,232,234,0.72)',
-                  background: active ? '#f4f4f5' : 'rgba(255,255,255,0.04)',
-                  border: `1px solid ${active ? '#f4f4f5' : 'rgba(255,255,255,0.08)'}`,
+                  color: active ? 'var(--log-pill-active-text, #0a0a0a)' : 'var(--log-pill-text, rgba(232,232,234,0.72))',
+                  background: active ? 'var(--log-pill-active-bg, #f4f4f5)' : 'var(--log-pill-bg, rgba(255,255,255,0.04))',
+                  border: `1px solid ${active ? 'var(--log-pill-active-bg, #f4f4f5)' : 'var(--log-pill-border, rgba(255,255,255,0.08))'}`,
                   cursor: 'pointer',
                   transition: 'color 0.2s, background 0.2s, border-color 0.2s',
                   backdropFilter: 'blur(10px)',
-                  boxShadow: active ? '0 8px 24px rgba(244,244,245,0.12)' : 'none',
+                  boxShadow: active ? '0 8px 24px rgba(0,0,0,0.08)' : 'none',
                 }}
               >
                 {t.label}
@@ -187,7 +187,7 @@ export default function LogFeed({ initialPosts = [] }) {
           fontFamily: "'Instrument Serif', Georgia, serif",
           fontSize: '1.8rem',
           fontStyle: 'italic',
-          color: 'rgba(232,232,234,0.35)',
+          color: 'var(--log-empty-text, rgba(232,232,234,0.35))',
         }}>
           nothing here yet
         </div>
@@ -230,10 +230,10 @@ export default function LogFeed({ initialPosts = [] }) {
                 onClick={() => setVisibleCount(c => c + BATCH)}
                 style={{
                   padding: '12px 28px',
-                  background: 'rgba(255,255,255,0.04)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'var(--log-pill-bg, rgba(255,255,255,0.04))',
+                  border: '1px solid var(--log-pill-border, rgba(255,255,255,0.1))',
                   borderRadius: 999,
-                  color: 'rgba(232,232,234,0.8)',
+                  color: 'var(--log-pill-text, rgba(232,232,234,0.8))',
                   fontFamily: "'DM Sans', 'Outfit', sans-serif",
                   fontSize: '0.85rem',
                   fontWeight: 500,
