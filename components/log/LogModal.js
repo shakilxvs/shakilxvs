@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { X, Link as LinkIcon, Check, Play, Pause, Volume2, VolumeX } from 'lucide-react';
+import { X, Link as LinkIcon, Check, Play, Pause, Volume2, VolumeX, Maximize2 } from 'lucide-react';
 import { incrementLogPostViews } from '@/lib/firestore';
 
 function formatDate(ts) {
@@ -122,6 +122,146 @@ function AudioPlayer({ src, title }) {
           style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(232,168,112,0.6)', display:'flex', alignItems:'center', padding:4 }}>
           {muted ? <VolumeX size={16}/> : <Volume2 size={16}/>}
         </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Custom video player ────────────────────────────────────
+function VideoPlayer({ src, poster }) {
+  const ref = useRef(null);
+  const wrapRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const [showControls, setShowControls] = useState(true);
+  const hideTimer = useRef(null);
+
+  useEffect(() => {
+    const v = ref.current;
+    if (!v) return;
+    const onTime = () => { setCurrentTime(v.currentTime); setProgress(v.duration ? v.currentTime / v.duration : 0); };
+    const onMeta = () => setDuration(v.duration);
+    const onEnd  = () => { setPlaying(false); setShowControls(true); };
+    const onPlay = () => setPlaying(true);
+    const onPause = () => setPlaying(false);
+    v.addEventListener('timeupdate', onTime);
+    v.addEventListener('loadedmetadata', onMeta);
+    v.addEventListener('ended', onEnd);
+    v.addEventListener('play', onPlay);
+    v.addEventListener('pause', onPause);
+    // Auto-play
+    v.play().catch(() => {});
+    return () => { v.removeEventListener('timeupdate', onTime); v.removeEventListener('loadedmetadata', onMeta); v.removeEventListener('ended', onEnd); v.removeEventListener('play', onPlay); v.removeEventListener('pause', onPause); };
+  }, []);
+
+  const toggle = () => {
+    if (!ref.current) return;
+    if (playing) ref.current.pause(); else ref.current.play().catch(() => {});
+  };
+
+  const seek = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    if (ref.current && duration) ref.current.currentTime = ratio * duration;
+  };
+
+  const toggleFullscreen = () => {
+    const el = wrapRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    else el.requestFullscreen?.();
+  };
+
+  const handleMouseMove = () => {
+    setShowControls(true);
+    clearTimeout(hideTimer.current);
+    if (playing) hideTimer.current = setTimeout(() => setShowControls(false), 2500);
+  };
+
+  return (
+    <div
+      ref={wrapRef}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => { if (playing) setShowControls(false); }}
+      onClick={toggle}
+      style={{ position:'relative', width:'100%', height:'100%', background:'#000', cursor:'pointer' }}
+    >
+      <video ref={ref} src={src} poster={poster || undefined}
+        muted={muted} playsInline preload="metadata"
+        onContextMenu={e => e.preventDefault()}
+        style={{ display:'block', width:'100%', height:'100%', objectFit:'contain' }}/>
+
+      {/* Big center play button when paused */}
+      {!playing && (
+        <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
+          <div style={{
+            width:64, height:64, borderRadius:'50%',
+            background:'rgba(0,0,0,0.5)', backdropFilter:'blur(10px)',
+            border:'1px solid rgba(255,255,255,0.2)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            boxShadow:'0 8px 32px rgba(0,0,0,0.4)',
+          }}>
+            <Play size={24} fill="#fff" color="#fff" strokeWidth={0} style={{ marginLeft:3 }}/>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom controls bar */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          position:'absolute', bottom:0, left:0, right:0,
+          background:'linear-gradient(transparent, rgba(0,0,0,0.85))',
+          padding:'32px 16px 14px',
+          opacity: showControls ? 1 : 0,
+          transition:'opacity 0.3s ease',
+          pointerEvents: showControls ? 'auto' : 'none',
+        }}
+      >
+        {/* Progress bar */}
+        <div onClick={seek} style={{
+          height:4, background:'rgba(255,255,255,0.2)', borderRadius:2,
+          cursor:'pointer', marginBottom:12, position:'relative',
+        }}>
+          <div style={{ height:'100%', width:`${progress * 100}%`, background:'#fff', borderRadius:2, transition:'width 0.1s linear' }}/>
+          <div style={{
+            position:'absolute', top:'50%', left:`${progress * 100}%`,
+            width:12, height:12, borderRadius:'50%', background:'#fff',
+            transform:'translate(-50%, -50%)',
+            boxShadow:'0 2px 8px rgba(0,0,0,0.4)',
+            opacity: showControls ? 1 : 0,
+            transition:'opacity 0.15s',
+          }}/>
+        </div>
+
+        <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+          {/* Play/Pause */}
+          <button onClick={toggle} style={{ background:'none', border:'none', cursor:'pointer', color:'#fff', display:'flex', alignItems:'center', padding:0 }}>
+            {playing ? <Pause size={18} strokeWidth={2}/> : <Play size={18} strokeWidth={2} style={{ marginLeft:1 }}/>}
+          </button>
+
+          {/* Time */}
+          <span style={{ fontFamily:"'DM Sans','Outfit',sans-serif", fontSize:'0.78rem', color:'rgba(255,255,255,0.8)', minWidth:80, userSelect:'none' }}>
+            {fmtTime(currentTime)} / {fmtTime(duration)}
+          </span>
+
+          <div style={{ flex:1 }}/>
+
+          {/* Mute */}
+          <button onClick={() => { setMuted(!muted); if (ref.current) ref.current.muted = !muted; }}
+            style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.8)', display:'flex', alignItems:'center', padding:0 }}>
+            {muted ? <VolumeX size={17}/> : <Volume2 size={17}/>}
+          </button>
+
+          {/* Fullscreen */}
+          <button onClick={toggleFullscreen}
+            style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(255,255,255,0.8)', display:'flex', alignItems:'center', padding:0 }}>
+            <Maximize2 size={16}/>
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -372,13 +512,10 @@ function ModalContent({ post, onClose }) {
           </div>
         )}
 
-        {/* Video — media left, no download */}
+        {/* Video — custom player, no download */}
         {isVideo && post.media_url && (
           <div className="log-m-media">
-            <video src={post.media_url} controls autoPlay playsInline
-              controlsList="nodownload" disablePictureInPicture
-              poster={post.media_thumbnail || undefined}
-              onContextMenu={e => e.preventDefault()}/>
+            <VideoPlayer src={post.media_url} poster={post.media_thumbnail}/>
           </div>
         )}
 
