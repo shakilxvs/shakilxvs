@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'framer-motion';
-import { X, Link as LinkIcon, Check } from 'lucide-react';
+import { X, Link as LinkIcon, Check, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { incrementLogPostViews } from '@/lib/firestore';
 
 function formatDate(ts) {
@@ -17,88 +17,152 @@ function formatDate(ts) {
   if (isNaN(date.getTime())) return null;
   return date.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
 }
-
-// ─── Media column (left on desktop, top on mobile) ────────
-function MediaBlock({ post }) {
-  if (post.type === 'photo' && post.media_url) {
-    return (
-      <div className="log-m-media">
-        <img src={post.media_url} alt={post.title || ''}
-          style={{ display:'block', width:'100%', height:'100%', objectFit:'contain', background:'#000' }}/>
-      </div>
-    );
-  }
-  if (post.type === 'video' && post.media_url) {
-    return (
-      <div className="log-m-media">
-        <video src={post.media_url} controls autoPlay playsInline
-          poster={post.media_thumbnail || undefined}
-          style={{ display:'block', width:'100%', height:'100%', objectFit:'contain', background:'#000' }}/>
-      </div>
-    );
-  }
-  if (post.type === 'audio' && post.media_url) {
-    return (
-      <div className="log-m-media log-m-media-audio">
-        <div style={{ padding:'40px 28px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:20, height:'100%' }}>
-          <div style={{ fontFamily:"'Instrument Serif', Georgia, serif", fontSize:'1.4rem', color:'rgba(232,168,112,0.9)', textAlign:'center' }}>
-            {post.title || 'Audio'}
-          </div>
-          <audio src={post.media_url} controls autoPlay style={{ width:'100%', maxWidth:360 }}/>
-        </div>
-      </div>
-    );
-  }
-  // Text type — no media column
-  return null;
+function fmtTime(s) {
+  if (!s || !isFinite(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${m}:${sec.toString().padStart(2, '0')}`;
 }
 
-// ─── Content column (right on desktop, bottom on mobile) ───
+// ─── Custom audio player ────────────────────────────────────
+function AudioPlayer({ src, title }) {
+  const ref = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [muted, setMuted] = useState(false);
+  const barCount = 48;
+
+  // Deterministic waveform from title/src
+  const bars = (() => {
+    let h = 0;
+    const seed = title || src || 'x';
+    for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+    const out = [];
+    for (let i = 0; i < barCount; i++) {
+      h = (h * 1103515245 + 12345) & 0x7fffffff;
+      out.push(15 + (h % 70));
+    }
+    return out;
+  })();
+
+  useEffect(() => {
+    const a = ref.current;
+    if (!a) return;
+    const onTime = () => { setCurrentTime(a.currentTime); setProgress(a.duration ? a.currentTime / a.duration : 0); };
+    const onMeta = () => setDuration(a.duration);
+    const onEnd  = () => setPlaying(false);
+    a.addEventListener('timeupdate', onTime);
+    a.addEventListener('loadedmetadata', onMeta);
+    a.addEventListener('ended', onEnd);
+    return () => { a.removeEventListener('timeupdate', onTime); a.removeEventListener('loadedmetadata', onMeta); a.removeEventListener('ended', onEnd); };
+  }, []);
+
+  const toggle = () => {
+    if (!ref.current) return;
+    if (playing) ref.current.pause();
+    else ref.current.play().catch(() => {});
+    setPlaying(!playing);
+  };
+
+  const seek = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    if (ref.current && duration) { ref.current.currentTime = ratio * duration; }
+  };
+
+  return (
+    <div style={{ padding:'32px 28px', background:'linear-gradient(145deg, rgba(184,115,51,0.12), rgba(20,20,20,0.5)), var(--log-m-bg, #141414)' }}>
+      <audio ref={ref} src={src} preload="metadata"/>
+
+      {/* Title */}
+      {title && (
+        <div style={{ fontFamily:"'Instrument Serif', Georgia, serif", fontSize:'1.2rem', color:'rgba(232,168,112,0.9)', marginBottom:24, textAlign:'center' }}>
+          {title}
+        </div>
+      )}
+
+      {/* Waveform */}
+      <div onClick={seek} style={{ display:'flex', alignItems:'center', gap:2, height:56, cursor:'pointer', marginBottom:18, position:'relative' }}>
+        {bars.map((h, i) => {
+          const filled = i / barCount <= progress;
+          return (
+            <div key={i} style={{
+              flex:1, height:`${h}%`,
+              background: filled
+                ? 'linear-gradient(180deg, rgba(232,168,112,0.9), rgba(184,115,51,0.7))'
+                : 'linear-gradient(180deg, rgba(232,168,112,0.25), rgba(184,115,51,0.12))',
+              borderRadius: 2, minHeight: 3, transition: 'background 0.15s',
+            }}/>
+          );
+        })}
+      </div>
+
+      {/* Controls row */}
+      <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+        <button onClick={toggle} style={{
+          width:44, height:44, borderRadius:'50%',
+          background:'rgba(232,168,112,0.15)', border:'1px solid rgba(232,168,112,0.3)',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          cursor:'pointer', color:'rgba(232,168,112,0.9)', flexShrink:0,
+        }}>
+          {playing ? <Pause size={16} strokeWidth={2}/> : <Play size={16} strokeWidth={2} style={{ marginLeft:2 }}/>}
+        </button>
+
+        {/* Time */}
+        <div style={{ fontFamily:"'DM Sans','Outfit',sans-serif", fontSize:'0.78rem', color:'rgba(232,168,112,0.7)', minWidth:80 }}>
+          {fmtTime(currentTime)} / {fmtTime(duration)}
+        </div>
+
+        <div style={{ flex:1 }}/>
+
+        {/* Mute toggle */}
+        <button onClick={() => { setMuted(!muted); if (ref.current) ref.current.muted = !muted; }}
+          style={{ background:'none', border:'none', cursor:'pointer', color:'rgba(232,168,112,0.6)', display:'flex', alignItems:'center', padding:4 }}>
+          {muted ? <VolumeX size={16}/> : <Volume2 size={16}/>}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Content column ─────────────────────────────────────────
 function ContentBlock({ post, onCopy, copied }) {
   const date  = formatDate(post.post_date);
   const title = post.title?.trim();
   const desc  = post.description?.trim();
   const tags  = Array.isArray(post.tags) ? post.tags : [];
-
   return (
     <div className="log-m-content">
-      <div style={{ flex:1, overflowY:'auto', padding:'24px 22px' }} className="log-m-content-scroll">
+      <div className="log-m-content-inner">
         {title && (
           <h2 style={{
             fontFamily: "'Instrument Serif', Georgia, serif",
-            fontSize: 'clamp(1.5rem, 3.5vw, 2rem)',
-            lineHeight: 1.15,
-            letterSpacing: '-0.01em',
-            margin: '0 0 14px',
-            color: '#f4f4f5',
-            fontWeight: 400,
+            fontSize: 'clamp(1.4rem, 3.5vw, 1.9rem)',
+            lineHeight: 1.18, letterSpacing: '-0.01em',
+            margin: '0 0 14px', color: 'var(--log-m-text)', fontWeight: 400,
           }}>
             {title}
           </h2>
         )}
-
         {desc && (
           <div style={{
             fontFamily: "'DM Sans', 'Outfit', sans-serif",
-            fontSize: '0.92rem',
-            lineHeight: 1.75,
-            color: 'rgba(232,232,234,0.82)',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
+            fontSize: '0.92rem', lineHeight: 1.75,
+            color: 'var(--log-m-text-sub)', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
           }}>
             {desc}
           </div>
         )}
-
         {tags.length > 0 && (
           <div style={{ display:'flex', flexWrap:'wrap', gap:6, marginTop:18 }}>
             {tags.map(t => (
               <span key={t} style={{
                 padding: '4px 10px', borderRadius: 999,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'var(--log-m-tag-bg)', border: '1px solid var(--log-m-tag-border)',
                 fontFamily: "'DM Sans', 'Outfit', sans-serif",
-                fontSize: '0.72rem', color: 'rgba(232,232,234,0.6)',
+                fontSize: '0.72rem', color: 'var(--log-m-text-muted)',
               }}>
                 {t}
               </span>
@@ -106,60 +170,34 @@ function ContentBlock({ post, onCopy, copied }) {
           </div>
         )}
       </div>
-
-      {/* Footer — pinned at bottom */}
-      <div style={{
-        padding: '14px 22px',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
-        flexShrink: 0,
-      }}>
+      <div className="log-m-footer">
         {date ? (
-          <span style={{
-            fontFamily: "'DM Sans', 'Outfit', sans-serif",
-            fontSize: '0.78rem', color: 'rgba(232,232,234,0.4)',
-          }}>
+          <span style={{ fontFamily:"'DM Sans','Outfit',sans-serif", fontSize:'0.78rem', color:'var(--log-m-text-muted)' }}>
             {date}
           </span>
         ) : <span/>}
-        <button onClick={onCopy} style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-          padding: '7px 12px',
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 8,
-          color: copied ? '#6ee7b7' : 'rgba(232,232,234,0.7)',
-          fontFamily: "'DM Sans', 'Outfit', sans-serif",
-          fontSize: '0.78rem', cursor: 'pointer',
-          transition: 'color 0.2s, background 0.2s',
-        }}
-          onMouseEnter={e => { if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
-          onMouseLeave={e => { if (!copied) e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-        >
-          {copied
-            ? <><Check size={13} strokeWidth={2}/> Copied</>
-            : <><LinkIcon size={13} strokeWidth={1.75}/> Copy link</>}
+        <button onClick={onCopy} className="log-m-copy" style={{ color: copied ? '#6ee7b7' : undefined }}>
+          {copied ? <><Check size={13} strokeWidth={2}/> Copied</> : <><LinkIcon size={13} strokeWidth={1.75}/> Copy link</>}
         </button>
       </div>
     </div>
   );
 }
 
-// ─── Modal inner ──────────────────────────────────────────
+// ─── Modal inner ────────────────────────────────────────────
 function ModalContent({ post, onClose }) {
   const [copied, setCopied] = useState(false);
-  const hasMedia = post.type !== 'text';
+  const isText  = post.type === 'text';
+  const isAudio = post.type === 'audio';
+  const isVideo = post.type === 'video';
+  const isPhoto = post.type === 'photo';
 
-  useEffect(() => {
-    if (post?.id) incrementLogPostViews(post.id);
-  }, [post?.id]);
-
+  useEffect(() => { if (post?.id) incrementLogPostViews(post.id); }, [post?.id]);
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -171,162 +209,194 @@ function ModalContent({ post, onClose }) {
     try {
       if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
       else { const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); }
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
+      setCopied(true); setTimeout(() => setCopied(false), 1800);
     } catch { window.prompt('Copy this link:', url); }
   };
 
+  // Layout class — text/audio get single column, photo/video get two-column
+  const layoutClass = (isText || isAudio) ? 'log-m-single' : '';
+
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
       onClick={onClose}
       className="log-m-backdrop"
     >
       <style>{`
-        /* ── Backdrop ─────────────────────────────────── */
-        .log-m-backdrop {
-          position: fixed; inset: 0; z-index: 10001;
-          background: rgba(0,0,0,0.88);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          display: flex; align-items: center; justify-content: center;
-          padding: 0;
+        :root {
+          --log-m-bg: #141414;
+          --log-m-media-bg: #000;
+          --log-m-text: #f4f4f5;
+          --log-m-text-sub: rgba(232,232,234,0.82);
+          --log-m-text-muted: rgba(232,232,234,0.5);
+          --log-m-border: rgba(255,255,255,0.07);
+          --log-m-tag-bg: rgba(255,255,255,0.04);
+          --log-m-tag-border: rgba(255,255,255,0.08);
+          --log-m-close-bg: rgba(255,255,255,0.08);
+          --log-m-copy-bg: rgba(255,255,255,0.04);
+        }
+        [data-theme="light"] {
+          --log-m-bg: #ffffff;
+          --log-m-media-bg: #f0f0f0;
+          --log-m-text: #0d1117;
+          --log-m-text-sub: #4a5568;
+          --log-m-text-muted: #8896b3;
+          --log-m-border: rgba(0,0,0,0.08);
+          --log-m-tag-bg: rgba(0,0,0,0.04);
+          --log-m-tag-border: rgba(0,0,0,0.08);
+          --log-m-close-bg: rgba(0,0,0,0.06);
+          --log-m-copy-bg: rgba(0,0,0,0.04);
         }
 
-        /* ── Close button ─────────────────────────────── */
+        .log-m-backdrop {
+          position: fixed; inset: 0; z-index: 10001;
+          background: rgba(0,0,0,0.82);
+          backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+          display: flex; align-items: center; justify-content: center;
+          padding: 24px;
+          overflow-y: auto;
+        }
         .log-m-close {
-          position: fixed; z-index: 10002;
+          position: fixed; top: 16px; right: 16px; z-index: 10002;
           width: 38px; height: 38px; border-radius: 50%;
-          background: rgba(255,255,255,0.08);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255,255,255,0.12);
-          color: #fff;
+          background: var(--log-m-close-bg); backdrop-filter: blur(10px);
+          border: 1px solid var(--log-m-border); color: #fff;
           display: flex; align-items: center; justify-content: center;
           cursor: pointer; transition: background 0.2s;
         }
-        .log-m-close:hover { background: rgba(255,255,255,0.18); }
+        .log-m-close:hover { background: rgba(255,255,255,0.2); }
 
-        /* ── Container ────────────────────────────────── */
+        /* ── Two-column container (photo/video) ────── */
         .log-m-container {
           position: relative;
           display: flex; flex-direction: row;
-          width: 92vw; max-width: 960px;
-          height: auto; max-height: 88vh;
-          background: #141414;
-          border: 1px solid rgba(255,255,255,0.08);
+          width: 100%; max-width: 960px;
+          max-height: 85vh;
+          background: var(--log-m-bg);
+          border: 1px solid var(--log-m-border);
           border-radius: 14px;
           overflow: hidden;
-          box-shadow: 0 40px 100px -20px rgba(0,0,0,0.7);
-          color: #e8e8ea;
+          box-shadow: 0 40px 100px -20px rgba(0,0,0,0.6);
         }
-
-        /* ── Media column ─────────────────────────────── */
         .log-m-media {
           flex: 1.2; min-width: 0;
           display: flex; align-items: center; justify-content: center;
-          background: #000;
-          max-height: 88vh;
-          overflow: hidden;
+          background: var(--log-m-media-bg);
+          max-height: 85vh; overflow: hidden;
         }
-        .log-m-media img,
-        .log-m-media video {
-          max-height: 88vh;
-        }
-        .log-m-media-audio {
-          background: linear-gradient(135deg, rgba(184,115,51,0.14), rgba(20,20,20,0.6)), #0a0a0a;
-        }
-
-        /* ── Content column ───────────────────────────── */
+        .log-m-media img { display: block; width: 100%; height: 100%; object-fit: contain; background: var(--log-m-media-bg); }
+        .log-m-media video { display: block; width: 100%; height: 100%; object-fit: contain; background: var(--log-m-media-bg); }
         .log-m-content {
           flex: 0 0 340px; width: 340px;
           display: flex; flex-direction: column;
-          border-left: 1px solid rgba(255,255,255,0.06);
-          max-height: 88vh;
+          border-left: 1px solid var(--log-m-border);
+          max-height: 85vh;
         }
-        .log-m-content-scroll {
+        .log-m-content-inner {
+          flex: 1; overflow-y: auto; padding: 24px 22px;
           scrollbar-width: none;
         }
-        .log-m-content-scroll::-webkit-scrollbar {
-          width: 0; background: transparent;
+        .log-m-content-inner::-webkit-scrollbar { width: 0; }
+        .log-m-footer {
+          padding: 14px 22px; border-top: 1px solid var(--log-m-border);
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 12px; flex-shrink: 0;
+        }
+        .log-m-copy {
+          display: inline-flex; align-items: center; gap: 6px;
+          padding: 7px 12px; background: var(--log-m-copy-bg);
+          border: 1px solid var(--log-m-border); border-radius: 8px;
+          color: var(--log-m-text-muted);
+          font-family: 'DM Sans', 'Outfit', sans-serif; font-size: 0.78rem;
+          cursor: pointer; transition: background 0.2s;
+        }
+        .log-m-copy:hover { background: var(--log-m-tag-bg); }
+
+        /* ── Single-column container (text / audio) ── */
+        .log-m-single {
+          max-width: 580px;
+          flex-direction: column;
+        }
+        .log-m-single .log-m-content {
+          flex: 1; width: 100%;
+          border-left: none; max-height: none;
         }
 
-        /* ── Text-only posts (no media) ───────────────── */
-        .log-m-text-only .log-m-content {
-          flex: 1; width: 100%; max-width: 580px;
-          border-left: none;
-        }
-
-        /* ── Desktop close button position ────────────── */
-        .log-m-close { top: 16px; right: 16px; }
-
-        /* ── MOBILE ───────────────────────────────────── */
+        /* ── MOBILE ────────────────────────────────── */
         @media (max-width: 768px) {
           .log-m-backdrop {
-            align-items: stretch;
-            padding: 0;
+            align-items: flex-start;
+            padding: 16px 10px 40px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
           }
           .log-m-container {
             flex-direction: column;
             width: 100%; max-width: 100%;
-            height: 100vh; max-height: 100vh;
-            border-radius: 0;
-            border: none;
+            max-height: none;
+            border-radius: 16px;
+            margin-top: 4px;
           }
-          .log-m-media {
-            flex: none;
-            max-height: 55vh;
-          }
-          .log-m-media img,
-          .log-m-media video {
-            max-height: 55vh;
-          }
+          .log-m-media { flex: none; max-height: 60vh; }
+          .log-m-media img, .log-m-media video { max-height: 60vh; }
           .log-m-content {
-            flex: 1; width: 100%;
+            flex: none; width: 100%;
             border-left: none;
-            border-top: 1px solid rgba(255,255,255,0.06);
+            border-top: 1px solid var(--log-m-border);
             max-height: none;
           }
-          .log-m-close { top: 12px; right: 12px; }
-
-          .log-m-text-only .log-m-content {
-            max-width: 100%;
-          }
+          .log-m-content-inner { max-height: none; }
+          .log-m-close { top: 10px; right: 10px; width: 34px; height: 34px; }
+          .log-m-single { max-width: 100%; }
+          .log-m-single .log-m-content { border-top: none; }
         }
       `}</style>
 
-      {/* Close button */}
       <button onClick={onClose} aria-label="Close" className="log-m-close">
         <X size={17} strokeWidth={2}/>
       </button>
 
-      {/* Container */}
       <motion.div
-        role="dialog"
-        aria-modal="true"
+        role="dialog" aria-modal="true"
         onClick={e => e.stopPropagation()}
-        initial={{ opacity: 0, scale: 0.97 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.97 }}
-        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-        className={`log-m-container ${!hasMedia ? 'log-m-text-only' : ''}`}
+        initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 10 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        className={`log-m-container ${layoutClass}`}
       >
-        {hasMedia && <MediaBlock post={post}/>}
+        {/* Photo — media left */}
+        {isPhoto && post.media_url && (
+          <div className="log-m-media">
+            <img src={post.media_url} alt={post.title || ''}/>
+          </div>
+        )}
+
+        {/* Video — media left, no download */}
+        {isVideo && post.media_url && (
+          <div className="log-m-media">
+            <video src={post.media_url} controls autoPlay playsInline
+              controlsList="nodownload" disablePictureInPicture
+              poster={post.media_thumbnail || undefined}
+              onContextMenu={e => e.preventDefault()}/>
+          </div>
+        )}
+
+        {/* Audio — custom player inside single-column layout */}
+        {isAudio && post.media_url && (
+          <AudioPlayer src={post.media_url} title={post.title?.trim()}/>
+        )}
+
+        {/* Content — always rendered */}
         <ContentBlock post={post} onCopy={handleCopy} copied={copied}/>
       </motion.div>
     </motion.div>
   );
 }
 
-// ─── Portal wrapper ────────────────────────────────────────
 export default function LogModal({ post, onClose }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
   if (!mounted) return null;
-  return createPortal(
-    <ModalContent post={post} onClose={onClose}/>,
-    document.body
-  );
+  return createPortal(<ModalContent post={post} onClose={onClose}/>, document.body);
 }
