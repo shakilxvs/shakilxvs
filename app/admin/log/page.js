@@ -567,15 +567,22 @@ function PostDrawer({ post, onClose, onSaved }) {
 }
 
 // ─── Settings tab ──────────────────────────────────────────
+
+// ─── Settings tab ──────────────────────────────────────────
 function SettingsTab() {
-  const [local, setLocal] = useState({ page_title: '', page_subtitle: '', page_enabled: false, hero_image_1: '', hero_image_2: '' });
-  const [loading, setLoading] = useState(true);
-  const [saving,  setSaving]  = useState(false);
-  const [dirty,   setDirty]   = useState(false);
+  const [local, setLocal] = useState({
+    page_title: '', page_subtitle: '', page_enabled: false,
+    hero_image_1: '', hero_image_2: '',
+    btn1_text: 'Blog', btn1_url: '/blog',
+    btn2_text: 'Contact', btn2_url: '/contact',
+  });
+  const [loading, setLoading]     = useState(true);
+  const [saving,  setSaving]      = useState(false);
+  const [dirty,   setDirty]       = useState(false);
   const [uploading1, setUploading1] = useState(false);
   const [uploading2, setUploading2] = useState(false);
-  const file1Ref = useRef(null);
-  const file2Ref = useRef(null);
+  const img1Ref = useRef(null);
+  const img2Ref = useRef(null);
 
   useEffect(() => {
     getLogSettings().then(s => {
@@ -586,6 +593,10 @@ function SettingsTab() {
           page_enabled:  !!s.page_enabled,
           hero_image_1:  s.hero_image_1  || '',
           hero_image_2:  s.hero_image_2  || '',
+          btn1_text:     s.btn1_text     || 'Blog',
+          btn1_url:      s.btn1_url      || '/blog',
+          btn2_text:     s.btn2_text     || 'Contact',
+          btn2_url:      s.btn2_url      || '/contact',
         });
       }
       setLoading(false);
@@ -594,16 +605,17 @@ function SettingsTab() {
 
   const set = (k, v) => { setLocal(l => ({ ...l, [k]: v })); setDirty(true); };
 
-  const handleImageUpload = async (e, key, setUploading) => {
+  const handleImgUpload = async (e, field, setUpl) => {
     const file = e.target.files?.[0];
-    if (!file || !file.type?.startsWith('image/')) { toast.error('Select an image'); e.target.value = ''; return; }
-    setUploading(true);
+    if (!file) return;
+    if (!file.type?.startsWith('image/')) { toast.error('Select an image'); e.target.value = ''; return; }
+    setUpl(true);
     try {
       const url = await uploadToCloudinary(file, 'log/hero');
-      set(key, url);
+      set(field, url);
       toast.success('Uploaded');
     } catch { toast.error('Upload failed'); }
-    finally { setUploading(false); e.target.value = ''; }
+    finally { setUpl(false); e.target.value = ''; }
   };
 
   const handleSave = async () => {
@@ -616,101 +628,88 @@ function SettingsTab() {
     finally { setSaving(false); }
   };
 
-  if (loading) return <div style={{ padding:'40px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif' }}>Loading…</div>;
+  if (loading) return <div style={{ padding:'40px', color:'var(--text-3)', fontFamily:'Outfit,sans-serif' }}>Loading...</div>;
+
+  const imgBox = { background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', padding:'10px', textAlign:'center' };
 
   return (
     <div style={{ maxWidth:620 }}>
-      <div style={{
-        background:'var(--bg-surface)', border:'1px solid var(--border-2)',
-        borderRadius:'var(--radius-lg)', padding:'22px',
-      }}>
+      <div style={{ background:'var(--bg-surface)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-lg)', padding:'22px' }}>
+
+        {/* Title */}
         <div style={{ marginBottom:'16px' }}>
           <label style={LB}>Page Title</label>
-          <input style={FI} value={local.page_title} onChange={e => set('page_title', e.target.value)}
-            onFocus={foc} onBlur={blr} placeholder="log · lately · fragments…"/>
-          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'5px' }}>
-            Displayed in large editorial serif at the top of /log.
-          </div>
+          <input style={FI} value={local.page_title} onChange={e => set('page_title', e.target.value)} onFocus={foc} onBlur={blr} placeholder="log / lately / fragments..."/>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'5px' }}>Displayed as the main heading on /log.</div>
         </div>
+
+        {/* Subtitle */}
         <div style={{ marginBottom:'16px' }}>
           <label style={LB}>Page Subtitle</label>
-          <input style={FI} value={local.page_subtitle} onChange={e => set('page_subtitle', e.target.value)}
-            onFocus={foc} onBlur={blr} placeholder="A quiet one-liner (optional)…"/>
+          <input style={FI} value={local.page_subtitle} onChange={e => set('page_subtitle', e.target.value)} onFocus={foc} onBlur={blr} placeholder="A quiet one-liner (optional)..."/>
         </div>
 
-        {/* Hero preview images */}
+        {/* Hero images */}
         <div style={{ marginBottom:'18px' }}>
-          <label style={LB}>Hero Preview Images (displayed in page header)</label>
+          <label style={LB}>Hero Images</label>
           <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'10px' }}>
-            Two images shown tilted in the header next to the title. Pick your best photos.
+            Two tilted preview photos shown next to the title on desktop.
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
-            {/* Image 1 */}
-            <div style={{ background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', padding:'10px', textAlign:'center' }}>
-              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'8px' }}>IMAGE 1</div>
-              {local.hero_image_1 ? (
-                <div style={{ position:'relative', marginBottom:'8px' }}>
-                  <img src={local.hero_image_1} alt="" style={{ width:'100%', height:120, objectFit:'cover', borderRadius:'var(--radius-sm)' }}/>
-                  <button onClick={() => set('hero_image_1', '')} style={{
-                    position:'absolute', top:4, right:4, width:20, height:20, borderRadius:'50%',
-                    background:'rgba(0,0,0,0.6)', border:'none', color:'#fff', cursor:'pointer',
-                    display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem',
-                  }}>×</button>
-                </div>
-              ) : (
-                <div style={{ height:120, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-3)', fontSize:'0.8rem', fontFamily:'Outfit,sans-serif' }}>
-                  No image
-                </div>
-              )}
-              <button onClick={() => file1Ref.current?.click()} disabled={uploading1} style={{
-                padding:'6px 14px', background:'var(--accent)', color:'#fff', border:'none',
-                borderRadius:'var(--radius-sm)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem',
-                fontWeight:600, cursor: uploading1 ? 'not-allowed' : 'pointer', width:'100%',
-              }}>
-                {uploading1 ? 'Uploading…' : (local.hero_image_1 ? 'Replace' : 'Upload')}
-              </button>
-              <input ref={file1Ref} type="file" accept="image/*" style={{ display:'none' }}
-                onChange={e => handleImageUpload(e, 'hero_image_1', setUploading1)}/>
-            </div>
+            {[
+              { key: 'hero_image_1', ref: img1Ref, upl: uploading1, setUpl: setUploading1, label: 'BACK' },
+              { key: 'hero_image_2', ref: img2Ref, upl: uploading2, setUpl: setUploading2, label: 'FRONT' },
+            ].map(({ key, ref, upl, setUpl, label }) => (
+              <div key={key} style={imgBox}>
+                <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'8px' }}>{label}</div>
+                {local[key] ? (
+                  <div style={{ position:'relative', marginBottom:'8px' }}>
+                    <img src={local[key]} alt="" style={{ width:'100%', height:120, objectFit:'cover', borderRadius:'var(--radius-sm)' }}/>
+                    <button onClick={() => set(key, '')} style={{
+                      position:'absolute', top:4, right:4, width:22, height:22, borderRadius:'50%',
+                      background:'rgba(0,0,0,0.6)', border:'none', color:'#fff', cursor:'pointer',
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                    }}><X size={10} strokeWidth={2.5}/></button>
+                  </div>
+                ) : (
+                  <div style={{ height:120, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-3)', fontSize:'0.8rem', fontFamily:'Outfit,sans-serif' }}>No image</div>
+                )}
+                <button onClick={() => ref.current?.click()} disabled={upl} style={{
+                  padding:'6px 14px', background:'var(--accent)', color:'#fff', border:'none',
+                  borderRadius:'var(--radius-sm)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem',
+                  fontWeight:600, cursor: upl ? 'not-allowed' : 'pointer', width:'100%',
+                }}>{upl ? 'Uploading...' : (local[key] ? 'Replace' : 'Upload')}</button>
+                <input ref={ref} type="file" accept="image/*" style={{ display:'none' }}
+                  onChange={e => handleImgUpload(e, key, setUpl)}/>
+              </div>
+            ))}
+          </div>
+        </div>
 
-            {/* Image 2 */}
-            <div style={{ background:'var(--bg-elevated)', border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', padding:'10px', textAlign:'center' }}>
-              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'8px' }}>IMAGE 2</div>
-              {local.hero_image_2 ? (
-                <div style={{ position:'relative', marginBottom:'8px' }}>
-                  <img src={local.hero_image_2} alt="" style={{ width:'100%', height:120, objectFit:'cover', borderRadius:'var(--radius-sm)' }}/>
-                  <button onClick={() => set('hero_image_2', '')} style={{
-                    position:'absolute', top:4, right:4, width:20, height:20, borderRadius:'50%',
-                    background:'rgba(0,0,0,0.6)', border:'none', color:'#fff', cursor:'pointer',
-                    display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem',
-                  }}>×</button>
-                </div>
-              ) : (
-                <div style={{ height:120, display:'flex', alignItems:'center', justifyContent:'center', color:'var(--text-3)', fontSize:'0.8rem', fontFamily:'Outfit,sans-serif' }}>
-                  No image
-                </div>
-              )}
-              <button onClick={() => file2Ref.current?.click()} disabled={uploading2} style={{
-                padding:'6px 14px', background:'var(--accent)', color:'#fff', border:'none',
-                borderRadius:'var(--radius-sm)', fontFamily:'Outfit,sans-serif', fontSize:'0.75rem',
-                fontWeight:600, cursor: uploading2 ? 'not-allowed' : 'pointer', width:'100%',
-              }}>
-                {uploading2 ? 'Uploading…' : (local.hero_image_2 ? 'Replace' : 'Upload')}
-              </button>
-              <input ref={file2Ref} type="file" accept="image/*" style={{ display:'none' }}
-                onChange={e => handleImageUpload(e, 'hero_image_2', setUploading2)}/>
+        {/* Buttons */}
+        <div style={{ marginBottom:'18px' }}>
+          <label style={LB}>Hero Buttons</label>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'12px' }}>
+            <div>
+              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'5px' }}>PRIMARY</div>
+              <input style={{ ...FI, marginBottom:'6px' }} value={local.btn1_text} onChange={e => set('btn1_text', e.target.value)} onFocus={foc} onBlur={blr} placeholder="Button text"/>
+              <input style={FI} value={local.btn1_url} onChange={e => set('btn1_url', e.target.value)} onFocus={foc} onBlur={blr} placeholder="/blog"/>
+            </div>
+            <div>
+              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'5px' }}>SECONDARY</div>
+              <input style={{ ...FI, marginBottom:'6px' }} value={local.btn2_text} onChange={e => set('btn2_text', e.target.value)} onFocus={foc} onBlur={blr} placeholder="Button text"/>
+              <input style={FI} value={local.btn2_url} onChange={e => set('btn2_url', e.target.value)} onFocus={foc} onBlur={blr} placeholder="/contact"/>
             </div>
           </div>
         </div>
 
+        {/* Enabled toggle */}
         <label style={{
           display:'flex', alignItems:'center', gap:'10px',
           padding:'12px 14px', background:'var(--bg-elevated)',
           border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', cursor:'pointer',
         }}>
-          <input type="checkbox" checked={local.page_enabled}
-            onChange={e => set('page_enabled', e.target.checked)}
-            style={{ accentColor:'var(--accent)', width:15, height:15 }}/>
+          <input type="checkbox" checked={local.page_enabled} onChange={e => set('page_enabled', e.target.checked)} style={{ accentColor:'var(--accent)', width:15, height:15 }}/>
           <span style={{ display:'inline-flex', alignItems:'center', gap:'6px', fontFamily:'Outfit,sans-serif', fontSize:'0.88rem', color:'var(--text-1)' }}>
             {local.page_enabled ? <Eye size={13} strokeWidth={1.75}/> : <EyeOff size={13} strokeWidth={1.75}/>}
             /log page enabled
@@ -720,9 +719,10 @@ function SettingsTab() {
           </span>
         </label>
         <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'6px', paddingLeft:'4px' }}>
-          When hidden, /log redirects to homepage. The hero photo also stops linking to it.
+          When hidden, /log redirects to homepage.
         </div>
       </div>
+
       <div style={{ marginTop:'16px', display:'flex', justifyContent:'flex-end' }}>
         <button onClick={handleSave} disabled={saving || !dirty} style={{
           padding:'10px 22px',
@@ -731,7 +731,7 @@ function SettingsTab() {
           border:'none', borderRadius:'var(--radius-md)',
           fontFamily:'Outfit,sans-serif', fontWeight:700, fontSize:'0.85rem',
           cursor: (!dirty || saving) ? 'not-allowed' : 'pointer',
-        }}>{saving ? 'Saving…' : 'Save Settings'}</button>
+        }}>{saving ? 'Saving...' : 'Save Settings'}</button>
       </div>
     </div>
   );
@@ -741,8 +741,8 @@ function SettingsTab() {
 function PostsTab() {
   const [posts,    setPosts]    = useState([]);
   const [loading,  setLoading]  = useState(true);
-  const [drawerPost, setDrawerPost] = useState(null); // null closed; {} new; {id,...} edit
-  const [filter,   setFilter]   = useState('all'); // all | published | draft
+  const [drawerPost, setDrawerPost] = useState(null);
+  const [filter,   setFilter]   = useState('all');
 
   const load = async () => {
     setLoading(true);
@@ -770,9 +770,7 @@ function PostsTab() {
 
   return (
     <div>
-      {/* Top bar */}
       <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px', flexWrap:'wrap' }}>
-        {/* Filter chips */}
         <div style={{ display:'flex', gap:'6px' }}>
           {[
             { id:'all',       label:'All' },
@@ -808,7 +806,6 @@ function PostsTab() {
         </button>
       </div>
 
-      {/* List */}
       {loading ? (
         <div style={{ display:'flex', flexDirection:'column', gap:'10px' }}>
           {[0,1,2].map(i => (
@@ -833,7 +830,6 @@ function PostsTab() {
         </div>
       )}
 
-      {/* Drawer */}
       {drawerPost !== null && (
         <PostDrawer
           post={drawerPost}
@@ -851,7 +847,6 @@ export default function AdminLogPage() {
 
   return (
     <div style={{ maxWidth:1100 }}>
-      {/* Tabs */}
       <div style={{
         display:'flex', gap:'4px', marginBottom:'24px',
         borderBottom:'1px solid var(--border-1)',
