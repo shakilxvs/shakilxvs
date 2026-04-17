@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import {
   getAllLogPosts, addLogPost, updateLogPost, deleteLogPost,
-  getLogSettings, setLogSettings,
+  getLogSettings, setLogSettings, addDocument,
 } from '@/lib/firestore';
 import { uploadToCloudinary } from '@/lib/utils';
 
@@ -237,6 +237,26 @@ function PostDrawer({ post, onClose, onSaved }) {
       };
       if (isNew) await addLogPost(payload);
       else       await updateLogPost(post.id, payload);
+
+      // Sync to media library — if post has media and it's new or changed
+      if (payload.media_url && (isNew || payload.media_url !== post?.media_url)) {
+        const mediaType = payload.type === 'photo' ? 'image'
+                        : payload.type === 'video' ? 'video'
+                        : payload.type === 'audio' ? 'video' // Cloudinary stores audio as video
+                        : 'raw';
+        try {
+          await addDocument('mediaLibrary', {
+            url:        payload.media_url,
+            type:       mediaType,
+            fileName:   payload.title || `log-${payload.type}`,
+            source:     'log',
+            uploadedAt: new Date().toISOString(),
+          });
+        } catch {
+          // Non-critical — don't block the save
+        }
+      }
+
       toast.success(isNew ? 'Post created' : 'Post updated');
       onSaved();
     } catch {
