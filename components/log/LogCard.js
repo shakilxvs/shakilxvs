@@ -18,8 +18,8 @@ function CardShell({ type, onOpen, children, extraStyle = {} }) {
         display: 'block',
         width: '100%',
         padding: 0,
-        background: '#141414',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: 'var(--log-card-bg, #141414)',
+        border: '1px solid var(--log-card-border, rgba(255,255,255,0.07))',
         borderRadius: 16,
         overflow: 'hidden',
         cursor: 'pointer',
@@ -33,13 +33,13 @@ function CardShell({ type, onOpen, children, extraStyle = {} }) {
       <style>{`
         .log-card:hover {
           transform: scale(1.02);
-          border-color: rgba(255,255,255,0.14);
+          border-color: var(--log-card-hover-border, rgba(255,255,255,0.14));
           box-shadow:
             0 24px 60px -20px rgba(0,0,0,0.5),
-            0 0 0 1px rgba(255,255,255,0.03) inset;
+            0 0 0 1px var(--log-card-border, rgba(255,255,255,0.03)) inset;
         }
         .log-card:focus-visible {
-          outline: 2px solid rgba(244,244,245,0.6);
+          outline: 2px solid var(--log-pill-active-bg, rgba(244,244,245,0.6));
           outline-offset: 3px;
         }
       `}</style>
@@ -48,11 +48,11 @@ function CardShell({ type, onOpen, children, extraStyle = {} }) {
       <span style={{
         position: 'absolute', top: 10, right: 10,
         width: 26, height: 26, borderRadius: 8,
-        background: 'rgba(10,10,10,0.55)',
+        background: 'var(--log-badge-bg, rgba(10,10,10,0.55))',
         backdropFilter: 'blur(8px)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        border: '1px solid var(--log-card-border, rgba(255,255,255,0.08))',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: 'rgba(244,244,245,0.85)',
+        color: 'var(--log-text, #f4f4f5)',
         pointerEvents: 'none',
       }}>
         <Icon size={12} strokeWidth={1.75}/>
@@ -147,26 +147,39 @@ function VideoCard({ post, onOpen }) {
         style={{
           position: 'relative',
           width: '100%',
-          aspectRatio: '16 / 9',
           background: '#000',
         }}
       >
-        {/* Static poster (always visible behind video) */}
-        {poster && (
+        {/* Poster image at natural aspect ratio — determines card height
+            exactly like PhotoCard does. No forced 16:9. */}
+        {poster ? (
           <img
             src={poster}
             alt={post.title || ''}
             loading="lazy"
             decoding="async"
             style={{
-              position: 'absolute', inset: 0,
-              width: '100%', height: '100%',
-              objectFit: 'cover',
+              display: 'block',
+              width: '100%',
+              height: 'auto',
+            }}
+          />
+        ) : (
+          /* No poster — show video element for size */
+          <video
+            src={post.media_url}
+            muted playsInline preload="metadata"
+            style={{
+              display: 'block',
+              width: '100%',
+              height: 'auto',
+              pointerEvents: 'none',
             }}
           />
         )}
-        {/* Video element — muted, looped, no controls on card */}
-        {post.media_url && (
+
+        {/* Video overlay for hover/viewport autoplay — sits on top of poster */}
+        {post.media_url && poster && (
           <video
             ref={videoRef}
             src={post.media_url}
@@ -182,6 +195,7 @@ function VideoCard({ post, onOpen }) {
             }}
           />
         )}
+
         {/* Frosted-glass play overlay */}
         <div style={{
           position: 'absolute', inset: 0,
@@ -190,7 +204,7 @@ function VideoCard({ post, onOpen }) {
         }}>
           <div style={{
             width: 54, height: 54, borderRadius: '50%',
-            background: 'rgba(10,10,10,0.5)',
+            background: 'var(--log-badge-bg, rgba(10,10,10,0.5))',
             backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255,255,255,0.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -218,7 +232,7 @@ function TextCard({ post, onOpen }) {
       extraStyle={{
         background:
           // Warm paper tone layered under the dark surface. SVG noise adds grain.
-          "linear-gradient(180deg, rgba(60,40,30,0.06), rgba(10,10,10,0) 60%), url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E\"), #141414",
+          "linear-gradient(180deg, rgba(60,40,30,0.06), rgba(10,10,10,0) 60%), url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E\"), var(--log-card-bg, #141414)",
         backgroundSize: 'auto, 180px 180px, auto',
       }}
     >
@@ -229,7 +243,7 @@ function TextCard({ post, onOpen }) {
             fontSize: '1.7rem',
             lineHeight: 1.15,
             margin: '0 0 12px',
-            color: '#f4f4f5',
+            color: 'var(--log-text, #f4f4f5)',
             fontWeight: 400,
             letterSpacing: '-0.01em',
           }}>
@@ -241,7 +255,7 @@ function TextCard({ post, onOpen }) {
             fontFamily: "'DM Sans', 'Outfit', sans-serif",
             fontSize: '0.92rem',
             lineHeight: 1.65,
-            color: 'rgba(232,232,234,0.7)',
+            color: 'var(--log-text-sub, rgba(232,232,234,0.7))',
             margin: 0,
             display: '-webkit-box',
             WebkitLineClamp: 3,
@@ -273,7 +287,7 @@ function AudioCard({ post, onOpen }) {
       type="audio"
       onOpen={onOpen}
       extraStyle={{
-        background: 'linear-gradient(135deg, rgba(184,115,51,0.10), rgba(20,20,20,0.6)), #141414',
+        background: 'linear-gradient(135deg, rgba(184,115,51,0.10), rgba(20,20,20,0.6)), var(--log-card-bg, #141414)',
       }}
     >
       <div style={{ padding: '22px' }}>
