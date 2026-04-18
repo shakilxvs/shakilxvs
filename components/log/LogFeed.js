@@ -6,13 +6,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Masonry from 'react-masonry-css';
 import LogCard from './LogCard';
 import LogModal from './LogModal';
+import { LayoutGrid, Image as ImageIcon, Video, Type, Music } from 'lucide-react';
 
 const TYPES = [
-  { id: 'all',   label: 'All'   },
-  { id: 'photo', label: 'Photo' },
-  { id: 'video', label: 'Video' },
-  { id: 'text',  label: 'Text'  },
-  { id: 'audio', label: 'Audio' },
+  { id: 'all',   label: 'All',   Icon: LayoutGrid },
+  { id: 'photo', label: 'Photo', Icon: ImageIcon },
+  { id: 'video', label: 'Video', Icon: Video },
+  { id: 'text',  label: 'Text',  Icon: Type },
+  { id: 'audio', label: 'Audio', Icon: Music },
 ];
 
 const BATCH = 12;
@@ -144,39 +145,50 @@ export default function LogFeed({ initialPosts = [] }) {
     <>
       {/* ─── Filter pills (only when posts exist) ──────── */}
       {initialPosts.length > 0 && (
-        <div style={{
-          display:'flex', flexWrap:'wrap', gap:'8px',
-          marginBottom: '36px',
-        }}>
-          {availableTypes.map(t => {
-            const active = activeType === t.id;
-            return (
-              <motion.button
-                key={t.id}
-                onClick={() => handleTypeChange(t.id)}
-                whileTap={{ scale: 0.96 }}
-                layout
-                style={{
-                  position: 'relative',
-                  padding: '9px 18px',
-                  borderRadius: 999,
-                  fontFamily: "'DM Sans', 'Outfit', sans-serif",
-                  fontSize: '0.82rem',
-                  fontWeight: active ? 600 : 500,
-                  letterSpacing: '-0.01em',
-                  color: active ? 'var(--log-pill-active-text, #0a0a0a)' : 'var(--log-pill-text, rgba(232,232,234,0.72))',
-                  background: active ? 'var(--log-pill-active-bg, #f4f4f5)' : 'var(--log-pill-bg, rgba(255,255,255,0.04))',
-                  border: `1px solid ${active ? 'var(--log-pill-active-bg, #f4f4f5)' : 'var(--log-pill-border, rgba(255,255,255,0.08))'}`,
-                  cursor: 'pointer',
-                  transition: 'color 0.2s, background 0.2s, border-color 0.2s',
-                  backdropFilter: 'blur(10px)',
-                  boxShadow: active ? '0 8px 24px rgba(0,0,0,0.08)' : 'none',
-                }}
-              >
-                {t.label}
-              </motion.button>
-            );
-          })}
+        <div className="log-pills-wrap">
+          <style>{`
+            .log-pills-wrap {
+              overflow-x: auto; overflow-y: hidden;
+              -webkit-overflow-scrolling: touch;
+              scrollbar-width: none;
+              margin-bottom: 32px;
+            }
+            .log-pills-wrap::-webkit-scrollbar { display: none; }
+            .log-pills-row {
+              display: flex; gap: 8px;
+              white-space: nowrap; width: max-content;
+            }
+          `}</style>
+          <div className="log-pills-row">
+            {availableTypes.map(t => {
+              const active = activeType === t.id;
+              const Icon = t.Icon;
+              return (
+                <motion.button
+                  key={t.id}
+                  onClick={() => handleTypeChange(t.id)}
+                  whileTap={{ scale: 0.96 }}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '6px',
+                    padding: '7px 14px',
+                    borderRadius: 10,
+                    fontFamily: "'Outfit', sans-serif",
+                    fontSize: '0.78rem',
+                    fontWeight: active ? 600 : 500,
+                    color: active ? 'var(--log-pill-active-text, #0a0a0a)' : 'var(--log-pill-text, rgba(232,232,234,0.72))',
+                    background: active ? 'var(--log-pill-active-bg, #f4f4f5)' : 'var(--log-pill-bg, rgba(255,255,255,0.04))',
+                    border: `1px solid ${active ? 'var(--log-pill-active-bg, #f4f4f5)' : 'var(--log-pill-border, rgba(255,255,255,0.08))'}`,
+                    cursor: 'pointer',
+                    transition: 'color 0.15s, background 0.15s, border-color 0.15s',
+                    whiteSpace: 'nowrap', flexShrink: 0,
+                  }}
+                >
+                  <Icon size={13} strokeWidth={active ? 2.2 : 1.8}/>
+                  {t.label}
+                </motion.button>
+              );
+            })}
+          </div>
         </div>
       )}
 
