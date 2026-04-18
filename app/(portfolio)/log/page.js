@@ -123,9 +123,9 @@ export default async function LogPage() {
         .lp-acts { display:flex; align-items:center; gap:28px; flex-wrap:wrap; }
         .lp-cta {
           display:inline-flex; align-items:center; justify-content:center;
-          padding:18px 44px; border-radius:999; border:none;
+          padding:22px 52px; border-radius:999; border:none;
           background:var(--accent,#234DC2); color:#fff;
-          font-family:'Outfit',sans-serif; font-size:1.15rem; font-weight:700;
+          font-family:'Outfit',sans-serif; font-size:1.2rem; font-weight:600;
           text-decoration:none; transition:opacity .15s,transform .15s;
           letter-spacing:-0.01em;
         }
@@ -169,7 +169,7 @@ export default async function LogPage() {
           .lp-h1 { font-size:clamp(1.8rem,8vw,2.6rem); margin-bottom:10px; }
           .lp-sub { margin:0 auto 20px; font-size:.95rem; }
           .lp-acts { justify-content:center; gap:18px; }
-          .lp-cta { padding:16px 36px; font-size:1.05rem; }
+          .lp-cta { padding:18px 44px; font-size:1.1rem; }
           .lp-sec { font-size:1rem; }
         }
 
