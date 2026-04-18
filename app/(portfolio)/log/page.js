@@ -123,17 +123,19 @@ export default async function LogPage() {
         .lp-acts { display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
         .lp-cta {
           display:inline-flex; align-items:center; justify-content:center;
-          padding:16px 36px; border-radius:999; border:none;
+          padding:16px 40px; border-radius:999; border:none;
           background:var(--accent,#234DC2); color:#fff;
-          font-family:'Outfit',sans-serif; font-size:1.05rem; font-weight:700;
+          font-family:'Outfit',sans-serif; font-size:1.1rem; font-weight:700;
           text-decoration:none; transition:opacity .15s,transform .15s;
+          letter-spacing:-0.01em;
         }
         .lp-cta:hover { opacity:.88; transform:translateY(-1px); }
         .lp-sec {
-          font-family:'Outfit',sans-serif; font-size:1.05rem; font-weight:600;
-          color:var(--log-text); text-decoration:none; transition:opacity .15s;
+          font-family:'Outfit',sans-serif; font-size:1.1rem; font-weight:500;
+          color:var(--log-text); text-decoration:none; opacity:0.85;
+          transition:opacity .15s;
         }
-        .lp-sec:hover { opacity:.6; }
+        .lp-sec:hover { opacity:.55; }
 
         /* ── Images ────────────────────────────────────── */
         .lp-hero-r { flex-shrink:0; position:relative; width:380px; height:360px; }
@@ -167,8 +169,8 @@ export default async function LogPage() {
           .lp-h1 { font-size:clamp(1.8rem,8vw,2.6rem); margin-bottom:10px; }
           .lp-sub { margin:0 auto 20px; font-size:.95rem; }
           .lp-acts { justify-content:center; gap:18px; }
-          .lp-cta { padding:14px 28px; font-size:.95rem; }
-          .lp-sec { font-size:.95rem; }
+          .lp-cta { padding:14px 32px; font-size:1rem; }
+          .lp-sec { font-size:1rem; }
         }
 
         @media (prefers-reduced-motion:reduce) { .lp-blob { display:none; } }
