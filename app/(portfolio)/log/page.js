@@ -185,9 +185,18 @@ export default async function LogPage() {
               </h1>
               {subtitle && <p className="lp-sub">{subtitle}</p>}
               {(btn1 || btn2) && (
-                <div className="lp-acts">
-                  {btn1 && <Link href={btn1Url} className="lp-cta">{btn1}</Link>}
-                  {btn2 && <Link href={btn2Url} className="lp-sec">{btn2}</Link>}
+                <div className="lp-acts" style={{ display:'flex', alignItems:'center', gap:'28px', flexWrap:'wrap' }}>
+                  {btn1 && <Link href={btn1Url} style={{
+                    display:'inline-flex', alignItems:'center', justifyContent:'center',
+                    padding:'20px 48px', borderRadius:'999px', border:'none',
+                    background:'var(--accent,#234DC2)', color:'#fff',
+                    fontFamily:"'Outfit',sans-serif", fontSize:'1.15rem', fontWeight:600,
+                    textDecoration:'none', letterSpacing:'-0.01em',
+                  }}>{btn1}</Link>}
+                  {btn2 && <Link href={btn2Url} style={{
+                    fontFamily:"'Outfit',sans-serif", fontSize:'1.1rem', fontWeight:400,
+                    color:'var(--log-text)', textDecoration:'none', opacity:0.8,
+                  }}>{btn2}</Link>}
                 </div>
               )}
             </div>
