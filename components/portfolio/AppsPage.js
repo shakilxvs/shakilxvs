@@ -10,11 +10,59 @@ const STATUS_STYLES = {
   'In Development': { bg:'rgba(255,255,255,0.05)',color:'#8a8a8a', border:'rgba(255,255,255,0.1)',label:'In Dev' },
 };
 
-function AppIcon({ name, size = 80 }) {
-  const letter   = (name?.[0] || 'A').toUpperCase();
+/* Google's favicon service resolves the target site's real favicon (including
+   modern <link rel="icon"> entries that don't sit at /favicon.ico). Returns null
+   for missing/malformed URLs so the caller can skip straight to the letter
+   fallback. If the domain is unreachable the <img> errors → onError → letter. */
+function getFaviconUrl(url) {
+  if (!url) return null;
+  try {
+    const hostname = new URL(url).hostname;
+    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
+  } catch {
+    return null;
+  }
+}
+
+/* 3-stage cascade: uploaded iconUrl → favicon from app URL → letter + gradient.
+   Matches the preview component in the admin so the admin sees exactly what
+   the public page will render. */
+function AppIcon({ name, iconUrl, url, size = 80 }) {
+  const faviconUrl = getFaviconUrl(url);
+  const [iconError,    setIconError]    = useState(false);
+  const [faviconError, setFaviconError] = useState(false);
+
+  // Reset error state when the underlying source URL changes (e.g. React reuses
+  // this component for a different app during search filter).
+  useEffect(() => { setIconError(false);    }, [iconUrl]);
+  useEffect(() => { setFaviconError(false); }, [url]);
+
+  const letter      = (name?.[0] || 'A').toUpperCase();
+  const showIcon    = iconUrl    && !iconError;
+  const showFavicon = !showIcon && faviconUrl && !faviconError;
+  const radius      = Math.round(size * 0.22);
+  const shadow      = '0 8px 24px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3)';
+
+  if (showIcon) {
+    return (
+      <div style={{ width:size, height:size, borderRadius:radius, overflow:'hidden', background:'var(--bg-elevated)', flexShrink:0, boxShadow:shadow }}>
+        <img src={iconUrl} alt={name||'icon'} onError={()=>setIconError(true)}
+          style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
+      </div>
+    );
+  }
+  if (showFavicon) {
+    return (
+      <div style={{ width:size, height:size, borderRadius:radius, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:shadow }}>
+        <img src={faviconUrl} alt={name||'favicon'} onError={()=>setFaviconError(true)}
+          style={{ width:'68%', height:'68%', objectFit:'contain', display:'block', userSelect:'none' }}/>
+      </div>
+    );
+  }
+  // Letter + gradient — original behaviour preserved.
   const gradient = getAppGradient(name);
   return (
-    <div style={{ width:size, height:size, borderRadius:Math.round(size*0.22), background:gradient, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:'0 8px 24px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3)' }}>
+    <div style={{ width:size, height:size, borderRadius:radius, background:gradient, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:shadow }}>
       <span style={{ fontFamily:'Bebas Neue, sans-serif', fontSize:size*0.5, color:'#fff', lineHeight:1, userSelect:'none' }}>
         {letter}
       </span>
@@ -40,7 +88,7 @@ function AppCard({ app, featured = false }) {
       )}
       {/* Card body */}
       <div style={{ padding: featured ? '20px 24px 24px' : '16px 20px 20px', display:'flex', flexDirection: featured ? 'row' : 'column', alignItems:'center', gap: featured ? '18px' : '12px', textAlign: featured ? 'left' : 'center' }}>
-        <AppIcon name={app.name} size={iconSize}/>
+        <AppIcon name={app.name} iconUrl={app.iconUrl} url={app.url} size={iconSize}/>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontFamily:'Outfit, sans-serif', fontWeight:700, fontSize: featured ? '1.05rem' : '0.9rem', color:'var(--text-1)', marginBottom:'6px', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
             {app.name}
