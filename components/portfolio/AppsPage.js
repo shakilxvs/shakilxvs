@@ -10,58 +10,113 @@ const STATUS_STYLES = {
   'In Development': { bg:'rgba(255,255,255,0.05)',color:'#8a8a8a', border:'rgba(255,255,255,0.1)',label:'In Dev' },
 };
 
-/* DuckDuckGo's favicon service — returns a real 404 when it has no favicon
-   indexed for the domain, which lets our onError cascade fall through to the
-   letter fallback. Google's /s2/favicons serves a generic globe placeholder
-   instead of 404ing, which breaks the fallback chain — don't use it here.
-   Returns null for missing/malformed URLs so the caller skips the favicon
-   stage entirely. */
-function getFaviconUrl(url) {
-  if (!url) return null;
+/* Build the list of candidate favicon URLs to try, in priority order.
+   - First: the site's own /favicon.ico (fast, no 3rd-party dependency, works
+     for anything with a conventional favicon).
+   - Then: DuckDuckGo's icon service as a fallback for modern sites that only
+     declare their favicon via <link rel="icon"> at a non-standard path.
+   We deliberately AVOID Google's /s2/favicons because it serves a generic
+   globe placeholder with 200 status — which defeats any fallback logic. */
+function getFaviconCandidates(url) {
+  if (!url) return [];
   try {
     const hostname = new URL(url).hostname;
-    return `https://icons.duckduckgo.com/ip3/${hostname}.ico`;
+    return [
+      `https://${hostname}/favicon.ico`,
+      `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
+    ];
   } catch {
-    return null;
+    return [];
   }
+}
+
+/* Preload + verify a candidate list in priority order. Resolves with the
+   first URL that actually loads as a real image, or null if none do.
+   naturalWidth>0 guards against broken-image responses that fire onload
+   with a 0x0 image (some error services do this). */
+function preloadFirstValid(urls) {
+  return new Promise(resolve => {
+    let i = 0;
+    const tryNext = () => {
+      if (i >= urls.length) { resolve(null); return; }
+      const src = urls[i++];
+      const img = new Image();
+      img.onload  = () => {
+        if (img.naturalWidth > 0 && img.naturalHeight > 0) resolve(src);
+        else tryNext();
+      };
+      img.onerror = tryNext;
+      img.src = src;
+    };
+    tryNext();
+  });
 }
 
 /* 3-stage cascade: uploaded iconUrl → favicon from app URL → letter + gradient.
    Matches the preview component in the admin so the admin sees exactly what
-   the public page will render. */
+   the public page will render.
+
+   Why we preload via new Image() instead of just rendering <img onError>:
+   1. Hydration-safe — server and client both render the letter fallback on
+      initial render (deterministic state, no dynamic branching). The image
+      upgrade happens exclusively via useEffect post-hydration, so there's
+      never a server/client HTML mismatch.
+   2. Reliable error detection — some favicon services return 200 with a
+      placeholder image, or 404 with an image body; <img onError> is
+      unreliable across these edge cases. naturalWidth>0 + onload is the
+      canonical way to verify a real image loaded.
+   3. No broken-image flash — we never mount an <img> tag for a URL that
+      won't load. */
 function AppIcon({ name, iconUrl, url, size = 80 }) {
-  const faviconUrl = getFaviconUrl(url);
-  const [iconError,    setIconError]    = useState(false);
-  const [faviconError, setFaviconError] = useState(false);
+  // loadedKind: null (letter) | 'icon' (uploaded) | 'favicon' (from URL)
+  // loadedSrc: the exact URL confirmed to load, passed to the <img> tag
+  const [loadedKind, setLoadedKind] = useState(null);
+  const [loadedSrc,  setLoadedSrc]  = useState(null);
 
-  // Reset error state when the underlying source URL changes (e.g. React reuses
-  // this component for a different app during search filter).
-  useEffect(() => { setIconError(false);    }, [iconUrl]);
-  useEffect(() => { setFaviconError(false); }, [url]);
+  useEffect(() => {
+    let cancelled = false;
+    setLoadedKind(null);
+    setLoadedSrc(null);
 
-  const letter      = (name?.[0] || 'A').toUpperCase();
-  const showIcon    = iconUrl    && !iconError;
-  const showFavicon = !showIcon && faviconUrl && !faviconError;
-  const radius      = Math.round(size * 0.22);
-  const shadow      = '0 8px 24px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3)';
+    (async () => {
+      // Priority 1: uploaded icon. Check independently so we know which
+      // styling branch to use (cover-fill vs. centered-on-white).
+      if (iconUrl) {
+        const ok = await preloadFirstValid([iconUrl]);
+        if (cancelled) return;
+        if (ok) { setLoadedKind('icon'); setLoadedSrc(ok); return; }
+      }
+      // Priority 2: favicon candidates derived from the app URL.
+      const favHit = await preloadFirstValid(getFaviconCandidates(url));
+      if (cancelled) return;
+      if (favHit) { setLoadedKind('favicon'); setLoadedSrc(favHit); }
+      // else: letter fallback (default state, no state change needed).
+    })();
 
-  if (showIcon) {
+    return () => { cancelled = true; };
+  }, [iconUrl, url]);
+
+  const letter = (name?.[0] || 'A').toUpperCase();
+  const radius = Math.round(size * 0.22);
+  const shadow = '0 8px 24px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.3)';
+
+  if (loadedKind === 'icon') {
     return (
       <div style={{ width:size, height:size, borderRadius:radius, overflow:'hidden', background:'var(--bg-elevated)', flexShrink:0, boxShadow:shadow }}>
-        <img src={iconUrl} alt={name||'icon'} onError={()=>setIconError(true)}
+        <img src={loadedSrc} alt={name||'icon'}
           style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
       </div>
     );
   }
-  if (showFavicon) {
+  if (loadedKind === 'favicon') {
     return (
       <div style={{ width:size, height:size, borderRadius:radius, background:'#fff', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:shadow }}>
-        <img src={faviconUrl} alt={name||'favicon'} onError={()=>setFaviconError(true)}
+        <img src={loadedSrc} alt={name||'favicon'}
           style={{ width:'68%', height:'68%', objectFit:'contain', display:'block', userSelect:'none' }}/>
       </div>
     );
   }
-  // Letter + gradient — original behaviour preserved.
+  // Letter + gradient — default state (initial render, still loading, or all sources failed)
   const gradient = getAppGradient(name);
   return (
     <div style={{ width:size, height:size, borderRadius:radius, background:gradient, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, boxShadow:shadow }}>
