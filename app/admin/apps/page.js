@@ -11,55 +11,53 @@ import { Plus, Trash2, GripVertical, Save, ChevronDown, ChevronUp, Star, ImagePl
 const STATUSES = ['Live', 'Beta', 'In Development'];
 const EMPTY    = { name:'', url:'', iconUrl:'', bannerUrl:'', status:'Live', featured:false, active:true };
 
-/* Build the list of candidate favicon URLs to try, in priority order.
-   - First: the site's own /favicon.ico (fast, no 3rd-party dependency, works for
-     anything with a conventional favicon).
-   - Then: DuckDuckGo's icon service as a fallback for modern sites that only
-     declare their favicon via <link rel="icon"> at a non-standard path.
-   We deliberately AVOID Google's /s2/favicons because it serves a generic
-   globe placeholder with 200 status — which defeats any fallback logic. */
-function getFaviconCandidates(url) {
-  if (!url) return [];
+/* Resolve an app URL to its real favicon URL by asking our server-side API.
+   The API fetches the target page's HTML (no CORS restriction server-side),
+   parses <link rel="icon"> declarations, and returns the resolved URL. This
+   works for modern Next.js/Vercel apps that serve favicons at custom paths
+   like /icon.png, /apple-icon.png, or hashed Next.js metadata URLs — none
+   of which are reachable via naive /favicon.ico probing.
+   Returns null for missing/malformed URLs or any server-side failure. */
+async function resolveFaviconUrl(url) {
+  if (!url) return null;
   try {
-    const hostname = new URL(url).hostname;
-    return [
-      `https://${hostname}/favicon.ico`,
-      `https://icons.duckduckgo.com/ip3/${hostname}.ico`,
-    ];
+    new URL(url); // validation — throws for malformed
   } catch {
-    return [];
+    return null;
+  }
+  try {
+    const res = await fetch(`/api/favicon?url=${encodeURIComponent(url)}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return (data && data.faviconUrl) || null;
+  } catch {
+    return null;
   }
 }
 
-/* Preload + verify a candidate list in priority order. Resolves with the
-   first URL that actually loads as a real image, or null if none do.
-   naturalWidth>0 guards against broken-image responses that fire onload
-   with a 0x0 image (some error services do this). */
-function preloadFirstValid(urls) {
+/* Preload + verify a single URL is a real loadable image. Resolves with the
+   URL if valid, or null otherwise. naturalWidth>0 guards against broken-
+   image responses that fire onload with a 0x0 image (some error services
+   do this) or placeholder images returned as 200 instead of 404. */
+function preloadImage(src) {
   return new Promise(resolve => {
-    let i = 0;
-    const tryNext = () => {
-      if (i >= urls.length) { resolve(null); return; }
-      const src = urls[i++];
-      const img = new Image();
-      img.onload  = () => {
-        if (img.naturalWidth > 0 && img.naturalHeight > 0) resolve(src);
-        else tryNext();
-      };
-      img.onerror = tryNext;
-      img.src = src;
-    };
-    tryNext();
+    if (!src) { resolve(null); return; }
+    const img = new Image();
+    img.onload  = () => resolve(img.naturalWidth > 0 && img.naturalHeight > 0 ? src : null);
+    img.onerror = () => resolve(null);
+    img.src     = src;
   });
 }
 
-/* Shared cascade: uploaded iconUrl → favicon from app URL → letter + gradient.
-   Same logic lives in components/portfolio/AppsPage.js so admin preview matches
-   what the public page renders. We always render the letter FIRST (server and
-   initial client render) — hydration-safe — then upgrade to a real image only
-   after useEffect confirms via Image preload that it actually loads. This
-   avoids: (a) hydration mismatches, (b) broken-image placeholders when a 3rd-
-   party icon service returns unexpected content for missing favicons. */
+/* Shared cascade: uploaded iconUrl → favicon discovered via /api/favicon
+   → letter + gradient. Same logic lives in components/portfolio/AppsPage.js
+   so admin preview matches what the public page renders.
+
+   We always render the letter FIRST (server render and initial client
+   render) — hydration-safe — then upgrade to a real image only after
+   useEffect confirms via Image preload that it actually loads. This avoids
+   (a) hydration mismatches, (b) broken-image placeholders, (c) the 404
+   console spam that the old direct-path-guessing approach caused. */
 function AppIconPreview({ name, iconUrl, url, size = 36 }) {
   // loadedKind: null (letter) | 'icon' (uploaded) | 'favicon' (from URL)
   // loadedSrc: the exact URL confirmed to load, passed to the <img> tag
@@ -73,17 +71,20 @@ function AppIconPreview({ name, iconUrl, url, size = 36 }) {
     setLoadedSrc(null);
 
     (async () => {
-      // Uploaded icon is priority 1 — check independently so we know which
-      // styling branch to use (object-fit: cover vs. favicon's centered look).
+      // Priority 1: uploaded icon — check independently so we can use the
+      // cover-fill styling branch (vs. favicon's centered-on-white styling).
       if (iconUrl) {
-        const ok = await preloadFirstValid([iconUrl]);
+        const ok = await preloadImage(iconUrl);
         if (cancelled) return;
         if (ok) { setLoadedKind('icon'); setLoadedSrc(ok); return; }
       }
-      // Fall through to favicon candidates built from the app URL.
-      const favHit = await preloadFirstValid(getFaviconCandidates(url));
+      // Priority 2: ask the server to find the real favicon URL, then verify
+      // it loads as a real image before rendering.
+      const faviconCandidate = await resolveFaviconUrl(url);
       if (cancelled) return;
-      if (favHit) { setLoadedKind('favicon'); setLoadedSrc(favHit); }
+      const verified = await preloadImage(faviconCandidate);
+      if (cancelled) return;
+      if (verified) { setLoadedKind('favicon'); setLoadedSrc(verified); }
       // else: stay on letter fallback (default null state).
     })();
 
