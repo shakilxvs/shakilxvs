@@ -10,15 +10,17 @@ const STATUS_STYLES = {
   'In Development': { bg:'rgba(255,255,255,0.05)',color:'#8a8a8a', border:'rgba(255,255,255,0.1)',label:'In Dev' },
 };
 
-/* Google's favicon service resolves the target site's real favicon (including
-   modern <link rel="icon"> entries that don't sit at /favicon.ico). Returns null
-   for missing/malformed URLs so the caller can skip straight to the letter
-   fallback. If the domain is unreachable the <img> errors → onError → letter. */
+/* DuckDuckGo's favicon service — returns a real 404 when it has no favicon
+   indexed for the domain, which lets our onError cascade fall through to the
+   letter fallback. Google's /s2/favicons serves a generic globe placeholder
+   instead of 404ing, which breaks the fallback chain — don't use it here.
+   Returns null for missing/malformed URLs so the caller skips the favicon
+   stage entirely. */
 function getFaviconUrl(url) {
   if (!url) return null;
   try {
     const hostname = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
+    return `https://icons.duckduckgo.com/ip3/${hostname}.ico`;
   } catch {
     return null;
   }
