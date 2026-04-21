@@ -11,15 +11,17 @@ import { Plus, Trash2, GripVertical, Save, ChevronDown, ChevronUp, Star, ImagePl
 const STATUSES = ['Live', 'Beta', 'In Development'];
 const EMPTY    = { name:'', url:'', iconUrl:'', bannerUrl:'', status:'Live', featured:false, active:true };
 
-/* Google's favicon service parses the target site's HTML to find the real favicon
-   (so it works for modern apps that use <link rel="icon"> tags NOT at /favicon.ico).
-   Returns null for missing/invalid URLs so the caller can skip straight to the
-   letter fallback. On network failure the <img> 404s → onError fires → letter. */
+/* DuckDuckGo's favicon service — returns a real 404 when it has no favicon
+   indexed for the domain, which lets our onError cascade fall through to the
+   letter fallback. Google's /s2/favicons serves a generic globe placeholder
+   instead of 404ing, which breaks the fallback chain — don't use it here.
+   Returns null for missing/malformed URLs so the caller skips the favicon
+   stage entirely. */
 function getFaviconUrl(url) {
   if (!url) return null;
   try {
     const hostname = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${hostname}&sz=128`;
+    return `https://icons.duckduckgo.com/ip3/${hostname}.ico`;
   } catch {
     return null;
   }
