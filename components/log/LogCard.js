@@ -73,7 +73,7 @@ function PhotoCard({ post, onOpen }) {
           don't need; a plain img is best here. */}
       <img
         src={post.media_url}
-        alt={post.title || ''}
+        alt={post.title?.trim() ? `${post.title.trim()} — Shakil Ahmed (@shakilxvs)` : 'Photography by Shakil Ahmed — @shakilxvs'}
         loading="lazy"
         decoding="async"
         style={{
@@ -155,7 +155,7 @@ function VideoCard({ post, onOpen }) {
         {poster ? (
           <img
             src={poster}
-            alt={post.title || ''}
+            alt={post.title?.trim() ? `${post.title.trim()} — Shakil Ahmed (@shakilxvs)` : 'Videography by Shakil Ahmed — @shakilxvs'}
             loading="lazy"
             decoding="async"
             style={{
