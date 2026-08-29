@@ -60,8 +60,8 @@ export default async function Page() {
 
   const aggregateSchema = avgRating && reviewCount >= 3 ? {
     '@context': 'https://schema.org',
-    '@type': 'Person',
-    name: 'Shakil Ahmed',
+    '@type': 'ProfessionalService',
+    name: 'Shakil Ahmed — Web Development & Digital Marketing',
     url: 'https://shakilxvs.com',
     aggregateRating: {
       '@type': 'AggregateRating',
