@@ -3,6 +3,11 @@ import { getLogPostById, getLogSettings } from '@/lib/firestore';
 
 export const dynamic = 'force-dynamic';
 
+// Always folded into per-post keywords so every /log/[id] page — the ones
+// most likely to rank for a specific photo/video — still carries the
+// core brand terms alongside whatever tags/keywords the post has.
+const BRAND_TERMS = ['Shakil Ahmed', 'shakilxvs'];
+
 // ─── SEO metadata per post ────────────────────────────────
 export async function generateMetadata({ params }) {
   const post = await getLogPostById(params.postId);
@@ -10,50 +15,77 @@ export async function generateMetadata({ params }) {
     return { title: 'Not found', robots: { index: false, follow: false } };
   }
   const title = post.seo_title?.trim()
-    || post.title?.trim()
-    || 'Log entry — shakilxvs';
+    || (post.title?.trim() ? `${post.title.trim()} — Shakil Ahmed` : 'Log entry — Shakil Ahmed (shakilxvs)');
   const description = post.seo_description?.trim()
     || post.description?.trim()?.slice(0, 160)
-    || 'A fragment from the log.';
+    || `A ${post.type} fragment from Shakil Ahmed's (@shakilxvs) daily log — photography, videography & cinematography.`;
   const ogImage = post.type === 'photo' ? post.media_url
     : post.type === 'video' ? post.media_thumbnail
     : null;
+  const keywordList = [
+    ...BRAND_TERMS,
+    ...(post.seo_keywords ? post.seo_keywords.split(',').map(s => s.trim()) : []),
+    ...(post.tags || []),
+  ].filter(Boolean);
+  const keywords = Array.from(new Set(keywordList)).join(', ');
 
   return {
     title,
     description,
-    keywords: post.seo_keywords || (post.tags || []).join(', '),
+    keywords,
     alternates: { canonical: `https://shakilxvs.com/log/${params.postId}` },
     openGraph: {
       title,
       description,
       url: `https://shakilxvs.com/log/${params.postId}`,
       type: 'article',
-      ...(ogImage ? { images: [{ url: ogImage }] } : {}),
+      siteName: 'Shakil Ahmed',
+      ...(ogImage ? { images: [{ url: ogImage, width: 1200, height: 630, alt: title }] } : {}),
     },
     twitter: {
       card: ogImage ? 'summary_large_image' : 'summary',
       title,
       description,
+      creator: '@shakilxvs',
       ...(ogImage ? { images: [ogImage] } : {}),
     },
   };
 }
 
+function buildBreadcrumbSchema(postId, title) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://shakilxvs.com' },
+      { '@type': 'ListItem', position: 2, name: 'Log',  item: 'https://shakilxvs.com/log' },
+      { '@type': 'ListItem', position: 3, name: title || 'Log entry', item: `https://shakilxvs.com/log/${postId}` },
+    ],
+  };
+}
+
 // ─── JSON-LD for search engines ───────────────────────────
 function buildJsonLd(post) {
+  const keywordList = [
+    ...BRAND_TERMS,
+    ...(post.seo_keywords ? post.seo_keywords.split(',').map(s => s.trim()) : []),
+    ...(post.tags || []),
+  ].filter(Boolean);
+
   const data = {
     '@context':     'https://schema.org',
     '@type':        'SocialMediaPosting',
     datePublished:  post.post_date?.seconds
       ? new Date(post.post_date.seconds * 1000).toISOString()
       : undefined,
-    headline:       post.title || undefined,
+    headline:       post.title || 'Log entry by Shakil Ahmed',
     articleBody:    post.description || undefined,
-    keywords:       post.seo_keywords || (post.tags || []).join(', ') || undefined,
+    keywords:       Array.from(new Set(keywordList)).join(', ') || undefined,
+    isPartOf: { '@type': 'WebSite', name: 'Shakil Ahmed', url: 'https://shakilxvs.com' },
     author: {
       '@type': 'Person',
       name:    'Shakil Ahmed',
+      alternateName: 'shakilxvs',
       url:     'https://shakilxvs.com',
     },
     mainEntityOfPage: `https://shakilxvs.com/log/${post.id}`,
@@ -116,6 +148,10 @@ export default async function LogDeepLinkPage({ params }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(plain)) }}
       />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildBreadcrumbSchema(plain.id, title)) }}
+      />
 
       {/* Redirect to modal experience. Crawlers ignore JS, real
           users see a brief dark flash then land on /log with the
@@ -149,7 +185,7 @@ export default async function LogDeepLinkPage({ params }) {
         </a>
 
         {plain.type === 'photo' && plain.media_url && (
-          <img src={plain.media_url} alt={title}
+          <img src={plain.media_url} alt={title ? `${title} — Shakil Ahmed (@shakilxvs)` : 'Photography by Shakil Ahmed — @shakilxvs'}
             style={{ display:'block', width:'100%', height:'auto', borderRadius:16, marginBottom:24 }}/>
         )}
         {plain.type === 'video' && plain.media_url && (
