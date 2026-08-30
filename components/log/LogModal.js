@@ -508,7 +508,7 @@ function ModalContent({ post, onClose }) {
         {/* Photo — media left */}
         {isPhoto && post.media_url && (
           <div className="log-m-media">
-            <img src={post.media_url} alt={post.title || ''}/>
+            <img src={post.media_url} alt={post.title?.trim() ? `${post.title.trim()} — Shakil Ahmed (@shakilxvs)` : 'Photography by Shakil Ahmed — @shakilxvs'}/>
           </div>
         )}
 
