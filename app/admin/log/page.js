@@ -575,14 +575,20 @@ function SettingsTab() {
     hero_image_1: '', hero_image_2: '',
     btn1_text: 'Blog', btn1_url: '/blog',
     btn2_text: 'Contact', btn2_url: '/contact',
+    page_keywords: '', page_meta_description: '',
+    show_profile_header: true,
+    profile_name: 'Shakil Ahmed', profile_handle: '@shakilxvs',
+    profile_bio: '', profile_avatar_url: '',
   });
   const [loading, setLoading]     = useState(true);
   const [saving,  setSaving]      = useState(false);
   const [dirty,   setDirty]       = useState(false);
   const [uploading1, setUploading1] = useState(false);
   const [uploading2, setUploading2] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const img1Ref = useRef(null);
   const img2Ref = useRef(null);
+  const avatarRef = useRef(null);
 
   useEffect(() => {
     getLogSettings().then(s => {
@@ -598,6 +604,13 @@ function SettingsTab() {
           btn1_url:          s.btn1_url          || '/blog',
           btn2_text:         s.btn2_text         || 'Contact',
           btn2_url:          s.btn2_url          || '/contact',
+          page_keywords:        s.page_keywords        || '',
+          page_meta_description: s.page_meta_description || '',
+          show_profile_header:  s.show_profile_header !== false,
+          profile_name:         s.profile_name         || 'Shakil Ahmed',
+          profile_handle:       s.profile_handle       || '@shakilxvs',
+          profile_bio:          s.profile_bio          || '',
+          profile_avatar_url:   s.profile_avatar_url   || '',
         });
       }
       setLoading(false);
@@ -617,6 +630,19 @@ function SettingsTab() {
       toast.success('Uploaded');
     } catch { toast.error('Upload failed'); }
     finally { setUpl(false); e.target.value = ''; }
+  };
+
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type?.startsWith('image/')) { toast.error('Select an image'); e.target.value = ''; return; }
+    setUploadingAvatar(true);
+    try {
+      const url = await uploadToCloudinary(file, 'log/profile');
+      set('profile_avatar_url', url);
+      toast.success('Uploaded');
+    } catch { toast.error('Upload failed'); }
+    finally { setUploadingAvatar(false); e.target.value = ''; }
   };
 
   const handleSave = async () => {
@@ -707,6 +733,83 @@ function SettingsTab() {
               <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginBottom:'5px' }}>SECONDARY</div>
               <input style={{ ...FI, marginBottom:'6px' }} value={local.btn2_text} onChange={e => set('btn2_text', e.target.value)} onFocus={foc} onBlur={blr} placeholder="Button text"/>
               <input style={FI} value={local.btn2_url} onChange={e => set('btn2_url', e.target.value)} onFocus={foc} onBlur={blr} placeholder="/contact"/>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Profile header (social-portal bar) ─────────── */}
+        <div style={{ margin:'26px 0 18px', paddingTop:'18px', borderTop:'1px solid var(--border-2)' }}>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'12px' }}>
+            Profile Header (social-portal bar)
+          </div>
+
+          <label style={{
+            display:'flex', alignItems:'center', gap:'10px',
+            padding:'10px 14px', background:'var(--bg-elevated)',
+            border:'1px solid var(--border-2)', borderRadius:'var(--radius-md)', cursor:'pointer',
+            marginBottom:'16px',
+          }}>
+            <input type="checkbox" checked={local.show_profile_header} onChange={e => set('show_profile_header', e.target.checked)} style={{ accentColor:'var(--accent)', width:15, height:15 }}/>
+            <span style={{ fontFamily:'Outfit,sans-serif', fontSize:'0.88rem', color:'var(--text-1)' }}>
+              Show profile bar (avatar, name, bio, stats, socials) at top of /log
+            </span>
+          </label>
+
+          <div style={{ display:'grid', gridTemplateColumns:'88px 1fr', gap:'14px', marginBottom:'16px' }}>
+            <div style={imgBox}>
+              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.5rem', color:'var(--text-3)', marginBottom:'6px' }}>AVATAR</div>
+              {local.profile_avatar_url ? (
+                <img src={local.profile_avatar_url} alt="" style={{ width:56, height:56, borderRadius:'50%', objectFit:'cover', marginBottom:'6px' }}/>
+              ) : (
+                <div style={{ width:56, height:56, borderRadius:'50%', background:'var(--accent-muted)', marginBottom:'6px' }}/>
+              )}
+              <button onClick={() => avatarRef.current?.click()} disabled={uploadingAvatar} style={{
+                padding:'5px 8px', background:'var(--accent)', color:'#fff', border:'none',
+                borderRadius:'var(--radius-sm)', fontFamily:'Outfit,sans-serif', fontSize:'0.65rem',
+                fontWeight:600, cursor: uploadingAvatar ? 'not-allowed' : 'pointer', width:'100%',
+              }}>{uploadingAvatar ? '…' : (local.profile_avatar_url ? 'Replace' : 'Upload')}</button>
+              <input ref={avatarRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleAvatarUpload}/>
+              <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.5rem', color:'var(--text-3)', marginTop:'4px' }}>
+                Falls back to hero image 1 if empty.
+              </div>
+            </div>
+
+            <div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px' }}>
+                <div>
+                  <label style={LB}>Display Name</label>
+                  <input style={FI} value={local.profile_name} onChange={e => set('profile_name', e.target.value)} onFocus={foc} onBlur={blr} placeholder="Shakil Ahmed"/>
+                </div>
+                <div>
+                  <label style={LB}>Handle</label>
+                  <input style={FI} value={local.profile_handle} onChange={e => set('profile_handle', e.target.value)} onFocus={foc} onBlur={blr} placeholder="@shakilxvs"/>
+                </div>
+              </div>
+              <label style={LB}>Bio</label>
+              <textarea style={{ ...FI, minHeight:60, resize:'vertical', fontFamily:'Outfit,sans-serif' }}
+                value={local.profile_bio} onChange={e => set('profile_bio', e.target.value)} onFocus={foc} onBlur={blr}
+                placeholder="Freelance CMS & web expert — sharing photography, videography, and cinematography from projects and daily life."/>
+            </div>
+          </div>
+        </div>
+
+        {/* ── SEO ──────────────────────────────────────────── */}
+        <div style={{ marginBottom:'18px', paddingTop:'18px', borderTop:'1px solid var(--border-2)' }}>
+          <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.6rem', color:'var(--accent)', textTransform:'uppercase', letterSpacing:'0.15em', marginBottom:'12px' }}>
+            SEO
+          </div>
+          <div style={{ marginBottom:'14px' }}>
+            <label style={LB}>Meta Description (overrides Page Subtitle in search results)</label>
+            <textarea style={{ ...FI, minHeight:60, resize:'vertical', fontFamily:'Outfit,sans-serif' }}
+              value={local.page_meta_description} onChange={e => set('page_meta_description', e.target.value)} onFocus={foc} onBlur={blr}
+              placeholder="Shakil Ahmed — photography, videography, and cinematography from daily life and client work."/>
+          </div>
+          <div>
+            <label style={LB}>Extra Keywords (comma-separated)</label>
+            <input style={FI} value={local.page_keywords} onChange={e => set('page_keywords', e.target.value)} onFocus={foc} onBlur={blr}
+              placeholder="wedding photographer, drone videography, Bogra photographer..."/>
+            <div style={{ fontFamily:'Space Mono,monospace', fontSize:'0.55rem', color:'var(--text-3)', marginTop:'5px' }}>
+              Added on top of built-in brand keywords (Shakil Ahmed, shakilxvs, etc.) and each post's own tags.
             </div>
           </div>
         </div>
