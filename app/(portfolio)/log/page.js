@@ -1,9 +1,21 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { getLogSettings, getPublishedLogPosts } from '@/lib/firestore';
+import { getLogSettings, getPublishedLogPosts, getPortfolioDoc } from '@/lib/firestore';
 import LogFeed from '@/components/log/LogFeed';
+import LogProfileHeader from '@/components/log/LogProfileHeader';
 
 export const dynamic = 'force-dynamic';
+
+// ─── Brand keywords ────────────────────────────────────────
+// Hardcoded so that "Shakil Ahmed", "shakilxvs", "Freelancer Shakil", etc.
+// are always present in this page's <meta keywords> and structured data —
+// even before the admin adds anything from Settings. Admin-entered
+// page_keywords (Settings tab) and post tags are merged in on top of these.
+const BRAND_KEYWORDS = [
+  'Shakil Ahmed', 'shakilxvs', 'Freelancer Shakil', 'Freelancer Shakil Ahmed',
+  'Shakil Ahmed photography', 'Shakil Ahmed videography', 'Shakil Ahmed cinematography',
+  'Shakil Ahmed daily log', 'Shakil web developer', 'Shakil Ahmed Bangladesh',
+];
 
 function serializePost(p) {
   const out = { ...p };
@@ -16,26 +28,68 @@ function serializePost(p) {
   return out;
 }
 
+function tsSeconds(ts) {
+  if (!ts) return 0;
+  if (typeof ts.seconds === 'number') return ts.seconds;
+  return 0;
+}
+
+function buildKeywords(settings, posts) {
+  const admin = (settings?.page_keywords || '')
+    .split(',').map(s => s.trim()).filter(Boolean);
+  const tagSet = new Set();
+  for (const p of posts) {
+    (Array.isArray(p.tags) ? p.tags : []).forEach(t => t && tagSet.add(t));
+  }
+  const merged = [...BRAND_KEYWORDS, ...admin, ...Array.from(tagSet).slice(0, 20)];
+  return Array.from(new Set(merged)); // dedupe, preserve order
+}
+
+function pickOgImage(settings, posts) {
+  const firstPhoto = posts.find(p => p.type === 'photo' && p.media_url);
+  const firstVideoThumb = posts.find(p => p.type === 'video' && p.media_thumbnail);
+  return firstPhoto?.media_url || firstVideoThumb?.media_thumbnail
+    || settings?.hero_image_1 || settings?.hero_image_2 || null;
+}
+
 export async function generateMetadata() {
-  const settings = await getLogSettings();
+  const [settings, rawPosts] = await Promise.all([
+    getLogSettings(),
+    getPublishedLogPosts().catch(() => []),
+  ]);
   if (!settings?.page_enabled) {
     return { title: 'Not found', robots: { index: false, follow: false } };
   }
   const t = [settings.page_title, settings.page_title_accent].filter(Boolean).join(' ') || 'log';
-  const sub = settings.page_subtitle || '';
+  const sub = settings.page_meta_description || settings.page_subtitle
+    || 'Shakil Ahmed — photography, videography, and cinematography from daily life and client work. Follow @shakilxvs.';
+  const title = `${t} — Shakil Ahmed (@shakilxvs)`;
+  const keywords = buildKeywords(settings, rawPosts).join(', ');
+  const ogImage = pickOgImage(settings, rawPosts);
+  const images = ogImage ? [{ url: ogImage, width: 1200, height: 630, alt: title }] : [];
+
   return {
-    title: `${t} — shakilxvs`,
-    description: sub || 'A personal feed.',
+    title,
+    description: sub,
+    keywords,
     alternates: { canonical: 'https://shakilxvs.com/log' },
-    openGraph: { title: `${t} — shakilxvs`, description: sub || 'A personal feed.', url: 'https://shakilxvs.com/log', type: 'website' },
-    twitter: { card: 'summary_large_image', title: `${t} — shakilxvs`, description: sub || 'A personal feed.' },
+    openGraph: {
+      title, description: sub, url: 'https://shakilxvs.com/log', type: 'profile', images,
+      siteName: 'Shakil Ahmed',
+    },
+    twitter: {
+      card: images.length ? 'summary_large_image' : 'summary',
+      title, description: sub, creator: '@shakilxvs',
+      ...(images.length ? { images: [ogImage] } : {}),
+    },
   };
 }
 
 export default async function LogPage() {
-  const [settings, rawPosts] = await Promise.all([
+  const [settings, rawPosts, contact] = await Promise.all([
     getLogSettings(),
     getPublishedLogPosts(),
+    getPortfolioDoc('contact').catch(() => null),
   ]);
 
   if (!settings?.page_enabled) redirect('/');
@@ -53,8 +107,94 @@ export default async function LogPage() {
   const btn2Url    = settings.btn2_url           || '/contact';
   const hasTitle   = !!(line1 || line2);
 
+  // ─── Profile header data ──────────────────────────────────
+  const profileName   = settings.profile_name || 'Shakil Ahmed';
+  const profileHandle = settings.profile_handle || '@shakilxvs';
+  const profileBio    = settings.profile_bio
+    || 'Freelance CMS & web expert — sharing photography, videography, and cinematography from projects and daily life.';
+  const profileAvatar = settings.profile_avatar_url || img1 || img2 || '';
+  const totalViews    = posts.reduce((s, p) => s + (Number(p.views) || 0), 0);
+  const years         = posts.map(p => tsSeconds(p.post_date) || tsSeconds(p.created_at)).filter(Boolean);
+  const sinceYear      = years.length ? new Date(Math.min(...years) * 1000).getFullYear() : null;
+  const showProfileHeader = settings.show_profile_header !== false;
+
+  // ─── Structured data ───────────────────────────────────────
+  const sameAs = [...new Set([
+    contact?.instagram, contact?.linkedin, contact?.twitter, contact?.facebook,
+    'https://github.com/shakilxvs',
+  ].filter(Boolean))];
+
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://shakilxvs.com' },
+      { '@type': 'ListItem', position: 2, name: 'Log',  item: 'https://shakilxvs.com/log' },
+    ],
+  };
+
+  const profileSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    dateCreated: posts.length ? new Date((years.length ? Math.min(...years) : Date.now() / 1000) * 1000).toISOString() : undefined,
+    mainEntity: {
+      '@type': 'Person',
+      name: profileName,
+      alternateName: ['Shakil', 'shakilxvs'],
+      url: 'https://shakilxvs.com',
+      description: profileBio,
+      ...(profileAvatar ? { image: profileAvatar } : {}),
+      sameAs,
+      knowsAbout: [
+        'Photography', 'Videography', 'Cinematography', 'Shopify Development',
+        'WordPress Development', 'Web Development', 'Digital Marketing',
+      ],
+    },
+  };
+
+  const galleryItems = posts.slice(0, 24).map((p, i) => {
+    const isVideo = p.type === 'video';
+    const isPhoto = p.type === 'photo';
+    const base = {
+      position: i + 1,
+      name: p.title?.trim() || `${profileName} — log entry`,
+      url: `https://shakilxvs.com/log/${p.id}`,
+      ...(p.description ? { description: p.description.slice(0, 200) } : {}),
+      ...((p.tags || []).length ? { keywords: p.tags.join(', ') } : {}),
+    };
+    if (isPhoto && p.media_url) {
+      return { '@type': 'ListItem', ...base, item: { '@type': 'ImageObject', contentUrl: p.media_url, name: base.name } };
+    }
+    if (isVideo && p.media_url) {
+      return {
+        '@type': 'ListItem', ...base,
+        item: {
+          '@type': 'VideoObject', contentUrl: p.media_url,
+          thumbnailUrl: p.media_thumbnail || undefined, name: base.name,
+          uploadDate: p.post_date?.seconds ? new Date(p.post_date.seconds * 1000).toISOString() : undefined,
+        },
+      };
+    }
+    return { '@type': 'ListItem', ...base, item: { '@type': 'CreativeWork', name: base.name } };
+  });
+
+  const collectionSchema = posts.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `${profileName} — Log`,
+    url: 'https://shakilxvs.com/log',
+    about: 'Photography, videography, and cinematography from Shakil Ahmed (shakilxvs).',
+    isPartOf: { '@type': 'WebSite', name: 'Shakil Ahmed', url: 'https://shakilxvs.com' },
+    mainEntity: { '@type': 'ItemList', itemListElement: galleryItems },
+  } : null;
+
   return (
     <div className="lp">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}/>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(profileSchema) }}/>
+      {collectionSchema && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}/>
+      )}
       <div className="lp-bg" aria-hidden="true">
         <div className="lp-blob lp-b1"/>
         <div className="lp-blob lp-b2"/>
@@ -177,6 +317,25 @@ export default async function LogPage() {
       `}</style>
 
       <div className="lp-w">
+        {showProfileHeader && (
+          <LogProfileHeader
+            name={profileName}
+            handle={profileHandle}
+            bio={profileBio}
+            avatarUrl={profileAvatar}
+            postCount={posts.length}
+            totalViews={totalViews}
+            sinceYear={sinceYear}
+            socials={{
+              instagram: contact?.showInstagram !== false ? contact?.instagram : null,
+              twitter:   contact?.showTwitter   !== false ? contact?.twitter   : null,
+              facebook:  contact?.showFacebook  !== false ? contact?.facebook  : null,
+              tiktok:    contact?.showTiktok    !== false ? contact?.tiktok    : null,
+              linkedin:  contact?.showLinkedin  !== false ? contact?.linkedin  : null,
+            }}
+          />
+        )}
+
         {posts.length > 0 && hasTitle && (
           <div className="lp-hero">
             <div className="lp-hero-l">
@@ -202,8 +361,8 @@ export default async function LogPage() {
             </div>
             {hasImgs && (
               <div className="lp-hero-r">
-                {img1 && <div className="lp-img lp-i1"><img src={img1} alt=""/></div>}
-                {img2 && <div className="lp-img lp-i2"><img src={img2} alt=""/></div>}
+                {img1 && <div className="lp-img lp-i1"><img src={img1} alt={`${profileName} — photography and cinematography`}/></div>}
+                {img2 && <div className="lp-img lp-i2"><img src={img2} alt={`${profileName} — behind the scenes`}/></div>}
               </div>
             )}
           </div>
