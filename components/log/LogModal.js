@@ -487,7 +487,7 @@ function ModalContent({ post, onClose }) {
             max-height: none;
           }
           .log-m-content-inner { max-height: none; }
-          .log-m-close { top: 10px; right: 10px; width: 34px; height: 34px; }
+          .log-m-close { top: 14px; right: 20px; width: 34px; height: 34px; }
           .log-m-single { max-width: 100%; }
           .log-m-single .log-m-content { border-top: none; }
         }
