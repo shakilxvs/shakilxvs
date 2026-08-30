@@ -44,12 +44,17 @@ function CardShell({ type, onOpen, children, extraStyle = {} }) {
         }
       `}</style>
       {children}
-      {/* Type badge */}
+      {/* Type badge. No backdrop-filter here on purpose — this renders on
+          every card in the masonry grid (potentially dozens as more load),
+          and stacking that many concurrent blur layers is a known iOS
+          Safari bug: it causes tiles to go blank mid-scroll and can even
+          corrupt the compositor enough to misplace unrelated fixed
+          elements (e.g. the navbar) until a repaint is forced. The bg
+          already has enough opacity to read clearly without the blur. */}
       <span style={{
         position: 'absolute', top: 10, right: 10,
         width: 26, height: 26, borderRadius: 8,
         background: 'var(--log-badge-bg, rgba(10,10,10,0.55))',
-        backdropFilter: 'blur(8px)',
         border: '1px solid var(--log-card-border, rgba(255,255,255,0.08))',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         color: 'var(--log-text, #f4f4f5)',
@@ -196,7 +201,8 @@ function VideoCard({ post, onOpen }) {
           />
         )}
 
-        {/* Frosted-glass play overlay */}
+        {/* Play overlay — no backdrop-filter (see note in CardShell above);
+            same reasoning applies, this repeats once per video card. */}
         <div style={{
           position: 'absolute', inset: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -205,7 +211,6 @@ function VideoCard({ post, onOpen }) {
           <div style={{
             width: 54, height: 54, borderRadius: '50%',
             background: 'var(--log-badge-bg, rgba(10,10,10,0.5))',
-            backdropFilter: 'blur(10px)',
             border: '1px solid rgba(255,255,255,0.2)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
