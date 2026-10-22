@@ -94,7 +94,7 @@ Modern web systems, internal platforms, and tools that make complex work easier.
 
 ## FEATURED SYSTEMS
 
-## removed
+
 
 ## GITHUB / TELEMETRY
 
